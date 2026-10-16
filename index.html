@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+</style>
+<title>Chemistry Revision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: a short study path (understand first, then test), then a lookup table of every card and where it's explained. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --card-red: #c8372f;
+  --lab-metal: #6b7f93;
+  --lab-precip: #2f8a57;
+  --lab-react: #a4481b;
+  --lab-bunsen: #1d5fd1;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+    --accent: #6ea8ff; --card-red: #d9483f;
+    --lab-metal: #a9b6c2; --lab-precip: #5cc48a; --lab-react: #f0a65a; --lab-bunsen: #7fb2ff;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+  --accent: #6ea8ff; --card-red: #d9483f;
+  --lab-metal: #a9b6c2; --lab-precip: #5cc48a; --lab-react: #f0a65a; --lab-bunsen: #7fb2ff;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 60rem; margin: 0 auto; padding-inline: 16px; padding-block: 2rem 3rem; display: grid; gap: 2rem; }
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(2rem, 6vw, 2.8rem); line-height: 1.05; letter-spacing: -.015em; margin: .3rem 0 0; }
+.lede { margin: .6rem 0 0; color: var(--muted); max-width: 58ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.35rem; margin: 0; }
+sub { font-size: .7em; line-height: 0; }
+
+.path { list-style: none; margin: 0; padding: 0; display: grid; gap: .9rem; counter-reset: step; }
+.path li { counter-increment: step; }
+.stop {
+  display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) auto; gap: 1rem; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem;
+  color: inherit; text-decoration: none; box-shadow: var(--shadow); border-left: 5px solid var(--c);
+  transition: transform .15s ease;
+}
+.stop:hover { transform: translateY(-2px); }
+.stop:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.stop::before {
+  content: counter(step); width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center;
+  font: 800 1.1rem var(--f-display); background: var(--c); color: var(--surface);
+}
+.stop h3 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 1.15rem; }
+.stop p { margin: .15rem 0 0; color: var(--muted); font-size: .93rem; }
+.stop .count { font: 500 .78rem var(--f-mono); color: var(--muted); text-align: right; white-space: nowrap; }
+.stop .count b { display: block; font: 800 1.4rem var(--f-display); color: var(--ink); }
+@media (max-width: 34rem) {
+  .stop { grid-template-columns: 2.6rem minmax(0, 1fr); }
+  .stop .count { grid-column: 2; text-align: left; }
+  .stop .count b { display: inline; font-size: 1rem; margin-right: .3rem; }
+}
+.tip { margin: 0; font-size: .93rem; color: var(--muted); max-width: 62ch; }
+
+.lookup { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.lookup-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto; gap: .75rem; padding: .6rem 1rem; border-top: 1px solid var(--line); align-items: center; font-size: .93rem; }
+.lookup-row:first-child { border-top: 0; }
+.lookup-row.head { font: 500 .7rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); background: var(--bg); }
+.lookup-row .q { font-weight: 700; }
+.tag { font: 500 .72rem var(--f-mono); padding: .15rem .5rem; border-radius: 999px; border: 1.5px solid var(--c); color: var(--c); white-space: nowrap; text-decoration: none; }
+.tag:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 34rem) {
+  .lookup-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .lookup-row .a { grid-column: 1; grid-row: 2; color: var(--muted); }
+  .lookup-row .tag-cell { grid-row: 1 / span 2; grid-column: 2; }
+  .lookup-row.head span:nth-child(2) { display: none; }
+}
+footer { font-size: .85rem; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Chemistry revision · 24 cards</p>
+    <h1>Chemistry Revision</h1>
+    <p class="lede">Understand it first, then test yourself. Work through the four labs in order, then use the flashcards to check what's stuck.</p>
+  </header>
+
+  <section style="display:grid;gap:1rem">
+    <h2>Study path</h2>
+    <ol class="path">
+      <li><a class="stop" style="--c:var(--lab-metal)" href="metals.html">
+        <div><h3>Inside a Metal</h3><p>How atoms hold together: the electron sea in metals, plus the small molecules H<sub>2</sub>, O<sub>2</sub>, H<sub>2</sub>O and CO<sub>2</sub>.</p></div>
+        <span class="count"><b>5</b>cards</span></a></li>
+      <li><a class="stop" style="--c:var(--lab-precip)" href="precipitate.html">
+        <div><h3>Precipitate Lab</h3><p>Ionic compounds, soluble vs insoluble, and ions swapping partners to make a solid.</p></div>
+        <span class="count"><b>6</b>cards</span></a></li>
+      <li><a class="stop" style="--c:var(--lab-react)" href="reactions.html">
+        <div><h3>Metal Reactions Lab</h3><p>Metals with acids, water and oxygen. How the product gets its name, and the acid formulas.</p></div>
+        <span class="count"><b>8</b>cards</span></a></li>
+      <li><a class="stop" style="--c:var(--lab-bunsen)" href="bunsen.html">
+        <div><h3>Bunsen Burner Lab</h3><p>Complete and incomplete combustion, and why the flame turns from blue to yellow.</p></div>
+        <span class="count"><b>5</b>cards</span></a></li>
+      <li><a class="stop" style="--c:var(--card-red)" href="flashcards.html">
+        <div><h3>Flashcards</h3><p>All 24 cards. Mark the ones you miss and they come back until you've got them.</p></div>
+        <span class="count"><b>24</b>cards</span></a></li>
+    </ol>
+    <p class="tip">Each lab ends with a quiz using examples that aren't on the sheet. If you can answer those, you understand the rule rather than just remembering the card.</p>
+  </section>
+
+  <section style="display:grid;gap:1rem">
+    <h2>Stuck on a card? Find where it's explained</h2>
+    <div class="lookup" id="lookup"></div>
+  </section>
+
+  <footer>Narration voice in the labs: Max, generated with ElevenLabs.</footer>
+</div>
+
+<script>
+const LABS = {
+  metal:  { name: "Inside a Metal", c: "var(--lab-metal)", url: "metals.html" },
+  precip: { name: "Precipitate Lab", c: "var(--lab-precip)", url: "precipitate.html" },
+  react:  { name: "Metal Reactions", c: "var(--lab-react)", url: "reactions.html" },
+  bunsen: { name: "Bunsen Burner", c: "var(--lab-bunsen)", url: "bunsen.html" },
+};
+const CARDS = [
+  ["Formula of hydrogen gas", "H<sub>2</sub>", "metal"],
+  ["Formula of oxygen gas", "O<sub>2</sub>", "metal"],
+  ["Formula of carbon dioxide gas", "CO<sub>2</sub>", "metal"],
+  ["Formula of water", "H<sub>2</sub>O", "metal"],
+  ["Metal structure", "Delocalised electrons moving freely between metal ions", "metal"],
+  ["Ionic compound", "Positive and negative ions electrostatically attracted", "precip"],
+  ["Soluble means", "Able to dissolve", "precip"],
+  ["Insoluble means", "Not able to dissolve", "precip"],
+  ["Precipitate reaction", "Two solutions mixed, a solid forms", "precip"],
+  ["Sodium hydroxide + lead nitrate →", "Sodium nitrate + lead hydroxide", "precip"],
+  ["Calcium chloride + sodium sulfate →", "Calcium sulfate + sodium chloride", "precip"],
+  ["Formula for hydrochloric acid", "HCl", "react"],
+  ["Formula for nitric acid", "HNO<sub>3</sub>", "react"],
+  ["Formula for sulfuric acid", "H<sub>2</sub>SO<sub>4</sub>", "react"],
+  ["Metal + oxygen →", "Metal oxide", "react"],
+  ["Metal + water →", "Metal hydroxide + hydrogen", "react"],
+  ["Metal + hydrochloric acid →", "Metal chloride + hydrogen gas", "react"],
+  ["Metal + sulfuric acid →", "Metal sulfate + hydrogen", "react"],
+  ["Metal + nitric acid →", "Metal nitrate + hydrogen", "react"],
+  ["Combustion reaction", "Fuel + oxygen makes energy (and carbon dioxide) and water", "bunsen"],
+  ["Fuel + (excess) oxygen →", "Carbon dioxide + water", "bunsen"],
+  ["Fuel + (less) oxygen →", "Carbon monoxide, carbon + water", "bunsen"],
+  ["Colour of flame in complete combustion", "Blue", "bunsen"],
+  ["Colour of flame in incomplete combustion", "Yellow (carbon/soot in the flame)", "bunsen"],
+];
+document.getElementById("lookup").innerHTML =
+  `<div class="lookup-row head"><span>Card</span><span>Answer</span><span>Explained in</span></div>` +
+  CARDS.map(([q, a, lab]) => {
+    const L = LABS[lab];
+    return `<div class="lookup-row"><span class="q">${q}</span><span class="a">${a}</span><span class="tag-cell"><a class="tag" style="--c:${L.c}" href="${L.url}" target="_blank" rel="noopener">${L.name}</a></span></div>`;
+  }).join("");
+</script>

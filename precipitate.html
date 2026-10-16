@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+</style>
+<title>Precipitate Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: pick two solutions; a dark bench shows the beaker and a zoomed-in view of the ions swapping partners; the side panel explains names, charges and solubility. Same family as the other labs. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --accent-ink: #ffffff;
+  --c-a: #1a5fb4;        /* parts that came from the first solution */
+  --c-b: #a4481b;        /* parts that came from the second solution */
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --hl: #e8eff9;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  --stage: #0c1218;
+  --stage-ink: #dce5ec;
+  --stage-muted: #9fb1bf;
+  --stage-line: #24313c;
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+    --accent: #6ea8ff; --accent-ink: #0b1622; --c-a: #7fb2ff; --c-b: #f0a65a;
+    --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --stage: #080d12; --stage-line: #1f2a34;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+  --accent: #6ea8ff; --accent-ink: #0b1622; --c-a: #7fb2ff; --c-b: #f0a65a;
+  --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --stage: #080d12; --stage-line: #1f2a34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: grid; gap: 1.5rem; }
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -.01em; margin: .25rem 0 0; text-wrap: balance; }
+header p.lede { margin: .5rem 0 0; color: var(--muted); max-width: 62ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+sub, sup { font-size: .7em; line-height: 0; }
+.a { color: var(--c-a); font-weight: 700; }
+.b { color: var(--c-b); font-weight: 700; }
+
+.picker { display: grid; gap: .6rem; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; }
+.row { display: flex; flex-wrap: wrap; gap: .4rem; }
+.chip {
+  font: 700 .9rem var(--f-body); border: 1.5px solid var(--line); background: var(--bg); color: var(--ink);
+  padding: .4rem .8rem; border-radius: 999px; cursor: pointer; display: inline-flex; gap: .45rem; align-items: baseline;
+}
+.chip .tag { font: 500 .66rem var(--f-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip[aria-pressed="true"] .tag { color: inherit; opacity: .8; }
+.picker-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.lab { display: grid; gap: 1.25rem; align-items: start; }
+@media (min-width: 56rem) { .lab { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+
+.bench { background: var(--stage); color: var(--stage-ink); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: grid; }
+#stage { display: block; width: 100%; aspect-ratio: 420 / 330; max-width: 100%; }
+.bench-controls { display: grid; gap: .8rem; padding: 1rem; border-top: 1px solid var(--stage-line); }
+.btn { font: 700 .95rem var(--f-body); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; border: 0; background: #6ea8ff; color: #0b1622; justify-self: start; }
+.bench .btn:focus-visible { outline-color: #6ea8ff; }
+.btn-row { display: flex; flex-wrap: wrap; gap: .6rem; }
+.bench .btn.voice { background: transparent; color: var(--stage-ink); border: 2px solid #33424f; }
+.phases { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; counter-reset: ph; }
+.phases li { counter-increment: ph; display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); gap: .5rem; color: #5e7080; font-size: .95rem; transition: color .25s; }
+.phases li::before { content: counter(ph); font: 500 .75rem var(--f-mono); width: 1.4rem; height: 1.4rem; border-radius: 50%; border: 1px solid #33424f; display: grid; place-items: center; margin-top: .1rem; }
+.phases li.past { color: var(--stage-muted); }
+.phases li.now { color: var(--stage-ink); }
+.phases li.now::before { background: #6ea8ff; color: #0b1622; border-color: #6ea8ff; }
+.key { display: flex; flex-wrap: wrap; gap: .4rem .9rem; font-size: .82rem; color: var(--stage-muted); }
+.key span { display: inline-flex; align-items: center; gap: .35rem; }
+.key i { width: .8rem; height: .8rem; border-radius: 50%; display: inline-block; }
+
+.panel { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .7rem; }
+.chip-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.wordeq { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.1rem, 3.4vw, 1.35rem); line-height: 1.4; text-wrap: balance; }
+.wordeq .q { color: var(--muted); }
+.wordeq em { font: 500 .68rem var(--f-mono); font-style: normal; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-left: .3rem; vertical-align: .15em; }
+.wordeq .prod.reveal { display: inline; animation: fade .5s ease-out; }
+@keyframes fade { from { opacity: .15; } to { opacity: 1; } }
+.swap-note { margin: 0; font-size: .92rem; color: var(--muted); }
+.eqsym { font: 500 .95rem var(--f-mono); background: var(--bg); border-radius: 8px; padding: .5rem .7rem; overflow-x: auto; white-space: nowrap; }
+.charge { display: grid; gap: .4rem; }
+.charge-row { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; font: 500 .95rem var(--f-mono); }
+.ion-pill { border-radius: 999px; padding: .15rem .55rem; font-weight: 500; color: #0b1622; }
+.charge p { margin: 0; font-size: .93rem; }
+.rules { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
+.rules li { font-size: .92rem; padding: .45rem .6rem; border-radius: 8px; color: var(--muted); border: 1px solid transparent; }
+.rules li.on { background: var(--hl); color: var(--ink); border-color: var(--line); }
+.defs { display: grid; gap: .5rem; }
+.defs div { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .75rem; font-size: .93rem; }
+.defs b { font-weight: 700; }
+
+.quiz { display: grid; gap: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.score { font: 500 .85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.qs { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; align-content: start; }
+.q p.ask { margin: 0; font-weight: 700; }
+.opts { display: grid; gap: .4rem; }
+.opt { text-align: left; font: 400 .95rem var(--f-body); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: .5rem .7rem; cursor: pointer; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); font-weight: 700; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { margin: 0; font-size: .92rem; color: var(--muted); }
+.why b { color: var(--ink); }
+
+.cards-list { display: grid; gap: .5rem; }
+.cards-list div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; font-size: .92rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.cards-list div:first-child { border-top: 0; padding-top: 0; }
+.cards-list .front { font-weight: 700; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+a { color: var(--accent); }
+@media (max-width: 30rem) {
+  .cards-list div, .defs div { grid-template-columns: 1fr; gap: .1rem; }
+}
+@media (prefers-reduced-motion: reduce) { .wordeq .prod.reveal { animation: none; } }
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <p class="eyebrow">Chemistry · Ionic compounds</p>
+    <h1>Precipitate Lab</h1>
+    <p class="lede">Mix two clear solutions and sometimes a solid appears out of nowhere. Zoom in to see the ions swap partners, and why one pair drops out. Pick a mix (or press Replay) with the sound on to hear it explained.</p>
+  </header>
+
+  <section class="picker" aria-label="Choose two solutions to mix">
+    <span class="picker-label">Mix</span>
+    <div class="row" id="rx-row"></div>
+  </section>
+
+  <section class="lab">
+    <div class="bench">
+      <canvas id="stage" role="img" aria-label="A beaker being mixed and a zoomed-in view of ions swapping partners"></canvas>
+      <div class="bench-controls">
+        <div class="btn-row">
+          <button class="btn" id="replay">↺ Replay</button>
+          <button class="btn voice" id="voice" aria-pressed="true">🔊 Voice on</button>
+        </div>
+        <ol class="phases" id="phases"></ol>
+        <div class="key" id="key"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <span class="chip-label">Swapping partners</span>
+        <div class="wordeq" id="wordeq"></div>
+        <p class="swap-note" id="swap-note"></p>
+        <div class="eqsym" id="eqsym"></div>
+      </div>
+      <div class="card">
+        <span class="chip-label">Why this one drops out</span>
+        <ul class="rules" id="rules"></ul>
+        <div class="defs">
+          <div><b>Soluble</b><span>Able to dissolve. The ions are more attracted to water than to each other, so water pulls them apart.</span></div>
+          <div><b>Insoluble</b><span>Not able to dissolve. The ions are more attracted to each other than to water, so they clump into a solid.</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="chip-label">The ionic compound</span>
+        <div class="charge" id="charge"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quiz">
+    <div class="quiz-head"><h2>Try ones that aren't on the sheet</h2><span class="score" id="score"></span></div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <section class="card">
+    <h2>Flashcards this explains</h2>
+    <div class="cards-list">
+      <div><span class="front">Precipitate reaction</span><span>Two solutions are mixed and a solid ionic compound (a precipitate) is formed</span></div>
+      <div><span class="front">Ionic compound</span><span>Positive and negative ions electrostatically attracted to form a neutral compound</span></div>
+      <div><span class="front">Soluble means</span><span>Able to dissolve (ions more attracted to water than to each other)</span></div>
+      <div><span class="front">Insoluble means</span><span>Not able to dissolve (ions more attracted to each other than to water)</span></div>
+      <div><span class="front">Sodium hydroxide + lead nitrate →</span><span>Sodium nitrate + lead hydroxide</span></div>
+      <div><span class="front">Calcium chloride + sodium sulfate →</span><span>Calcium sulfate + sodium chloride</span></div>
+    </div>
+    <p class="note">The first two reactions in the picker are the ones from the sheet; the others are extra practice. <a href="flashcards.html">Flashcards</a> · <a href="bunsen.html">Bunsen Burner Lab</a> · <a href="reactions.html">Metal Reactions Lab</a></p>
+  </section>
+  <p class="credit">Narration voice: Max, generated with ElevenLabs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const W = 420, H = 330, CX = 285, CY = 160, R = 124, T_END = 9.5;
+
+/* ---------- Data ---------- */
+const IONS = {
+  Pb:  { label: "Pb",  ch: "2+", q: 2,  r: 11, color: "#a7b1ba", name: "lead" },
+  Na:  { label: "Na",  ch: "+",  q: 1,  r: 9,  color: "#b48cff", name: "sodium" },
+  K:   { label: "K",   ch: "+",  q: 1,  r: 9,  color: "#e08cd8", name: "potassium" },
+  Ca:  { label: "Ca",  ch: "2+", q: 2,  r: 11, color: "#e9e1c4", name: "calcium" },
+  Ag:  { label: "Ag",  ch: "+",  q: 1,  r: 10, color: "#d7dde2", name: "silver" },
+  Cu:  { label: "Cu",  ch: "2+", q: 2,  r: 11, color: "#33c1d6", name: "copper" },
+  NO3: { label: "NO₃", ch: "−",  q: -1, r: 11, color: "#6b97f0", name: "nitrate" },
+  OH:  { label: "OH",  ch: "−",  q: -1, r: 9,  color: "#e5574c", name: "hydroxide" },
+  Cl:  { label: "Cl",  ch: "−",  q: -1, r: 10, color: "#5cc46a", name: "chloride" },
+  SO4: { label: "SO₄", ch: "2−", q: -2, r: 12, color: "#f2c94c", name: "sulfate" },
+};
+const IONF = { Pb: "Pb²⁺", Na: "Na⁺", K: "K⁺", Ca: "Ca²⁺", Ag: "Ag⁺", Cu: "Cu²⁺", NO3: "NO₃⁻", OH: "OH⁻", Cl: "Cl⁻", SO4: "SO₄²⁻" };
+
+const RX = {
+  pb: { label: "Lead nitrate + sodium hydroxide", sheet: true,
+        A: { cat: "Pb", an: "NO3", nc: 3, na: 6, liquid: "#8fc6e8" }, B: { cat: "Na", an: "OH", nc: 6, na: 6, liquid: "#8fc6e8" },
+        ppt: { color: "#f2f2ee", colorName: "white", formula: "Pb(OH)₂" }, stayF: "NaNO₃",
+        eq: "Pb(NO₃)₂ + 2NaOH → Pb(OH)₂(s) + 2NaNO₃", rules: ["oh", "na"] },
+  ca: { label: "Calcium chloride + sodium sulfate", sheet: true,
+        A: { cat: "Ca", an: "Cl", nc: 4, na: 8, liquid: "#8fc6e8" }, B: { cat: "Na", an: "SO4", nc: 8, na: 4, liquid: "#8fc6e8" },
+        ppt: { color: "#f2f2ee", colorName: "white", formula: "CaSO₄" }, stayF: "NaCl",
+        eq: "CaCl₂ + Na₂SO₄ → CaSO₄(s) + 2NaCl", rules: ["so4", "na"] },
+  ag: { label: "Silver nitrate + sodium chloride",
+        A: { cat: "Ag", an: "NO3", nc: 5, na: 5, liquid: "#8fc6e8" }, B: { cat: "Na", an: "Cl", nc: 5, na: 5, liquid: "#8fc6e8" },
+        ppt: { color: "#f2f2ee", colorName: "white", formula: "AgCl" }, stayF: "NaNO₃",
+        eq: "AgNO₃ + NaCl → AgCl(s) + NaNO₃", rules: ["cl", "na"] },
+  cu: { label: "Copper sulfate + sodium hydroxide",
+        A: { cat: "Cu", an: "SO4", nc: 3, na: 3, liquid: "#3d8fe0" }, B: { cat: "Na", an: "OH", nc: 6, na: 6, liquid: "#8fc6e8" },
+        ppt: { color: "#62b3ff", colorName: "pale blue", formula: "Cu(OH)₂" }, stayF: "Na₂SO₄",
+        eq: "CuSO₄ + 2NaOH → Cu(OH)₂(s) + Na₂SO₄", rules: ["oh", "na"] },
+  none: { label: "Sodium chloride + potassium nitrate", none: true,
+        A: { cat: "Na", an: "Cl", nc: 5, na: 5, liquid: "#8fc6e8" }, B: { cat: "K", an: "NO3", nc: 5, na: 5, liquid: "#8fc6e8" },
+        eq: "NaCl + KNO₃ → no precipitate (all ions stay dissolved)", rules: ["na", "cl"] },
+};
+const RULES = {
+  na:  "Sodium, potassium and nitrate compounds are always soluble.",
+  oh:  "Most hydroxides are insoluble (sodium and potassium hydroxide are the exceptions).",
+  cl:  "Most chlorides are soluble. Silver chloride and lead chloride are not.",
+  so4: "Most sulfates are soluble. Barium and lead sulfate are not, and calcium sulfate is only slightly soluble.",
+};
+const ORDER = ["pb", "ca", "ag", "cu", "none"];
+let cur = "pb";
+
+/* ---------- Names ---------- */
+const nm = k => IONS[k].name;
+function cmpName(cat, an) { return `${nm(cat)} ${nm(an)}`; }
+function renderWordEq(t) {
+  const r = RX[cur], A = r.A, B = r.B;
+  const left = `<span class="a">${nm(A.cat)}</span> <span class="a">${nm(A.an)}</span> + <span class="b">${nm(B.cat)}</span> <span class="b">${nm(B.an)}</span> → `;
+  const show = t >= 5.5;
+  let right;
+  if (!show) right = `<span class="q">?</span>`;
+  else if (r.none) right = `<span class="prod reveal"><span class="b">${nm(B.cat)}</span> <span class="a">${nm(A.an)}</span><em>dissolved</em> + <span class="a">${nm(A.cat)}</span> <span class="b">${nm(B.an)}</span><em>dissolved</em></span>`;
+  else right = `<span class="prod reveal"><span class="a">${nm(A.cat)}</span> <span class="b">${nm(B.an)}</span><em>solid</em> + <span class="b">${nm(B.cat)}</span> <span class="a">${nm(A.an)}</span><em>dissolved</em></span>`;
+  const key = cur + show;
+  if ($("wordeq").dataset.k === key) return;
+  $("wordeq").dataset.k = key;
+  $("wordeq").innerHTML = left + right;
+}
+function renderPanel() {
+  const r = RX[cur], A = r.A, B = r.B;
+  $("swap-note").innerHTML = r.none
+    ? `The positive ions swap partners, but both new pairs are soluble, so nothing comes out of the solution.`
+    : `The positive ions swap partners. <b>${cap(cmpName(A.cat, B.an))}</b> is insoluble, so it comes out as a ${r.ppt.colorName} solid: the precipitate. ${cap(cmpName(B.cat, A.an))} stays dissolved.`;
+  $("eqsym").textContent = r.eq;
+  $("rules").innerHTML = Object.entries(RULES).map(([k, txt]) => `<li class="${r.rules.includes(k) ? "on" : ""}">${txt}</li>`).join("");
+  // Charge balance for the precipitate (or, with no precipitate, one of the new pairs)
+  const cat = A.cat, an = r.none ? B.an : B.an;
+  const qc = IONS[cat].q, qa = -IONS[an].q;
+  const nCat = qa / gcd(qc, qa), nAn = qc / gcd(qc, qa);
+  const pill = k => `<span class="ion-pill" style="background:${IONS[k].color}">${IONF[k]}</span>`;
+  const row = Array(nCat).fill(pill(cat)).concat(Array(nAn).fill(pill(an))).join(" ");
+  const total = `(${nCat > 1 ? nCat + " × " : ""}+${qc}) + (${nAn > 1 ? nAn + " × " : ""}−${qa}) = 0`;
+  const formula = r.none ? (cat === "Na" ? "NaNO₃" : "") : r.ppt.formula;
+  $("charge").innerHTML = `
+    <div class="charge-row">${row}<span>→ ${r.none ? "sodium nitrate, NaNO₃" : cmpName(cat, an) + ", " + formula}</span></div>
+    <p>An ionic compound is positive and negative ions held together by electrostatic attraction. The charges have to cancel out so the compound is neutral: ${total}.</p>
+    ${nAn > 1 ? `<p>That's why it takes <b>two</b> ${IONF[an]} for every ${IONF[cat]}.</p>` : nCat > 1 ? `<p>That's why it takes <b>two</b> ${IONF[cat]} for every ${IONF[an]}.</p>` : `<p>The charges are equal and opposite, so they pair up one to one.</p>`}`;
+  $("key").innerHTML = [A.cat, A.an, B.cat, B.an].map(k => `<span><i style="background:${IONS[k].color}"></i>${IONF[k]} ${nm(k)}</span>`).join("");
+}
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+const cap = s => s[0].toUpperCase() + s.slice(1);
+
+function phasesFor(key) {
+  const r = RX[key], A = r.A, B = r.B;
+  const p0 = `Before mixing, each solution has its ions spread out among water molecules. They're dissolved, so the liquids look clear${key === "cu" ? " (copper sulfate is blue because of the copper ions)" : ""}.`;
+  const p1 = "Pour them together. Now all four kinds of ion move around in the same water, bumping into each other.";
+  if (r.none) return [
+    [0, p0], [2, p1],
+    [3.5, `The ions meet new partners, but every pair (sodium chloride, sodium nitrate, potassium chloride, potassium nitrate) is soluble. Water keeps them apart.`],
+    [6, "No precipitate forms. The mixture stays clear."],
+  ];
+  return [
+    [0, p0], [2, p1],
+    [3.5, `${cap(nm(A.cat))} ions (${IONF[A.cat]}) and ${nm(B.an)} ions (${IONF[B.an]}) attract each other more strongly than the water pulls them apart, so they lock together.`],
+    [5.5, `They build up into a solid: ${cmpName(A.cat, B.an)}. It's insoluble, so it clouds the liquid and slowly sinks. That's the precipitate.`],
+    [7.5, `The ${nm(B.cat)} and ${nm(A.an)} ions stay dissolved and keep moving. They don't change, so they're called spectator ions.`],
+  ];
+}
+
+/* ---------- Simulation ---------- */
+let ions = [], waters = [], specks = [], sites = [], t = 0, playing = false;
+const rand = (a, b) => a + Math.random() * (b - a);
+function placeIn(side, r) {
+  for (let k = 0; k < 50; k++) {
+    const x = side < 0 ? rand(CX - R + 14, CX - 10) : rand(CX + 10, CX + R - 14);
+    const y = rand(CY - R + 20, CY + R - 20);
+    if (Math.hypot(x - CX, y - CY) < R - r - 6) return [x, y];
+  }
+  return [CX + side * 50, CY];
+}
+function buildSim() {
+  const r = RX[cur];
+  ions = [];
+  const addMany = (k, n, side, ppt) => {
+    for (let i = 0; i < n; i++) {
+      const [x, y] = placeIn(side, IONS[k].r);
+      ions.push({ k, x, y, vx: rand(-20, 20), vy: rand(-20, 20), side, ppt, site: null, locked: false, lockAt: 0 });
+    }
+  };
+  addMany(r.A.cat, r.A.nc, -1, !r.none);
+  addMany(r.A.an, r.A.na, -1, false);
+  addMany(r.B.cat, r.B.nc, 1, false);
+  addMany(r.B.an, r.B.na, 1, !r.none);
+  // Lattice sites near the bottom of the zoom circle
+  sites = [];
+  if (!r.none) {
+    const pptIons = ions.filter(i => i.ppt);
+    const cats = pptIons.filter(i => IONS[i.k].q > 0), ans = pptIons.filter(i => IONS[i.k].q < 0);
+    const n = pptIons.length, perRow = Math.min(6, Math.ceil(n / 2)), rows = Math.ceil(n / perRow);
+    const grid = [];
+    for (let row = 0; row < rows; row++) for (let c = 0; c < perRow; c++) {
+      if (grid.length < n) grid.push({ x: CX + (c - (perRow - 1) / 2) * 23 + (row % 2 ? 6 : 0), y: CY + 92 - row * 22, row, c });
+    }
+    // Spread cations evenly through the lattice so it alternates + and −
+    const step = n / cats.length;
+    const catIdx = new Set(cats.map((_, i) => Math.floor(i * step + step / 2) % n));
+    let ci = 0, ai = 0;
+    grid.forEach((g, gi) => {
+      const ion = catIdx.has(gi) && ci < cats.length ? cats[ci++] : ans[ai++] || cats[ci++];
+      if (ion) { ion.site = g; sites.push(g); }
+    });
+    // Ions join the solid one after another, nearest-first
+    pptIons.sort((a, b) => (a.site.row - b.site.row) || Math.abs(a.site.c - 2.5) - Math.abs(b.site.c - 2.5));
+    pptIons.forEach((ion, i) => { ion.lockAt = 3.5 + i * (2.6 / pptIons.length); });
+  }
+  waters = Array.from({ length: 40 }, () => {
+    const a = rand(0, Math.PI * 2), d = Math.sqrt(Math.random()) * (R - 8);
+    return { x: CX + Math.cos(a) * d, y: CY + Math.sin(a) * d, ph: rand(0, 6.28) };
+  });
+  specks = Array.from({ length: r.none ? 0 : 90 }, () => ({ x: rand(30, 110), y0: rand(196, 284), y: 0, show: rand(3.6, 5.6), sink: rand(6, 8.5), bottom: rand(284, 291), rr: rand(1, 2.2) }));
+}
+
+function step(dt) {
+  advanceTime(dt);
+  const mixed = t >= 2.2;
+  for (const p of ions) {
+    const r = IONS[p.k].r;
+    if (p.locked) continue;
+    if (p.site && t >= p.lockAt) {
+      const dx = p.site.x - p.x, dy = p.site.y - p.y, d = Math.hypot(dx, dy);
+      if (d < 1.5 || reduceMotion) { p.x = p.site.x; p.y = p.site.y; p.locked = true; continue; }
+      const sp = Math.min(90, d * 2.2 + 20);
+      p.vx += ((dx / d) * sp - p.vx) * Math.min(1, dt * 6);
+      p.vy += ((dy / d) * sp - p.vy) * Math.min(1, dt * 6);
+    } else {
+      p.vx += rand(-1, 1) * 160 * dt; p.vy += rand(-1, 1) * 160 * dt;
+      const sp = Math.hypot(p.vx, p.vy), max = 34;
+      if (sp > max) { p.vx *= max / sp; p.vy *= max / sp; }
+    }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    // Keep inside the circle
+    const dx = p.x - CX, dy = p.y - CY, d = Math.hypot(dx, dy), lim = R - r - 4;
+    if (d > lim) { p.x = CX + dx / d * lim; p.y = CY + dy / d * lim; p.vx -= dx / d * 30; p.vy -= dy / d * 30; }
+    // Keep each solution on its own side until mixed
+    if (!mixed) {
+      if (p.side < 0 && p.x > CX - 6 - r) { p.x = CX - 6 - r; p.vx = -Math.abs(p.vx); }
+      if (p.side > 0 && p.x < CX + 6 + r) { p.x = CX + 6 + r; p.vx = Math.abs(p.vx); }
+    }
+    // Free ions stay out of the solid's space
+    if (!p.site || t < p.lockAt) {
+      if (t > 3.5 && sites.length && p.y > CY + 64 - r) { p.y = CY + 64 - r; p.vy = -Math.abs(p.vy); }
+    }
+  }
+}
+
+/* ---------- Drawing ---------- */
+const canvas = $("stage"), ctx = canvas.getContext("2d");
+let dpr = 1, scale = 1;
+function resize() {
+  const w = canvas.clientWidth || W;
+  dpr = Math.min(2, window.devicePixelRatio || 1); scale = w / W;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(canvas); resize();
+
+function mixColor(c1, c2, k) {
+  const p = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+  const a = p(c1), b = p(c2);
+  return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(",")})`;
+}
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const ease = k => k * k * (3 - 2 * k);
+
+function drawMacro(now) {
+  const r = RX[cur];
+  const pour = clamp01((t - 2) / 1.5);
+  const level = 236 - 46 * ease(pour);
+  // Liquid in the beaker
+  ctx.globalAlpha = .3;
+  ctx.fillStyle = mixColor(r.A.liquid, r.B.liquid, pour * .5);
+  ctx.fillRect(24, level, 92, 294 - level);
+  ctx.globalAlpha = .7; ctx.fillRect(24, level, 92, 2); ctx.globalAlpha = 1;
+  // Cloudiness then settling
+  for (const s of specks) {
+    if (t < s.show) continue;
+    const a = clamp01((t - s.show) / .8);
+    const k = ease(clamp01((t - s.sink) / 2.5));
+    const y = s.y0 + (s.bottom - s.y0) * k;
+    ctx.globalAlpha = .85 * a;
+    ctx.fillStyle = r.ppt.color;
+    ctx.beginPath(); ctx.arc(s.x + Math.sin(now + s.y0) * (1 - k) * 1.5, Math.max(level + 3, y), s.rr, 0, 7); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // Beaker glass
+  ctx.strokeStyle = "#b9c7d3"; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(18, 120); ctx.lineTo(22, 120); ctx.lineTo(22, 290); ctx.quadraticCurveTo(22, 296, 28, 296);
+  ctx.lineTo(112, 296); ctx.quadraticCurveTo(118, 296, 118, 290); ctx.lineTo(118, 120); ctx.lineTo(122, 120); ctx.stroke();
+  // Second solution being poured from a small beaker
+  const tilt = pour < 1 ? Math.min(1, t / 2) * (t < 3.6 ? 1 : 0) : 0;
+  const away = clamp01((t - 3.6) / .6);
+  ctx.save();
+  ctx.translate(96 + away * 30, 72 - away * 20);
+  ctx.rotate(-tilt * .9);
+  ctx.globalAlpha = 1 - away;
+  const left = 1 - pour;
+  ctx.fillStyle = r.B.liquid; ctx.globalAlpha = (1 - away) * .35;
+  ctx.fillRect(-20, 26 - 34 * left, 40, 34 * left);
+  ctx.globalAlpha = 1 - away;
+  ctx.strokeStyle = "#b9c7d3"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-22, -10); ctx.lineTo(-20, -10); ctx.lineTo(-20, 26); ctx.lineTo(20, 26); ctx.lineTo(20, -10); ctx.lineTo(22, -10); ctx.stroke();
+  ctx.restore();
+  ctx.globalAlpha = 1;
+  if (t > 2 && t < 3.5) {
+    ctx.strokeStyle = r.B.liquid; ctx.globalAlpha = .6; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(74, 66); ctx.quadraticCurveTo(66, 100, 66, level); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace'; ctx.fillStyle = "#7f93a3"; ctx.textAlign = "center";
+  ctx.fillText("IN THE BEAKER", 70, 320);
+  if (!r.none && t > 9) { ctx.fillStyle = "#c4ccd3"; ctx.font = '600 11px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.fillText("precipitate ↓", 70, 270); }
+}
+
+function drawIon(p) {
+  const I = IONS[p.k];
+  ctx.fillStyle = I.color;
+  ctx.beginPath(); ctx.arc(p.x, p.y, I.r, 0, 7); ctx.fill();
+  ctx.strokeStyle = "#0f1922"; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = "#0b1622";
+  ctx.font = `700 ${I.label.length > 2 ? 8 : 9}px "Atkinson Hyperlegible", system-ui, sans-serif`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(I.label, p.x, p.y + .5);
+  ctx.fillStyle = "#ffd24a"; ctx.font = '700 9px "IBM Plex Mono", monospace';
+  ctx.fillText(I.ch, p.x + I.r + 2, p.y - I.r + 1);
+  ctx.textBaseline = "alphabetic";
+}
+
+function drawZoom(now) {
+  const r = RX[cur];
+  // magnifier link
+  ctx.strokeStyle = "#33424f"; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(118, 220); ctx.lineTo(CX - R + 2, 190); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = "#0f1922"; ctx.beginPath(); ctx.arc(CX, CY, R, 0, 7); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(CX, CY, R - 1, 0, 7); ctx.clip();
+  // water molecules, faint
+  ctx.fillStyle = "#6fa8dc"; ctx.globalAlpha = .18;
+  for (const w of waters) { ctx.beginPath(); ctx.arc(w.x + Math.sin(now * 1.3 + w.ph) * 3, w.y + Math.cos(now * 1.1 + w.ph) * 3, 3, 0, 7); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  // divider before mixing
+  const div = 1 - clamp01((t - 2) / .5);
+  if (div > 0) {
+    ctx.globalAlpha = div; ctx.strokeStyle = "#4a5b68"; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(CX, CY - R); ctx.lineTo(CX, CY + R); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "#9fb1bf"; ctx.font = '600 10.5px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.textAlign = "center";
+    ctx.fillText(cmpName(r.A.cat, r.A.an), CX - 56, CY - R + 44);
+    ctx.fillText(cmpName(r.B.cat, r.B.an), CX + 56, CY - R + 44);
+    ctx.globalAlpha = 1;
+  }
+  // solid backdrop behind locked ions
+  const locked = ions.filter(i => i.locked);
+  if (locked.length > 1) {
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    for (const p of locked) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); }
+    ctx.fillStyle = r.ppt.color; ctx.globalAlpha = .14;
+    ctx.beginPath(); ctx.roundRect(x0 - 16, y0 - 16, x1 - x0 + 32, y1 - y0 + 32, 10); ctx.fill(); ctx.globalAlpha = 1;
+  }
+  // attraction lines between neighbours in the solid
+  ctx.strokeStyle = "rgba(255,210,74,.35)"; ctx.lineWidth = 1.2;
+  for (let i = 0; i < locked.length; i++) for (let j = i + 1; j < locked.length; j++) {
+    const a = locked[i], b = locked[j];
+    if (Math.sign(IONS[a.k].q) !== Math.sign(IONS[b.k].q) && Math.hypot(a.x - b.x, a.y - b.y) < 32) {
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+  }
+  for (const p of ions) if (!p.locked) drawIon(p);
+  for (const p of locked) drawIon(p);
+  ctx.restore();
+  ctx.strokeStyle = "#33424f"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(CX, CY, R, 0, 7); ctx.stroke();
+  // labels
+  ctx.textAlign = "center"; ctx.font = '600 11px "Atkinson Hyperlegible", system-ui, sans-serif';
+  if (!r.none && t > 6) { ctx.fillStyle = "#ffd24a"; ctx.globalAlpha = clamp01((t - 6) / .6); ctx.fillText("solid: " + cmpName(r.A.cat, r.B.an), CX, CY + R + 16); ctx.globalAlpha = 1; }
+  if (t > 7.5 && !r.none) { ctx.fillStyle = "#9fb1bf"; ctx.globalAlpha = clamp01((t - 7.5) / .6); ctx.fillText("spectator ions keep moving", CX, CY - R - 8 + 24 + 0); ctx.globalAlpha = 1; }
+  ctx.fillStyle = "#7f93a3"; ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
+  ctx.fillText(r.none || t <= 6 ? "ZOOMED IN ABOUT 100 MILLION TIMES" : "", CX, CY + R + 16);
+}
+
+function draw(now) {
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  ctx.fillStyle = "#0c1218"; ctx.fillRect(0, 0, W, H);
+  drawMacro(now);
+  drawZoom(now);
+}
+
+function renderPhases() {
+  const lis = $("phases").children; let c = 0;
+  phases.forEach(([pt], i) => { if (t >= pt) c = i; });
+  for (let i = 0; i < lis.length; i++) lis[i].className = i < c ? "past" : i === c ? "now" : "";
+}
+
+/* ---------- Narration (Max, ElevenLabs) ----------
+   One clip per step. The timeline holds at the end of each step until Max
+   has finished talking about it; the ions keep moving while it waits. */
+const audioCache = {};
+const clipOf = name => audioCache[name] || (audioCache[name] = Object.assign(new Audio(`audio/${name}.mp3`), { preload: "auto" }));
+let voiceOn = true;
+try { voiceOn = localStorage.getItem("precip-voice") !== "off"; } catch {}
+const narr = { phase: -1, clip: null };
+function clipNames(key) {
+  const head = [key === "cu" ? "precip-intro-cu" : "precip-intro", "precip-pour"];
+  return head.concat(key === "none" ? ["none-3", "none-4"] : [key + "-3", key + "-4", key + "-5"]);
+}
+function stopVoice() { if (narr.clip) narr.clip.pause(); narr.clip = null; }
+function speakPhase(i) {
+  stopVoice();
+  if (!voiceOn || !playing) return;
+  const name = clipNames(cur)[i];
+  if (!name) return;
+  const a = clipOf(name);
+  try { a.currentTime = 0; } catch {}
+  narr.clip = a;
+  const p = a.play();
+  if (p && p.catch) p.catch(() => { if (narr.clip === a) narr.clip = null; });
+}
+const speaking = () => !!(narr.clip && !narr.clip.paused && !narr.clip.ended);
+function phaseIndexAt(time) { let k = 0; phases.forEach(([pt], i) => { if (time >= pt) k = i; }); return k; }
+function advanceTime(dt) {
+  if (!playing) return;
+  let next = t + dt;
+  const k = phaseIndexAt(t);
+  const boundary = k + 1 < phases.length ? phases[k + 1][0] : T_END;
+  if (speaking() && next >= boundary) next = boundary - 0.001;
+  t = next;
+  const k2 = phaseIndexAt(t);
+  if (k2 !== narr.phase) { narr.phase = k2; speakPhase(k2); }
+  if (t >= T_END) { t = T_END; playing = false; }
+}
+function updateVoice() {
+  $("voice").textContent = voiceOn ? "🔊 Voice on" : "🔇 Voice off";
+  $("voice").setAttribute("aria-pressed", String(voiceOn));
+}
+$("voice").onclick = () => {
+  voiceOn = !voiceOn;
+  try { localStorage.setItem("precip-voice", voiceOn ? "on" : "off"); } catch {}
+  if (!voiceOn) stopVoice(); else if (playing) speakPhase(narr.phase);
+  updateVoice();
+};
+function restart() { stopVoice(); buildSim(); t = 0; narr.phase = -1; playing = true; $("wordeq").dataset.k = ""; }
+
+/* ---------- Picker + lifecycle ---------- */
+let phases = [];
+function renderPicker() {
+  $("rx-row").innerHTML = ORDER.map(k => `<button class="chip" id="rx-${k}" aria-pressed="${k === cur}">${RX[k].label}${RX[k].sheet ? ' <span class="tag">on the sheet</span>' : ""}</button>`).join("");
+  ORDER.forEach(k => $("rx-" + k).onclick = () => { cur = k; start(); });
+}
+function start() {
+  renderPicker(); renderPanel();
+  phases = phasesFor(cur);
+  $("phases").innerHTML = phases.map(([, txt]) => `<li>${txt}</li>`).join("");
+  restart();
+}
+$("replay").onclick = restart;
+updateVoice();
+
+let last = performance.now();
+function frame(ms) {
+  const dt = Math.min(.05, (ms - last) / 1000); last = ms;
+  step(dt); draw(ms / 1000); renderPhases(); renderWordEq(t);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  { q: "Silver nitrate + potassium chloride. What is the precipitate?", opts: ["Potassium nitrate", "Silver chloride", "Silver nitrate", "No precipitate"], a: 1,
+    why: "The positive ions swap: silver chloride + potassium nitrate. <b>Silver chloride</b> is insoluble; potassium nitrate is soluble." },
+  { q: "Barium chloride + sodium sulfate. What is the precipitate?", opts: ["Sodium chloride", "Barium sulfate", "Sodium sulfate"], a: 1,
+    why: "Swap partners: barium sulfate + sodium chloride. Sodium compounds are always soluble, so the solid is <b>barium sulfate</b>." },
+  { q: "You mix potassium chloride and sodium nitrate solutions. What happens?", opts: ["A white precipitate forms", "Nothing visible; no precipitate", "It fizzes"], a: 1,
+    why: "Every possible pair (sodium, potassium, chloride, nitrate) is soluble, so <b>no solid forms</b>." },
+  { q: "In lead nitrate + sodium hydroxide, which ions are the spectator ions?", opts: ["Lead and hydroxide", "Sodium and nitrate", "Lead and nitrate"], a: 1,
+    why: "Lead and hydroxide lock together as the solid. <b>Sodium and nitrate</b> stay dissolved and don't change." },
+  { q: "Insoluble means...", opts: ["The ions are more attracted to water than to each other", "The ions are more attracted to each other than to water", "It dissolves quickly"], a: 1,
+    why: "Insoluble: the ions hold on to <b>each other</b> more strongly than water can pull them apart." },
+  { q: "Copper sulfate + sodium hydroxide gives a pale blue precipitate. What is it?", opts: ["Sodium sulfate", "Copper hydroxide", "Copper sulfate"], a: 1,
+    why: "Swap partners: copper hydroxide + sodium sulfate. <b>Copper hydroxide</b> is the insoluble one." },
+  { q: "Why is calcium chloride written CaCl₂?", opts: ["Chlorine atoms come in pairs", "Ca²⁺ needs two Cl⁻ to cancel its charge", "Calcium is twice as heavy"], a: 1,
+    why: "An ionic compound is neutral. Ca²⁺ is +2 and each Cl⁻ is −1, so it takes <b>two</b> chloride ions." },
+];
+const answered = {};
+function renderQuiz() {
+  $("qs").innerHTML = QUIZ.map((item, qi) => `
+    <div class="q">
+      <p class="ask">${qi + 1}. ${item.q}</p>
+      <div class="opts">${item.opts.map((o, oi) => `<button class="opt" id="q${qi}o${oi}" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div>
+      <p class="why" id="why-${qi}" hidden></p>
+    </div>`).join("");
+  $("qs").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.q, +b.dataset.o));
+  updateScore();
+}
+function answer(qi, oi) {
+  if (qi in answered) return;
+  answered[qi] = oi;
+  const item = QUIZ[qi];
+  item.opts.forEach((_, i) => { const b = $(`q${qi}o${i}`); b.disabled = true; if (i === item.a) b.classList.add("right"); else if (i === oi) b.classList.add("wrong"); });
+  const why = $("why-" + qi);
+  why.innerHTML = (oi === item.a ? "<b>Correct.</b> " : "<b>Not quite.</b> ") + item.why;
+  why.hidden = false; updateScore();
+}
+function updateScore() {
+  const n = Object.keys(answered).length;
+  const right = Object.entries(answered).filter(([q, o]) => QUIZ[q].a === o).length;
+  $("score").textContent = n ? `${right} of ${n} right` : `${QUIZ.length} questions`;
+}
+
+renderQuiz();
+start();
+requestAnimationFrame(frame);
+</script>

@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+</style>
+<title>Bunsen Burner Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: a dark lab bench (the animation) beside a "what's happening inside" panel; quiz underneath. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --accent-ink: #ffffff;
+  --blue-flame: #1d5fd1;
+  --yellow-flame: #b8650f;
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --atom-c: #2b3138;
+  --atom-c-ink: #ffffff;
+  --atom-o: #d64035;
+  --atom-h: #ffffff;
+  --atom-h-ink: #14212b;
+  --atom-edge: #8a98a3;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  /* The bench is dark in both themes so the flame reads like a dimmed lab. */
+  --stage: #0c1218;
+  --stage-ink: #dce5ec;
+  --stage-line: #24313c;
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+    --accent: #6ea8ff; --accent-ink: #0b1622; --blue-flame: #7fb2ff; --yellow-flame: #f0b04a;
+    --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a;
+    --atom-c: #6b7783; --atom-c-ink: #ffffff; --atom-o: #e5574c; --atom-h: #e6edf2; --atom-h-ink: #14212b; --atom-edge: #18222b;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --stage: #080d12; --stage-line: #1f2a34;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+  --accent: #6ea8ff; --accent-ink: #0b1622; --blue-flame: #7fb2ff; --yellow-flame: #f0b04a;
+  --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a;
+  --atom-c: #6b7783; --atom-c-ink: #ffffff; --atom-o: #e5574c; --atom-h: #e6edf2; --atom-h-ink: #14212b; --atom-edge: #18222b;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --stage: #080d12; --stage-line: #1f2a34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: grid; gap: 1.5rem; }
+
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -.01em; margin: .25rem 0 0; text-wrap: balance; }
+header p.lede { margin: .5rem 0 0; color: var(--muted); max-width: 60ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+
+.lab { display: grid; gap: 1.25rem; align-items: start; }
+@media (min-width: 54rem) { .lab { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+
+.bench { background: var(--stage); color: var(--stage-ink); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: grid; }
+#lab { display: block; width: 100%; aspect-ratio: 400 / 460; max-width: 100%; }
+
+.controls { display: grid; gap: .9rem; padding: 1rem; border-top: 1px solid var(--stage-line); }
+.play-row { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.btn {
+  font: 700 .95rem var(--f-body); padding: .6rem 1rem; border-radius: 8px; cursor: pointer;
+  border: 2px solid transparent; background: var(--accent); color: var(--accent-ink);
+}
+.bench .btn { background: #6ea8ff; color: #0b1622; }
+.bench .btn.voice { background: transparent; color: var(--stage-ink); border-color: #33424f; }
+.btn:focus-visible, .step:focus-visible, .opt:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.bench .btn:focus-visible, .bench .step:focus-visible, .bench input:focus-visible { outline-color: #6ea8ff; }
+.steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .35rem; flex: 1 1 14rem; }
+.step {
+  position: relative; overflow: hidden; border: 1px solid var(--stage-line); background: #121a22; color: var(--stage-ink);
+  border-radius: 6px; padding: .3rem .2rem; font: 500 .72rem var(--f-mono); cursor: pointer;
+}
+.step .fill { position: absolute; inset: auto 0 0 0; height: 3px; background: #6ea8ff; width: 0; }
+.step[aria-current="true"] { border-color: #6ea8ff; }
+
+.slider { display: grid; gap: .35rem; }
+.slider-top { display: flex; justify-content: space-between; align-items: baseline; }
+.slider label { font-weight: 700; }
+.slider output { font: 500 .8rem var(--f-mono); color: #9fb1bf; font-variant-numeric: tabular-nums; }
+.slider input { width: 100%; accent-color: #6ea8ff; }
+.slider-ends { display: flex; justify-content: space-between; font-size: .78rem; color: #9fb1bf; }
+
+.panel { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .6rem; }
+.caption { min-height: 11rem; align-content: start; }
+.caption h3 { font-family: var(--f-display); font-weight: 800; font-size: 1.25rem; margin: 0; text-wrap: balance; }
+.caption p { margin: 0; max-width: 60ch; }
+.chip { display: inline-flex; align-items: center; gap: .4rem; font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.dot { width: .7rem; height: .7rem; border-radius: 50%; display: inline-block; }
+
+#mols { width: 100%; height: auto; display: block; }
+#mols.pop { animation: pop .35s ease-out; }
+@keyframes pop { from { opacity: .2; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.eq { display: grid; gap: .15rem; text-align: center; }
+.eq .word { font-weight: 700; }
+.eq .sym { font: 500 .95rem var(--f-mono); color: var(--muted); }
+.key { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem .75rem; font-size: .9rem; align-items: center; }
+.o-dots { display: flex; gap: .25rem; }
+.o-dots span { width: .8rem; height: .8rem; border-radius: 50%; background: var(--atom-o); }
+.o-dots span.off { background: none; border: 1.5px dashed var(--atom-edge); }
+.insight { border-left: 4px solid var(--accent); padding-left: .75rem; margin: 0; font-size: .95rem; }
+.legend { display: flex; gap: .9rem; flex-wrap: wrap; font-size: .82rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: .3rem; }
+.legend i { width: .8rem; height: .8rem; border-radius: 50%; display: inline-block; border: 1px solid var(--atom-edge); }
+
+/* Quiz */
+.quiz { display: grid; gap: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.score { font: 500 .85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.qs { display: grid; gap: 1rem; }
+@media (min-width: 54rem) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; align-content: start; }
+.q p.ask { margin: 0; font-weight: 700; }
+.opts { display: grid; gap: .4rem; }
+.opt {
+  text-align: left; font: 400 .95rem var(--f-body); color: var(--ink); background: var(--bg);
+  border: 1.5px solid var(--line); border-radius: 8px; padding: .5rem .7rem; cursor: pointer;
+}
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); color: var(--ink); font-weight: 700; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { margin: 0; font-size: .92rem; color: var(--muted); }
+.why b { color: var(--ink); }
+
+.cards-list { display: grid; gap: .5rem; }
+.cards-list div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; font-size: .92rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.cards-list div:first-child { border-top: 0; padding-top: 0; }
+.cards-list .front { font-weight: 700; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+a { color: var(--accent); }
+sub { font-size: .7em; line-height: 0; }
+
+@media (max-width: 30rem) {
+  .cards-list div { grid-template-columns: 1fr; gap: .1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #mols.pop { animation: none; }
+}
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <p class="eyebrow">Chemistry · Combustion</p>
+    <h1>Bunsen Burner Lab</h1>
+    <p class="lede">Why does closing the air hole turn the flame yellow? Press play for a narrated explainer (about 1½ minutes, turn the sound up), then use the air-hole slider yourself.</p>
+  </header>
+
+  <section class="lab">
+    <div class="bench">
+      <canvas id="lab" role="img" aria-label="Animated Bunsen burner. The flame changes from blue to yellow as the air hole closes."></canvas>
+      <div class="controls">
+        <div class="play-row">
+          <button class="btn" id="play">▶ Play explainer</button>
+          <button class="btn voice" id="voice" aria-pressed="true">🔊 Voice on</button>
+          <div class="steps" id="steps"></div>
+        </div>
+        <div class="slider">
+          <div class="slider-top"><label for="air">Air hole</label><output id="air-out" for="air">open</output></div>
+          <input type="range" id="air" min="0" max="100" value="100">
+          <div class="slider-ends"><span>Closed (little oxygen)</span><span>Open (lots of oxygen)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="card caption" aria-live="polite">
+        <span class="chip" id="cap-chip"><span class="dot" id="cap-dot"></span><span id="cap-eyebrow"></span></span>
+        <h3 id="cap-title"></h3>
+        <p id="cap-text"></p>
+      </div>
+
+      <div class="card">
+        <span class="chip">Inside the flame · one methane molecule</span>
+        <svg id="mols" viewBox="0 0 340 200" role="img" aria-label="Molecule diagram of the reaction"></svg>
+        <div class="eq"><span class="word" id="eq-word"></span><span class="sym" id="eq-sym"></span></div>
+        <div class="key">
+          <span>Oxygen atoms per methane</span>
+          <span class="o-dots" id="o-dots"></span>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--atom-c)"></i>carbon</span>
+          <span><i style="background:var(--atom-h)"></i>hydrogen</span>
+          <span><i style="background:var(--atom-o)"></i>oxygen</span>
+        </div>
+        <p class="insight">The hydrogen always ends up as <b>water</b>. Only the carbon's product changes, depending on how much oxygen is left for it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="quiz">
+    <div class="quiz-head">
+      <h2>Check you've got it</h2>
+      <span class="score" id="score"></span>
+    </div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <section class="card">
+    <h2>Flashcards this explains</h2>
+    <div class="cards-list">
+      <div><span class="front">Fuel + (excess) oxygen →</span><span>Carbon dioxide + water</span></div>
+      <div><span class="front">Fuel + (less) oxygen →</span><span>Carbon monoxide, carbon + water</span></div>
+      <div><span class="front">Colour of flame in complete combustion</span><span>Blue</span></div>
+      <div><span class="front">Colour of flame in incomplete combustion</span><span>Yellow (because of carbon/soot in the flame)</span></div>
+      <div><span class="front">Combustion reaction</span><span>Fuel + oxygen makes energy and water</span></div>
+    </div>
+    <p class="note">The last card leaves out carbon dioxide. When there's enough oxygen, burning a fuel makes carbon dioxide and water, as the first card says. <a href="flashcards.html">Open the flashcards</a></p>
+  </section>
+  <p class="credit">Narration voice: Max, generated with ElevenLabs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- Story ---------- */
+const DUR = 9;
+const SCENES = [
+  { step: "Fuel", air: 1, eyebrow: "1 · What's burning?", title: "The fuel is methane: carbon and hydrogen",
+    text: "The gas in a school Bunsen burner is mostly <b>methane, CH<sub>4</sub></b>. Each molecule has one carbon atom and four hydrogen atoms. Burning means those atoms join up with <b>oxygen</b> from the air." },
+  { step: "Open", air: 1, eyebrow: "2 · Air hole open", title: "Plenty of oxygen: complete combustion",
+    text: "Air rushes in through the hole and mixes with the gas. There is enough oxygen for every atom. The carbon becomes <b>carbon dioxide</b> and the hydrogen becomes <b>water</b>. The flame is <b>blue</b>, very hot and clean." },
+  { step: "Half", air: 0.45, eyebrow: "3 · Air hole half closed", title: "Not enough oxygen: carbon monoxide",
+    text: "The hydrogen still gets its oxygen and becomes water. The carbon only gets <b>one</b> oxygen instead of two, so it makes <b>carbon monoxide</b>, a poisonous gas you can't see or smell. Yellow appears in the flame." },
+  { step: "Closed", air: 0, eyebrow: "4 · Air hole closed", title: "Very little oxygen: soot makes it yellow",
+    text: "Now some carbon gets <b>no oxygen at all</b>. It stays as tiny specks of carbon called <b>soot</b>. The specks get so hot they glow <b>yellow</b>, like the filament in an old light bulb. That's the yellow flame, and why it leaves black marks." },
+  { step: "Rule", sweep: true, eyebrow: "5 · The rule", title: "More oxygen means bluer and cleaner",
+    text: "<b>Lots of oxygen:</b> blue flame, carbon dioxide + water (complete combustion).<br><b>Less oxygen:</b> yellow flame, carbon monoxide, carbon + water (incomplete combustion).<br>Now drag the air-hole slider yourself." },
+];
+
+const REGIMES = {
+  complete: {
+    eyebrow: "Complete combustion", color: "var(--blue-flame)", title: "Plenty of oxygen: blue flame",
+    text: "Each carbon gets two oxygens and becomes <b>carbon dioxide</b>. Each pair of hydrogens gets an oxygen and becomes <b>water</b>. Nothing is left unburnt, so the flame is blue, hot and clean.",
+    word: "methane + oxygen → carbon dioxide + water", sym: "CH₄ + 2O₂ → CO₂ + 2H₂O", o: 4,
+    inRow: ["CH4", "+", "O2", "+", "O2"], outRow: ["CO2", "+", "H2O", "+", "H2O"],
+  },
+  partial: {
+    eyebrow: "Incomplete combustion", color: "var(--yellow-flame)", title: "Some oxygen: carbon monoxide",
+    text: "The hydrogen still becomes <b>water</b>. The carbon only gets one oxygen, so it makes <b>carbon monoxide</b>, a poisonous gas with no colour or smell. Yellow starts to show in the flame.",
+    word: "methane + oxygen → carbon monoxide + water", sym: "2CH₄ + 3O₂ → 2CO + 4H₂O", o: 3,
+    inRow: ["CH4", "+", "O2", "+", "O2half"], outRow: ["CO", "+", "H2O", "+", "H2O"],
+  },
+  sooty: {
+    eyebrow: "Incomplete combustion", color: "var(--yellow-flame)", title: "Little oxygen: yellow, sooty flame",
+    text: "Some carbon gets <b>no oxygen at all</b> and stays as specks of <b>soot</b>. The hot soot glows yellow. Hold something cold above this flame and it comes out black.",
+    word: "methane + oxygen → carbon (soot) + water", sym: "CH₄ + O₂ → C + 2H₂O", o: 2,
+    inRow: ["CH4", "+", "O2"], outRow: ["C", "+", "H2O", "+", "H2O"],
+  },
+};
+const regimeFor = a => a >= 0.67 ? "complete" : a >= 0.3 ? "partial" : "sooty";
+
+/* ---------- Molecule diagram ---------- */
+const ATOM = {
+  C: { r: 11, fill: "var(--atom-c)", ink: "var(--atom-c-ink)" },
+  O: { r: 10, fill: "var(--atom-o)", ink: "#ffffff" },
+  H: { r: 7,  fill: "var(--atom-h)", ink: "var(--atom-h-ink)" },
+};
+const MOLS = {
+  CH4:    { w: 52, name: "methane", atoms: [["H",-16,-11],["H",16,-11],["H",-16,11],["H",16,11],["C",0,0]] },
+  O2:     { w: 40, name: "oxygen", atoms: [["O",-9,0],["O",9,0]] },
+  O2half: { w: 40, name: "½ oxygen", atoms: [["O",-9,0],["O",9,0]], half: true },
+  CO2:    { w: 60, name: "carbon dioxide", atoms: [["O",-19,0],["O",19,0],["C",0,0]] },
+  H2O:    { w: 42, name: "water", atoms: [["H",-13,9],["H",13,9],["O",0,0]] },
+  CO:     { w: 40, name: "carbon monoxide", atoms: [["C",-9,0],["O",9,0]] },
+  C:      { w: 30, name: "soot", atoms: [["C",0,0]], glow: true },
+};
+function molSVG(type, x, y) {
+  const m = MOLS[type];
+  let s = `<g transform="translate(${x} ${y})"${m.half ? ' opacity=".45"' : ""}>`;
+  if (m.glow) s += `<circle r="17" style="fill:#ffc24a" opacity=".35"/>`;
+  for (const [el, dx, dy] of m.atoms) {
+    const a = ATOM[el];
+    s += `<circle cx="${dx}" cy="${dy}" r="${a.r}" style="fill:${a.fill};stroke:var(--atom-edge);stroke-width:1.2"${m.half ? ' stroke-dasharray="3 2"' : ""}/>`;
+    s += `<text x="${dx}" y="${dy + 3.5}" text-anchor="middle" style="fill:${a.ink};font:700 ${el === "H" ? 8 : 10}px var(--f-body)">${el}</text>`;
+  }
+  s += `<text y="30" text-anchor="middle" style="fill:var(--muted);font:500 10px var(--f-body)">${m.name}</text></g>`;
+  return s;
+}
+function rowSVG(items, y) {
+  const PLUS = 14;
+  const total = items.reduce((t, it) => t + (it === "+" ? PLUS : MOLS[it].w), 0);
+  const gap = Math.min(14, (330 - total) / (items.length + 1));
+  let x = (340 - total - gap * (items.length - 1)) / 2, s = "";
+  for (const it of items) {
+    const w = it === "+" ? PLUS : MOLS[it].w;
+    const cx = x + w / 2;
+    s += it === "+"
+      ? `<text x="${cx}" y="${y + 5}" text-anchor="middle" style="fill:var(--muted);font:700 16px var(--f-body)">+</text>`
+      : molSVG(it, cx, y);
+    x += w + gap;
+  }
+  return s;
+}
+let shownRegime = null;
+function renderInside(reg) {
+  if (reg === shownRegime) return;
+  shownRegime = reg;
+  const R = REGIMES[reg];
+  const svg = $("mols");
+  svg.innerHTML =
+    `<text x="4" y="12" style="fill:var(--muted);font:500 9.5px var(--f-mono);letter-spacing:.08em">FUEL + OXYGEN</text>` +
+    rowSVG(R.inRow, 46) +
+    `<path d="M170 92 v18 m-6 -7 l6 7 l6 -7" style="fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"/>` +
+    `<text x="4" y="128" style="fill:var(--muted);font:500 9.5px var(--f-mono);letter-spacing:.08em">PRODUCTS</text>` +
+    rowSVG(R.outRow, 158);
+  svg.classList.remove("pop"); void svg.getBBox; svg.getBoundingClientRect(); svg.classList.add("pop");
+  $("eq-word").textContent = R.word;
+  $("eq-sym").textContent = R.sym;
+  $("o-dots").innerHTML = [0,1,2,3].map(i => `<span class="${i < R.o ? "" : "off"}"></span>`).join("") +
+    `<span style="background:none;width:auto;height:auto;font:500 .8rem var(--f-mono);color:var(--muted);margin-left:.3rem">${R.o} of 4</span>`;
+}
+
+/* ---------- Caption ---------- */
+let mode = "story";
+let lastCaptionKey = "";
+function renderCaption(reg) {
+  let key, eyebrow, title, text, color;
+  if (mode === "story") {
+    const sc = SCENES[story.i];
+    key = "s" + story.i; eyebrow = sc.eyebrow; title = sc.title; text = sc.text;
+    color = REGIMES[reg].color;
+  } else {
+    const R = REGIMES[reg];
+    key = "r" + reg; eyebrow = R.eyebrow; title = R.title; text = R.text; color = R.color;
+  }
+  $("cap-dot").style.background = color;
+  if (key === lastCaptionKey) return;
+  lastCaptionKey = key;
+  $("cap-eyebrow").textContent = eyebrow;
+  $("cap-title").textContent = title;
+  $("cap-text").innerHTML = text;
+}
+
+/* ---------- Story controls ---------- */
+const story = { playing: false, i: 0, t: 0, ended: false };
+const stepsEl = $("steps");
+SCENES.forEach((sc, i) => {
+  const b = document.createElement("button");
+  b.className = "step"; b.id = "step-" + i;
+  b.innerHTML = `${sc.step}<span class="fill"></span>`;
+  b.setAttribute("aria-label", `Scene ${i + 1}: ${sc.title}`);
+  b.onclick = () => { story.playing = true; story.ended = false; goScene(i); updatePlay(); };
+  stepsEl.appendChild(b);
+});
+
+/* ---------- Narration (Max, ElevenLabs) ----------
+   One clip per scene. While a clip plays it drives the scene clock, so the
+   animation always matches the voice. If audio can't play, a timer takes over. */
+const CLIP_SECS = [16.32, 19.36, 19.84, 20.4, 23.36];
+const clips = CLIP_SECS.map((_, i) => { const a = new Audio(`audio/bunsen-${i + 1}.mp3`); a.preload = "auto"; return a; });
+const clipBroken = clips.map(() => false);
+clips.forEach((a, i) => a.addEventListener("error", () => { clipBroken[i] = true; }));
+let voiceOn = true;
+try { voiceOn = localStorage.getItem("bunsen-voice") !== "off"; } catch {}
+const narrated = i => voiceOn && !clipBroken[i];
+const durOf = i => narrated(i) ? CLIP_SECS[i] + 1.2 : DUR;
+function stopClips() { clips.forEach(a => { a.pause(); }); }
+function playClip(i, from = 0) {
+  clips.forEach((c, j) => { if (j !== i) c.pause(); });
+  if (!narrated(i) || !story.playing) { clips[i].pause(); return; }
+  const a = clips[i];
+  // Only seek when we need a different spot; resuming just carries on.
+  if (Math.abs(a.currentTime - from) > 0.3) { try { a.currentTime = from; } catch {} }
+  const p = a.play();
+  if (p && p.catch) p.catch(() => { clipBroken[i] = true; });
+}
+function updateVoice() {
+  const b = $("voice");
+  b.textContent = voiceOn ? "🔊 Voice on" : "🔇 Voice off";
+  b.setAttribute("aria-pressed", String(voiceOn));
+}
+$("voice").onclick = () => {
+  voiceOn = !voiceOn;
+  try { localStorage.setItem("bunsen-voice", voiceOn ? "on" : "off"); } catch {}
+  if (!voiceOn) stopClips();
+  else if (story.playing && mode === "story" && story.t < CLIP_SECS[story.i]) playClip(story.i, story.t);
+  updateVoice();
+};
+
+function goScene(i) {
+  mode = "story";
+  story.i = i; story.t = 0;
+  const sc = SCENES[i];
+  airTarget = sc.sweep ? 0 : sc.air;
+  if (reduceMotion) air = airTarget;
+  playClip(i);
+  updateSteps();
+}
+function updateSteps() {
+  SCENES.forEach((_, i) => {
+    const b = $("step-" + i);
+    b.setAttribute("aria-current", String(mode === "story" && i === story.i));
+    const f = i < story.i ? 1 : i === story.i ? Math.min(1, story.t / durOf(i)) : 0;
+    b.querySelector(".fill").style.width = (mode === "story" ? f * 100 : 0) + "%";
+  });
+}
+function updatePlay() {
+  $("play").textContent = story.playing ? "❚❚ Pause" : story.ended ? "↺ Replay" : (story.i || story.t) && mode === "story" ? "▶ Resume" : "▶ Play explainer";
+}
+$("play").onclick = () => {
+  if (story.playing) { story.playing = false; stopClips(); }
+  else {
+    story.playing = true;
+    if (story.ended || mode !== "story") { story.ended = false; goScene(0); }
+    else if (story.t < CLIP_SECS[story.i]) playClip(story.i, story.t);
+  }
+  updatePlay();
+};
+function tickStory(dt) {
+  if (!story.playing) return;
+  const a = clips[story.i];
+  // Follow the voice while it's speaking; otherwise count time ourselves.
+  if (narrated(story.i) && !a.paused && !a.ended && a.currentTime > 0) story.t = a.currentTime;
+  else story.t += dt;
+  const sc = SCENES[story.i], dur = durOf(story.i);
+  if (sc.sweep) airTarget = clamp((story.t - 1) / (dur - 2.5), 0, 1);
+  if (story.t >= dur) {
+    if (story.i < SCENES.length - 1) goScene(story.i + 1);
+    else { story.t = dur; story.playing = false; story.ended = true; updatePlay(); }
+  }
+  updateSteps();
+}
+
+/* ---------- Slider ---------- */
+let air = 1, airTarget = 1;
+const slider = $("air");
+slider.addEventListener("input", () => {
+  story.playing = false; mode = "free"; stopClips();
+  airTarget = slider.value / 100;
+  if (reduceMotion) air = airTarget;
+  updatePlay(); updateSteps();
+});
+function syncSlider() {
+  if (mode === "story") slider.value = Math.round(air * 100);
+  const v = Math.round((mode === "story" ? air : airTarget) * 100);
+  $("air-out").textContent = v >= 98 ? "fully open" : v <= 2 ? "closed" : v + "% open";
+}
+
+/* ---------- Canvas ---------- */
+const W = 400, H = 460, CX = 200, TOP = 250;
+const canvas = $("lab"), ctx = canvas.getContext("2d");
+let dpr = 1, scale = 1;
+function resize() {
+  const w = canvas.clientWidth || 400;
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  scale = w / W;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(canvas);
+resize();
+
+function sprite(r, g, b) {
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const x = c.getContext("2d");
+  const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, `rgba(${r},${g},${b},1)`);
+  gr.addColorStop(.45, `rgba(${r},${g},${b},.45)`);
+  gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+  x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+  return c;
+}
+const SP = { blue: sprite(60, 115, 255), cyan: sprite(110, 195, 255), yellow: sprite(255, 196, 60), orange: sprite(255, 120, 25) };
+
+const parts = [], soot = [];
+let spawnAcc = 0, sootAcc = 0;
+const yellowness = a => clamp((0.75 - a) / 0.6, 0, 1);
+
+function spawn(yel) {
+  if (Math.random() < yel) {
+    parts.push({ k: Math.random() < .35 ? "orange" : "yellow", x: CX + (Math.random() - .5) * 20, y: TOP - 4,
+      vy: -(135 + Math.random() * 65), life: 0, max: .85 + Math.random() * .55, s: 20 + Math.random() * 16, ph: Math.random() * 6.28, y2: true });
+  } else {
+    parts.push({ k: Math.random() < .3 ? "cyan" : "blue", x: CX + (Math.random() - .5) * 18, y: TOP - 2,
+      vy: -(240 + Math.random() * 90), life: 0, max: .34 + Math.random() * .3, s: 12 + Math.random() * 11, ph: 0, y2: false });
+  }
+}
+
+function roundRect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function metal(x0, x1, dark, light) {
+  const g = ctx.createLinearGradient(x0, 0, x1, 0);
+  g.addColorStop(0, dark); g.addColorStop(.45, light); g.addColorStop(1, dark);
+  return g;
+}
+
+function drawScene(now, dt) {
+  const yel = yellowness(air);
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
+
+  // Bench + room
+  ctx.fillStyle = getStage(); ctx.fillRect(0, 0, W, H);
+  const glow = ctx.createRadialGradient(CX, TOP - 110, 10, CX, TOP - 110, 240);
+  glow.addColorStop(0, `rgba(255,170,60,${.16 * yel})`);
+  glow.addColorStop(.5, `rgba(80,130,255,${.06 * (1 - yel)})`);
+  glow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#161f28"; ctx.fillRect(0, 440, W, 20);
+
+  // Gas tube (orange rubber hose)
+  ctx.strokeStyle = "#c95f24"; ctx.lineWidth = 11; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(-10, 432); ctx.lineTo(CX - 62, 432); ctx.stroke();
+
+  // Base, barrel, collar
+  ctx.fillStyle = metal(CX - 70, CX + 70, "#4a535c", "#b9c2ca"); roundRect(CX - 70, 424, 140, 18, 6); ctx.fill();
+  ctx.fillStyle = metal(CX - 15, CX + 15, "#4f5861", "#d3dae0"); ctx.fillRect(CX - 15, TOP, 30, 176);
+  ctx.fillStyle = metal(CX - 21, CX + 21, "#7a5c22", "#e6c56e"); roundRect(CX - 21, 362, 42, 30, 4); ctx.fill();
+  // Air hole: wider when open
+  const holeW = 2 + 11 * air;
+  ctx.fillStyle = "#04070a"; ctx.beginPath(); ctx.ellipse(CX, 377, holeW, 7.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Air arrows flowing into the hole
+  if (air > .04) {
+    ctx.strokeStyle = "#8fc1ff"; ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+      const ph = (now * .9 + i / 3) % 1;
+      const x = CX - 88 + ph * 58;
+      ctx.globalAlpha = air * Math.sin(ph * Math.PI);
+      ctx.beginPath(); ctx.moveTo(x - 5, 371); ctx.lineTo(x + 2, 377); ctx.lineTo(x - 5, 383); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Labels
+  ctx.font = '600 12px "Atkinson Hyperlegible", system-ui, sans-serif';
+  ctx.fillStyle = "#9fb1bf"; ctx.strokeStyle = "#4a5b68"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(CX + 24, 377); ctx.lineTo(CX + 52, 377); ctx.stroke();
+  ctx.fillText("air hole", CX + 56, 381);
+  ctx.fillText("air in", CX - 98, 362);
+  ctx.fillText("methane gas in", 8, 420);
+
+  // Flame particles
+  spawnAcc += dt * 260;
+  while (spawnAcc > 1) { spawnAcc--; if (parts.length < 650) spawn(yel); }
+  ctx.globalCompositeOperation = "lighter";
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i];
+    p.life += dt;
+    const t = p.life / p.max;
+    if (t >= 1) { parts.splice(i, 1); continue; }
+    if (p.y2) p.x += (Math.sin(now * 5 + p.ph + t * 4) * 34 * t + (CX - p.x) * 1.1) * dt;
+    else p.x += (CX - p.x) * 3 * dt;
+    p.y += p.vy * dt;
+    const a = p.y2 ? .36 * Math.sin(Math.PI * Math.min(1, t * 1.15)) : .55 * (1 - t);
+    const s = p.y2 ? p.s * (.7 + .45 * Math.sin(Math.PI * t)) : p.s * (1 - .55 * t);
+    ctx.globalAlpha = a;
+    ctx.drawImage(SP[p.k], p.x - s, p.y - s, s * 2, s * 2);
+  }
+  // Inner blue cone
+  const blueA = 1 - yel;
+  if (blueA > .02) {
+    const h = 34 + 12 * air;
+    const g = ctx.createLinearGradient(0, TOP, 0, TOP - h);
+    g.addColorStop(0, `rgba(150,225,255,${.85 * blueA})`);
+    g.addColorStop(1, `rgba(60,120,255,${.1 * blueA})`);
+    ctx.globalAlpha = 1; ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(CX - 11, TOP); ctx.quadraticCurveTo(CX - 9, TOP - h * .6, CX, TOP - h);
+    ctx.quadraticCurveTo(CX + 9, TOP - h * .6, CX + 11, TOP); ctx.closePath(); ctx.fill();
+  }
+
+  // Soot specks rising from a sooty flame
+  ctx.globalCompositeOperation = "source-over";
+  sootAcc += dt * Math.max(0, yel - .5) * 70;
+  while (sootAcc > 1) {
+    sootAcc--;
+    soot.push({ x: CX + (Math.random() - .5) * 16, y: TOP - 175 - Math.random() * 30, vx: (Math.random() - .5) * 18,
+      vy: -(50 + Math.random() * 40), life: 0, max: 2 + Math.random(), r: 1.2 + Math.random() * 1.8 });
+  }
+  for (let i = soot.length - 1; i >= 0; i--) {
+    const p = soot[i];
+    p.life += dt;
+    const t = p.life / p.max;
+    if (t >= 1 || p.y < -10) { soot.splice(i, 1); continue; }
+    p.x += (p.vx + Math.sin(now * 2 + i) * 8) * dt; p.y += p.vy * dt;
+    ctx.globalAlpha = .85 * (1 - t);
+    ctx.fillStyle = "#5b6168";
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Flame label
+  ctx.font = '700 13px "Atkinson Hyperlegible", system-ui, sans-serif';
+  const blueLabel = yel < .5;
+  ctx.fillStyle = blueLabel ? "#8fbaff" : "#ffc24a";
+  const ly = blueLabel ? TOP - 70 : TOP - 120;
+  ctx.fillText(blueLabel ? "blue flame" : "yellow flame", CX + 46, ly);
+  ctx.font = '400 11.5px "Atkinson Hyperlegible", system-ui, sans-serif';
+  ctx.fillStyle = "#9fb1bf";
+  ctx.fillText(blueLabel ? "hot, clean, roaring" : "cooler, wavy, sooty", CX + 46, ly + 15);
+  if (yel > .6) {
+    ctx.globalAlpha = clamp((yel - .6) * 4, 0, 1);
+    ctx.fillStyle = "#c4ccd3";
+    ctx.fillText("soot (carbon)", CX - 128, TOP - 196);
+    ctx.strokeStyle = "#4a5b68"; ctx.beginPath(); ctx.moveTo(CX - 52, TOP - 200); ctx.lineTo(CX - 22, TOP - 206); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
+let stageColor = null;
+function getStage() {
+  if (!stageColor) stageColor = getComputedStyle(document.documentElement).getPropertyValue("--stage").trim() || "#0c1218";
+  return stageColor;
+}
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { stageColor = null; });
+new MutationObserver(() => { stageColor = null; }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+/* ---------- Main loop ---------- */
+let last = performance.now();
+function frame(nowMs) {
+  const dt = Math.min(.05, (nowMs - last) / 1000); last = nowMs;
+  tickStory(dt);
+  air += (airTarget - air) * Math.min(1, dt * 2.4);
+  const reg = regimeFor(air);
+  renderInside(reg);
+  renderCaption(reg);
+  syncSlider();
+  drawScene(nowMs / 1000, dt);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  { q: "You hold a cold spoon above a candle and it comes out black. What is the black stuff?",
+    opts: ["Carbon (soot)", "Carbon dioxide", "Burnt wax", "Water"], a: 0,
+    why: "Candle flames are yellow because they don't get enough oxygen. Some carbon in the wax never meets oxygen and is left as <b>soot</b>." },
+  { q: "You close the air hole on a Bunsen burner. What happens to the flame?",
+    opts: ["It goes out", "It turns blue and roars", "It turns yellow and wavy", "Nothing changes"], a: 2,
+    why: "Less air means <b>less oxygen</b>. Unburnt carbon glows yellow, so the flame turns yellow, wavy and sooty." },
+  { q: "Why is it dangerous to run a gas heater in a room with no fresh air?",
+    opts: ["It makes too much water", "As oxygen runs low it makes carbon monoxide", "It makes the room too blue", "Methane is poisonous"], a: 1,
+    why: "With too little oxygen the carbon only gets one oxygen, making <b>carbon monoxide</b>. It's poisonous and you can't see or smell it." },
+  { q: "Which flame should you use to heat a beaker quickly without blackening it?",
+    opts: ["Yellow flame", "Blue flame", "Either, they're the same"], a: 1,
+    why: "The <b>blue</b> flame is complete combustion: hotter, and no soot to leave black marks." },
+  { q: "Natural gas burns with plenty of oxygen. What are the products?",
+    opts: ["Carbon monoxide + water", "Carbon + water", "Carbon dioxide + water", "Oxygen + hydrogen"], a: 2,
+    why: "Plenty of oxygen means <b>complete combustion</b>: carbon dioxide + water." },
+  { q: "In incomplete combustion, which part of the fuel still ends up fully burnt?",
+    opts: ["The carbon", "The hydrogen", "Neither"], a: 1,
+    why: "The <b>hydrogen</b> still becomes water. It's the carbon that misses out, ending up as carbon monoxide or soot." },
+];
+const answered = {};
+function renderQuiz() {
+  $("qs").innerHTML = QUIZ.map((item, qi) => `
+    <div class="q" id="q-${qi}">
+      <p class="ask">${qi + 1}. ${item.q}</p>
+      <div class="opts">${item.opts.map((o, oi) => `<button class="opt" id="q${qi}o${oi}" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div>
+      <p class="why" id="why-${qi}" hidden></p>
+    </div>`).join("");
+  $("qs").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.q, +b.dataset.o));
+  updateScore();
+}
+function answer(qi, oi) {
+  if (qi in answered) return;
+  answered[qi] = oi;
+  const item = QUIZ[qi];
+  item.opts.forEach((_, i) => {
+    const b = $(`q${qi}o${i}`);
+    b.disabled = true;
+    if (i === item.a) b.classList.add("right");
+    else if (i === oi) b.classList.add("wrong");
+  });
+  const why = $("why-" + qi);
+  why.innerHTML = (oi === item.a ? "<b>Correct.</b> " : "<b>Not quite.</b> ") + item.why;
+  why.hidden = false;
+  updateScore();
+}
+function updateScore() {
+  const n = Object.keys(answered).length;
+  const right = Object.entries(answered).filter(([q, o]) => QUIZ[q].a === o).length;
+  $("score").textContent = n ? `${right} of ${n} right` : `${QUIZ.length} questions`;
+}
+
+renderQuiz();
+goScene(0);
+updatePlay();
+updateVoice();
+requestAnimationFrame(frame);
+</script>

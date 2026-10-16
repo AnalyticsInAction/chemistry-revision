@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+</style>
+<title>Chemistry Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: one narrow study column. Red question cards echo the printed sheets; the answer side is plain paper. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;      /* Bunsen-flame blue */
+  --accent-ink: #ffffff;
+  --flame: #b8650f;       /* yellow-flame amber, darkened for text */
+  --flame-soft: #fbead4;
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --card-red: #c8372f;
+  --card-red-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+    --accent: #6ea8ff; --accent-ink: #0b1622; --flame: #f0a54a; --flame-soft: #3a2a17;
+    --good: #5cc48a; --good-soft: #17322a; --card-red: #b3332c; --card-red-ink: #ffffff;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+  --accent: #6ea8ff; --accent-ink: #0b1622; --flame: #f0a54a; --flame-soft: #3a2a17;
+  --good: #5cc48a; --good-soft: #17322a; --card-red: #b3332c; --card-red-ink: #ffffff;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+#view-practise { display: grid; gap: 1.25rem; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding-inline: 16px;
+  padding-block: 1.5rem 3rem;
+  display: grid;
+  gap: 1.25rem;
+}
+
+header h1 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-wrap: balance;
+}
+header p { margin: .35rem 0 0; color: var(--muted); }
+
+.tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--line); }
+.tab {
+  font: 700 .95rem var(--f-body);
+  background: none; border: 0; color: var(--muted);
+  padding: .6rem .9rem; cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -1px;
+}
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+.controls { display: grid; gap: .75rem; }
+.row { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.row-label {
+  font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); width: 5.5rem; flex: none;
+}
+.chip {
+  font: 700 .85rem var(--f-body);
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: .35rem .75rem; border-radius: 999px; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip:disabled { opacity: .45; cursor: default; }
+.chip .n { font-family: var(--f-mono); font-weight: 500; opacity: .75; margin-left: .2rem; }
+
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.progress { display: grid; gap: .4rem; }
+.progress-top { display: flex; justify-content: space-between; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--good); width: 0; transition: width .3s ease; }
+
+/* Flip card: only one face is ever in the page, so no browser can show the wrong side. */
+.card {
+  display: block; width: 100%; cursor: pointer; border-radius: 10px;
+}
+.card.flipping { animation: flip .32s ease-in-out; }
+@keyframes flip { 0% { transform: scaleX(1); } 50% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
+.face {
+  min-height: 17rem;
+  border-radius: 10px; box-shadow: var(--shadow);
+  display: grid; grid-template-rows: auto 1fr auto; padding: 1rem 1.25rem;
+  text-align: center;
+}
+.face.red { background: var(--card-red); color: var(--card-red-ink); }
+.face.paper { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.face-top { display: flex; justify-content: space-between; font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; opacity: .85; }
+.face-text {
+  align-self: center; justify-self: center; max-width: 30ch;
+  font-family: var(--f-display); font-weight: 600; font-size: clamp(1.35rem, 4.6vw, 1.75rem); line-height: 1.25;
+  text-wrap: balance;
+}
+.face-text.formula { font-size: clamp(2.6rem, 10vw, 3.6rem); font-weight: 800; letter-spacing: .02em; }
+.face-hint { font-size: .85rem; opacity: .8; }
+sub { font-size: .6em; line-height: 0; }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.btn {
+  font: 700 1rem var(--f-body); padding: .85rem 1rem; border-radius: 8px; cursor: pointer;
+  border: 2px solid transparent; display: flex; align-items: center; justify-content: center; gap: .5rem;
+}
+.btn kbd { font: 500 .7rem var(--f-mono); opacity: .7; border: 1px solid currentColor; border-radius: 4px; padding: 0 .3rem; }
+.btn.primary { grid-column: 1 / -1; background: var(--accent); color: var(--accent-ink); }
+.btn.miss { background: var(--flame-soft); color: var(--flame); border-color: var(--flame); }
+.btn.got { background: var(--good-soft); color: var(--good); border-color: var(--good); }
+.btn.quiet { background: var(--surface); color: var(--ink); border-color: var(--line); }
+
+.done {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow);
+  padding: 1.75rem 1.25rem; text-align: center; display: grid; gap: .75rem;
+}
+.done h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.6rem; margin: 0; }
+.done p { margin: 0; color: var(--muted); }
+.done .actions { margin-top: .5rem; }
+.done .btn.primary { grid-column: auto; }
+
+.keys { font-size: .82rem; color: var(--muted); text-align: center; margin: 0; }
+
+/* List view */
+.list { display: grid; gap: 1.5rem; }
+.group h2 {
+  font: 500 .75rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); margin: 0 0 .5rem;
+}
+.pairs { display: grid; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); border-top: 1px solid var(--line); }
+.pair:first-child { border-top: 0; }
+.pair > div { padding: .7rem .9rem; min-width: 0; }
+.pair .q { font-weight: 700; border-left: 4px solid var(--card-red); }
+.pair .a { color: var(--ink); }
+.pair .tricky-tag { font: 500 .68rem var(--f-mono); color: var(--flame); text-transform: uppercase; letter-spacing: .06em; margin-left: .35rem; }
+@media (max-width: 30rem) {
+  .pair { grid-template-columns: 1fr; }
+  .pair .a { padding-top: 0; padding-left: calc(.9rem + 4px); }
+  .row-label { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .bar > span { transition: none; }
+}
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <h1>Chemistry Flashcards</h1>
+    <p>24 cards from the two red sheets. Tap a card to flip it.</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tab-practise" role="tab" aria-selected="true" aria-controls="view-practise">Practise</button>
+    <button class="tab" id="tab-list" role="tab" aria-selected="false" aria-controls="view-list">All cards</button>
+  </div>
+
+  <section id="view-practise" role="tabpanel" aria-labelledby="tab-practise">
+    <div class="controls">
+      <div class="row" id="topic-row"><span class="row-label">Cards</span></div>
+      <div class="row" id="dir-row">
+        <span class="row-label">Show first</span>
+        <button class="chip" data-dir="q">Question</button>
+        <button class="chip" data-dir="a">Answer</button>
+        <button class="chip" data-dir="mix">Mixed</button>
+      </div>
+    </div>
+
+    <div class="progress">
+      <div class="progress-top"><span id="prog-text"></span><span id="prog-miss"></span></div>
+      <div class="bar"><span id="prog-bar"></span></div>
+    </div>
+
+    <div id="study">
+      <div class="scene">
+        <div class="card" id="card" role="button" tabindex="0" aria-live="polite">
+          <div class="face front" id="face-front">
+            <div class="face-top"><span id="front-label"></span><span id="front-topic"></span></div>
+            <div class="face-text" id="front-text"></div>
+            <div class="face-hint">Tap to flip</div>
+          </div>
+          <div class="face back" id="face-back">
+            <div class="face-top"><span id="back-label"></span><span id="back-topic"></span></div>
+            <div class="face-text" id="back-text"></div>
+            <div class="face-hint">Did you get it right?</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions" id="actions"></div>
+    <p class="keys" id="keys">Keyboard: Space flips · ← still learning · → got it</p>
+
+    <div class="done" id="done" hidden>
+      <h2 id="done-title"></h2>
+      <p id="done-text"></p>
+      <div class="actions" id="done-actions"></div>
+    </div>
+  </section>
+
+  <section id="view-list" class="list" role="tabpanel" aria-labelledby="tab-list" hidden></section>
+</div>
+
+<script>
+const CARDS = [
+  // Formulas
+  { id: "h2",    t: "Formulas", q: "Formula of hydrogen gas",      a: "H<sub>2</sub>", f: "a" },
+  { id: "o2",    t: "Formulas", q: "Formula of oxygen gas",        a: "O<sub>2</sub>", f: "a" },
+  { id: "co2",   t: "Formulas", q: "Formula of carbon dioxide gas", a: "CO<sub>2</sub>", f: "a" },
+  { id: "h2o",   t: "Formulas", q: "Formula of water",             a: "H<sub>2</sub>O", f: "a" },
+  { id: "hcl",   t: "Formulas", q: "Formula for hydrochloric acid", a: "HCl", f: "a" },
+  { id: "hno3",  t: "Formulas", q: "Formula for nitric acid",      a: "HNO<sub>3</sub>", f: "a" },
+  { id: "h2so4", t: "Formulas", q: "Formula for sulfuric acid",    a: "H<sub>2</sub>SO<sub>4</sub>", f: "a" },
+  // Definitions
+  { id: "metal", t: "Definitions", q: "Metal structure", a: "Delocalised electrons that move freely between metal nuclei, forming a strong bond" },
+  { id: "ionic", t: "Definitions", q: "Ionic compound",  a: "Positive and negative ions electrostatically attracted to form a neutral compound" },
+  { id: "precip",t: "Definitions", q: "Precipitate reaction", a: "Two solutions are mixed and a solid ionic compound (a precipitate) is formed" },
+  { id: "comb",  t: "Definitions", q: "Combustion reaction",  a: "Fuel + oxygen makes energy and water" },
+  { id: "sol",   t: "Definitions", q: "Soluble means",   a: "Able to dissolve (ions more attracted to water than to each other)" },
+  { id: "insol", t: "Definitions", q: "Insoluble means", a: "Not able to dissolve (ions more attracted to each other than to water)" },
+  // Combustion
+  { id: "fuel-ex",   t: "Combustion", q: "Fuel + (excess) oxygen →", a: "Carbon dioxide + water" },
+  { id: "fuel-less", t: "Combustion", q: "Fuel + (less) oxygen →",   a: "Carbon monoxide, carbon + water" },
+  { id: "flame-c",   t: "Combustion", q: "Colour of flame in complete combustion",   a: "Blue" },
+  { id: "flame-i",   t: "Combustion", q: "Colour of flame in incomplete combustion", a: "Yellow (because of carbon/soot in the flame)" },
+  // Reactions
+  { id: "m-o2",   t: "Reactions", q: "Metal + oxygen →",            a: "Metal oxide" },
+  { id: "m-h2o",  t: "Reactions", q: "Metal + water →",             a: "Metal hydroxide + hydrogen" },
+  { id: "m-hcl",  t: "Reactions", q: "Metal + hydrochloric acid →", a: "Metal chloride + hydrogen gas" },
+  { id: "m-h2so4",t: "Reactions", q: "Metal + sulfuric acid →",     a: "Metal sulfate + hydrogen" },
+  { id: "m-hno3", t: "Reactions", q: "Metal + nitric acid →",       a: "Metal nitrate + hydrogen" },
+  { id: "naoh",   t: "Reactions", q: "Sodium hydroxide + lead nitrate →",   a: "Sodium nitrate + lead hydroxide" },
+  { id: "cacl2",  t: "Reactions", q: "Calcium chloride + sodium sulfate →", a: "Calcium sulfate + sodium chloride" },
+];
+const TOPICS = ["All", "Formulas", "Definitions", "Combustion", "Reactions"];
+const byId = Object.fromEntries(CARDS.map(c => [c.id, c]));
+
+const STORE_KEY = "ben-chem-flashcards-v1";
+function load() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ topic: S.topic, dir: S.dir, tricky: [...S.tricky] })); } catch {}
+}
+
+const saved = load();
+const S = {
+  topic: TOPICS.includes(saved.topic) || saved.topic === "Tricky" ? saved.topic : "All",
+  dir: ["q", "a", "mix"].includes(saved.dir) ? saved.dir : "q",
+  tricky: new Set((saved.tricky || []).filter(id => byId[id])),
+  queue: [], total: 0, got: 0, missed: new Set(), sides: {}, flipped: false,
+};
+
+const $ = id => document.getElementById(id);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function deckIds(topic) {
+  if (topic === "Tricky") return [...S.tricky];
+  return CARDS.filter(c => topic === "All" || c.t === topic).map(c => c.id);
+}
+
+function startRound(ids) {
+  S.queue = shuffle([...ids]);
+  S.total = ids.length; S.got = 0; S.missed = new Set(); S.sides = {}; S.flipped = false;
+  for (const id of ids) S.sides[id] = S.dir === "mix" ? (Math.random() < .5 ? "q" : "a") : S.dir;
+  render();
+}
+
+function faceHTML(card, side) {
+  return side === "q" ? card.q : card.a;
+}
+function isFormula(card, side) { return card.f === side; }
+
+function renderControls() {
+  const row = $("topic-row");
+  row.querySelectorAll(".chip").forEach(b => b.remove());
+  const opts = [...TOPICS, "Tricky"];
+  for (const t of opts) {
+    const b = document.createElement("button");
+    b.className = "chip";
+    const n = deckIds(t).length;
+    b.innerHTML = `${t === "Tricky" ? "Tricky ones" : t}<span class="n">${n}</span>`;
+    b.setAttribute("aria-pressed", String(S.topic === t));
+    b.disabled = n === 0;
+    b.onclick = () => { S.topic = t; save(); startRound(deckIds(t)); };
+    row.appendChild(b);
+  }
+  document.querySelectorAll("#dir-row .chip").forEach(b => {
+    b.setAttribute("aria-pressed", String(S.dir === b.dataset.dir));
+    b.onclick = () => { S.dir = b.dataset.dir; save(); startRound(deckIds(S.topic)); };
+  });
+}
+
+function render() {
+  renderControls();
+  const pct = S.total ? Math.round(S.got / S.total * 100) : 0;
+  $("prog-bar").style.width = pct + "%";
+  $("prog-text").textContent = `${S.got} of ${S.total} done`;
+  $("prog-miss").textContent = S.missed.size ? `${S.missed.size} to revisit` : "";
+
+  const finished = S.queue.length === 0;
+  $("study").hidden = finished;
+  $("actions").hidden = finished;
+  $("keys").hidden = finished;
+  $("done").hidden = !finished;
+
+  if (finished) return renderDone();
+
+  const card = byId[S.queue[0]];
+  const first = S.sides[card.id];
+  const second = first === "q" ? "a" : "q";
+  const front = $("face-front"), back = $("face-back");
+  front.className = "face front " + (first === "q" ? "red" : "paper");
+  back.className = "face back " + (second === "q" ? "red" : "paper");
+  $("front-label").textContent = first === "q" ? "Question" : "Answer";
+  $("back-label").textContent = second === "q" ? "Question" : "Answer";
+  $("front-topic").textContent = $("back-topic").textContent = card.t;
+  $("front-text").innerHTML = faceHTML(card, first);
+  $("back-text").innerHTML = faceHTML(card, second);
+  $("front-text").classList.toggle("formula", isFormula(card, first));
+  $("back-text").classList.toggle("formula", isFormula(card, second));
+  front.hidden = S.flipped;
+  back.hidden = !S.flipped;
+  $("card").setAttribute("aria-label", S.flipped ? "Card flipped. Mark whether you got it." : "Flip card");
+
+  const actions = $("actions");
+  if (!S.flipped) {
+    actions.innerHTML = `<button class="btn primary" id="btn-flip">Flip card <kbd>Space</kbd></button>`;
+    $("btn-flip").onclick = flip;
+  } else {
+    actions.innerHTML = `<button class="btn miss" id="btn-miss"><kbd>←</kbd> Still learning</button>
+      <button class="btn got" id="btn-got">Got it <kbd>→</kbd></button>`;
+    $("btn-miss").onclick = () => mark(false);
+    $("btn-got").onclick = () => mark(true);
+  }
+}
+
+function renderDone() {
+  const firstTime = S.total - S.missed.size;
+  $("done-title").textContent = S.missed.size === 0 ? "Perfect round!" : "Round finished";
+  $("done-text").textContent = `${firstTime} of ${S.total} right first time.`;
+  const missedIds = [...S.missed];
+  const a = $("done-actions");
+  a.innerHTML = "";
+  if (missedIds.length) {
+    const b = document.createElement("button");
+    b.className = "btn primary";
+    b.textContent = `Practise the ${missedIds.length} I missed`;
+    b.onclick = () => startRound(missedIds);
+    a.appendChild(b);
+  }
+  const again = document.createElement("button");
+  again.className = missedIds.length ? "btn quiet" : "btn primary";
+  again.textContent = "Go again";
+  again.onclick = () => startRound(deckIds(S.topic));
+  a.appendChild(again);
+  if (!missedIds.length) a.style.gridTemplateColumns = "1fr"; else a.style.gridTemplateColumns = "";
+}
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let flipTimer = null;
+function flip() {
+  if (!S.queue.length || flipTimer) return;
+  if (reduceMotion) { S.flipped = !S.flipped; render(); return; }
+  const card = $("card");
+  card.classList.remove("flipping");
+  void card.offsetWidth;
+  card.classList.add("flipping");
+  // Swap faces at the midpoint, when the card is edge-on.
+  flipTimer = setTimeout(() => { flipTimer = null; S.flipped = !S.flipped; render(); }, 160);
+}
+$("card").addEventListener("animationend", e => e.currentTarget.classList.remove("flipping"));
+
+function mark(gotIt) {
+  if (!S.flipped || !S.queue.length) return;
+  const id = S.queue.shift();
+  if (gotIt) {
+    S.got++;
+    if (!S.missed.has(id)) S.tricky.delete(id);
+  } else {
+    S.missed.add(id);
+    S.tricky.add(id);
+    S.queue.splice(Math.min(3, S.queue.length), 0, id);
+  }
+  S.flipped = false;
+  save();
+  render();
+  renderList();
+}
+
+$("card").onclick = flip;
+
+document.addEventListener("keydown", e => {
+  if ($("view-practise").hidden) return;
+  const onButton = e.target.closest && e.target.closest("button");
+  if ((e.key === " " || e.key === "Enter") && onButton) return;
+  if (e.key === " " || e.key === "Enter") { e.preventDefault(); flip(); }
+  else if (e.key === "ArrowRight") mark(true);
+  else if (e.key === "ArrowLeft") mark(false);
+});
+
+function renderList() {
+  const el = $("view-list");
+  el.innerHTML = TOPICS.slice(1).map(t => `
+    <div class="group">
+      <h2>${t}</h2>
+      <div class="pairs">
+        ${CARDS.filter(c => c.t === t).map(c => `
+          <div class="pair">
+            <div class="q">${c.q}${S.tricky.has(c.id) ? '<span class="tricky-tag">tricky</span>' : ""}</div>
+            <div class="a">${c.a}</div>
+          </div>`).join("")}
+      </div>
+    </div>`).join("");
+}
+
+function showTab(which) {
+  const practise = which === "practise";
+  $("tab-practise").setAttribute("aria-selected", String(practise));
+  $("tab-list").setAttribute("aria-selected", String(!practise));
+  $("view-practise").hidden = !practise;
+  $("view-list").hidden = practise;
+}
+$("tab-practise").onclick = () => showTab("practise");
+$("tab-list").onclick = () => showTab("list");
+
+if (S.topic === "Tricky" && S.tricky.size === 0) S.topic = "All";
+renderList();
+startRound(deckIds(S.topic));
+</script>

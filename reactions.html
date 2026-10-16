@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+</style>
+<title>Metal Reactions Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: pick a metal and a partner; a dark bench shows the beaker and a zoomed-in view of the atoms; the side panel builds the name and formula. Same family as Bunsen Burner Lab. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --accent-ink: #ffffff;
+  --c-metal: #1a5fb4;     /* the part of a name that comes from the metal */
+  --c-root: #a4481b;      /* the part that comes from the acid */
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --hl: #e8eff9;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  --stage: #0c1218;
+  --stage-ink: #dce5ec;
+  --stage-muted: #9fb1bf;
+  --stage-line: #24313c;
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+    --accent: #6ea8ff; --accent-ink: #0b1622; --c-metal: #7fb2ff; --c-root: #f0a65a;
+    --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --stage: #080d12; --stage-line: #1f2a34;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+  --accent: #6ea8ff; --accent-ink: #0b1622; --c-metal: #7fb2ff; --c-root: #f0a65a;
+  --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --stage: #080d12; --stage-line: #1f2a34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: grid; gap: 1.5rem; }
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -.01em; margin: .25rem 0 0; text-wrap: balance; }
+header p.lede { margin: .5rem 0 0; color: var(--muted); max-width: 62ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+sub, sup { font-size: .7em; line-height: 0; }
+b.root { color: var(--c-root); }
+.metal { color: var(--c-metal); font-weight: 700; }
+
+.picker { display: grid; gap: .7rem; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; }
+.row { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.row-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); width: 4.5rem; flex: none; }
+.chip {
+  font: 700 .9rem var(--f-body); border: 1.5px solid var(--line); background: var(--bg); color: var(--ink);
+  padding: .4rem .8rem; border-radius: 999px; cursor: pointer; display: inline-flex; gap: .4rem; align-items: baseline;
+}
+.chip .f { font: 500 .78rem var(--f-mono); color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip[aria-pressed="true"] .f { color: inherit; opacity: .8; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.lab { display: grid; gap: 1.25rem; align-items: start; }
+@media (min-width: 56rem) { .lab { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+
+.bench { background: var(--stage); color: var(--stage-ink); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: grid; }
+#stage { display: block; width: 100%; height: auto; }
+.bench-controls { display: grid; gap: .8rem; padding: 1rem; border-top: 1px solid var(--stage-line); }
+.btn { font: 700 .95rem var(--f-body); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; border: 0; background: #6ea8ff; color: #0b1622; justify-self: start; }
+.bench .btn:focus-visible { outline-color: #6ea8ff; }
+.btn-row { display: flex; flex-wrap: wrap; gap: .6rem; }
+.bench .btn.voice { background: transparent; color: var(--stage-ink); border: 2px solid #33424f; }
+.phases { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; counter-reset: ph; }
+.phases li { counter-increment: ph; display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); gap: .5rem; color: #5e7080; font-size: .95rem; transition: color .25s; }
+.phases li::before { content: counter(ph); font: 500 .75rem var(--f-mono); width: 1.4rem; height: 1.4rem; border-radius: 50%; border: 1px solid #33424f; display: grid; place-items: center; margin-top: .1rem; }
+.phases li.past { color: var(--stage-muted); }
+.phases li.now { color: var(--stage-ink); }
+.phases li.now::before { background: #6ea8ff; color: #0b1622; border-color: #6ea8ff; }
+.no-react { background: #2a1d12; color: #ffd6a8; border-radius: 8px; padding: .7rem .9rem; margin: 0; font-size: .95rem; }
+
+.panel { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .7rem; }
+.chip-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.pattern { font: 500 .85rem var(--f-mono); color: var(--muted); }
+.wordeq { font-family: var(--f-display); font-weight: 600; font-size: clamp(1.15rem, 3.6vw, 1.45rem); line-height: 1.35; text-wrap: balance; }
+.wordeq .prod { display: inline-block; }
+.wordeq .prod.reveal { animation: pop .45s ease-out; }
+.wordeq .q { color: var(--muted); }
+@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
+.formula { display: grid; gap: .55rem; }
+.formula div { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .75rem; align-items: baseline; }
+.formula .big { font: 500 1.1rem var(--f-mono); }
+.formula p { margin: 0; font-size: .93rem; }
+.eqsym { font: 500 1rem var(--f-mono); background: var(--bg); border-radius: 8px; padding: .5rem .7rem; overflow-x: auto; white-space: nowrap; }
+
+.names { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.names th { text-align: left; font: 500 .7rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 .5rem .4rem 0; }
+.names td { padding: .4rem .5rem .4rem 0; border-top: 1px solid var(--line); }
+.names td:first-child { padding-left: .4rem; }
+.names tr.on td { background: var(--hl); }
+.names .mono { font-family: var(--f-mono); font-size: .85rem; }
+.table-wrap { overflow-x: auto; }
+
+.quiz { display: grid; gap: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.score { font: 500 .85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.qs { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; align-content: start; }
+.q p.ask { margin: 0; font-weight: 700; }
+.opts { display: grid; gap: .4rem; }
+.opt { text-align: left; font: 400 .95rem var(--f-body); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: .5rem .7rem; cursor: pointer; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); font-weight: 700; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { margin: 0; font-size: .92rem; color: var(--muted); }
+.why b { color: var(--ink); }
+
+.cards-list { display: grid; gap: .5rem; }
+.cards-list div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; font-size: .92rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.cards-list div:first-child { border-top: 0; padding-top: 0; }
+.cards-list .front { font-weight: 700; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+a { color: var(--accent); }
+@media (max-width: 30rem) {
+  .cards-list div { grid-template-columns: 1fr; gap: .1rem; }
+  .formula div { grid-template-columns: 1fr; gap: .1rem; }
+  .row-label { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .wordeq .prod.reveal { animation: none; } }
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <p class="eyebrow">Chemistry · Reactions of metals</p>
+    <h1>Metal Reactions Lab</h1>
+    <p class="lede">Pick a metal and something to react it with. Watch what the atoms do, and see how the product gets its name. Turn the sound on to hear it explained.</p>
+  </header>
+
+  <section class="picker" aria-label="Choose a reaction">
+    <div class="row" id="metal-row"><span class="row-label">Metal</span></div>
+    <div class="row" id="partner-row"><span class="row-label">With</span></div>
+  </section>
+
+  <section class="lab">
+    <div class="bench">
+      <svg id="stage" viewBox="0 0 420 330" role="img" aria-label="Beaker and a zoomed-in view of the atoms reacting">
+        <defs>
+          <clipPath id="zoom-clip"><circle cx="285" cy="160" r="124"/></clipPath>
+        </defs>
+        <g id="macro"></g>
+        <line x1="128" y1="190" x2="162" y2="175" stroke="#33424f" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <circle cx="285" cy="160" r="125" fill="#0f1922" stroke="#33424f" stroke-width="2"/>
+        <g clip-path="url(#zoom-clip)"><g id="atoms"></g></g>
+        <text x="285" y="306" text-anchor="middle" fill="#7f93a3" style="font:500 10px var(--f-mono);letter-spacing:.06em">ZOOMED IN ABOUT 100 MILLION TIMES</text>
+      </svg>
+      <div class="bench-controls">
+        <div class="btn-row">
+          <button class="btn" id="replay">↺ Replay</button>
+          <button class="btn voice" id="voice" aria-pressed="true">🔊 Voice on</button>
+        </div>
+        <ol class="phases" id="phases"></ol>
+        <p class="no-react" id="no-react" hidden></p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <span class="chip-label">The name</span>
+        <span class="pattern" id="pattern"></span>
+        <div class="wordeq" id="wordeq"></div>
+      </div>
+      <div class="card">
+        <span class="chip-label">The formulas</span>
+        <div class="formula" id="formula"></div>
+        <div class="eqsym" id="eqsym"></div>
+      </div>
+      <div class="card">
+        <span class="chip-label">Where the second word comes from</span>
+        <div class="table-wrap">
+          <table class="names" id="names">
+            <thead><tr><th>React with</th><th>Ion it brings</th><th>Product name ends</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quiz">
+    <div class="quiz-head"><h2>Try ones that aren't on the sheet</h2><span class="score" id="score"></span></div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <section class="card">
+    <h2>Flashcards this explains</h2>
+    <div class="cards-list">
+      <div><span class="front">Metal + oxygen →</span><span>Metal oxide</span></div>
+      <div><span class="front">Metal + water →</span><span>Metal hydroxide + hydrogen</span></div>
+      <div><span class="front">Metal + hydrochloric acid →</span><span>Metal chloride + hydrogen gas</span></div>
+      <div><span class="front">Metal + sulfuric acid →</span><span>Metal sulfate + hydrogen</span></div>
+      <div><span class="front">Metal + nitric acid →</span><span>Metal nitrate + hydrogen</span></div>
+      <div><span class="front">Formula for hydrochloric acid</span><span>HCl</span></div>
+      <div><span class="front">Formula for sulfuric acid</span><span>H<sub>2</sub>SO<sub>4</sub></span></div>
+      <div><span class="front">Formula for nitric acid</span><span>HNO<sub>3</sub></span></div>
+    </div>
+    <p class="note">These are the school versions of the rules. In real life only fairly reactive metals react with acids, only very reactive ones react with cold water, and nitric acid often gives off other gases as well as hydrogen. <a href="flashcards.html">Flashcards</a> · <a href="bunsen.html">Bunsen Burner Lab</a></p>
+  </section>
+  <p class="credit">Narration voice: Max, generated with ElevenLabs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const CX = 285, CY = 160, T_END = 9, POP_T = 7.3;
+
+/* ---------- Data ---------- */
+const METALS = {
+  Mg: { name: "magnesium", color: "#c9d1d8", acid: .8, water: .12, oxy: { glow: "#ffffff", how: "It burns with a dazzling white flame.", powder: "white", pColor: "#f2f2f2" } },
+  Zn: { name: "zinc", color: "#a9b6c2", acid: .45, water: 0, oxy: { glow: "#bfe6ff", how: "It glows and slowly turns to powder.", powder: "white", pColor: "#eeeeea" } },
+  Ca: { name: "calcium", color: "#dfe3e6", acid: 1, water: .7, oxy: { glow: "#ff7a3d", how: "It burns with an orange-red flame.", powder: "white", pColor: "#f2f2f2" } },
+  Cu: { name: "copper", color: "#c87533", acid: 0, water: 0, oxy: { glow: "#ff9a4a", how: "It doesn't catch fire, but the surface goes black.", powder: "black", pColor: "#1d1d1d" } },
+};
+const PARTNERS = {
+  hcl:   { label: "Hydrochloric acid", f: "HCl", type: "acid", nameHTML: 'hydro<b class="root">chlor</b>ic acid', end: '<b class="root">chlor</b>ide',
+           ion: "chloride", ionF: "Cl<sup>−</sup>", ionPlain: "Cl⁻", charge: 1, anion: "Cl", per: 2 },
+  h2so4: { label: "Sulfuric acid", f: "H<sub>2</sub>SO<sub>4</sub>", type: "acid", nameHTML: '<b class="root">sulf</b>uric acid', end: '<b class="root">sulf</b>ate',
+           ion: "sulfate", ionF: "SO<sub>4</sub><sup>2−</sup>", ionPlain: "SO₄²⁻", charge: 2, anion: "SO4", per: 1 },
+  hno3:  { label: "Nitric acid", f: "HNO<sub>3</sub>", type: "acid", nameHTML: '<b class="root">nitr</b>ic acid', end: '<b class="root">nitr</b>ate',
+           ion: "nitrate", ionF: "NO<sub>3</sub><sup>−</sup>", ionPlain: "NO₃⁻", charge: 1, anion: "NO3", per: 2 },
+  water: { label: "Water", f: "H<sub>2</sub>O", type: "water", nameHTML: 'water', end: '<b class="root">hydroxide</b>',
+           ion: "hydroxide", ionF: "OH<sup>−</sup>", ionPlain: "OH⁻", charge: 1, anion: "OH", per: 2 },
+  o2:    { label: "Oxygen", f: "O<sub>2</sub>", type: "oxygen", nameHTML: 'oxygen', end: '<b class="root">oxide</b>',
+           ion: "oxide", ionF: "O<sup>2−</sup>", ionPlain: "O²⁻", charge: 2, anion: "O", per: 1 },
+};
+let sel = { m: "Mg", p: "hcl" };
+
+/* ---------- Atom drawings (local origin) ---------- */
+function atom(sym, r, fill, ink, dx = 0, dy = 0) {
+  return `<circle cx="${dx}" cy="${dy}" r="${r}" fill="${fill}" stroke="#0f1922" stroke-width="1.5"/>` +
+    `<text x="${dx}" y="${dy + r * .36}" text-anchor="middle" fill="${ink}" style="font:700 ${Math.round(r * .95)}px var(--f-body)">${sym}</text>`;
+}
+const H = (dx, dy) => atom("H", 7, "#f2f5f7", "#14212b", dx, dy);
+const O = (dx, dy, r = 9) => atom("O", r, "#e5574c", "#ffffff", dx, dy);
+const DRAW = {
+  H: () => H(0, 0),
+  Cl: () => atom("Cl", 12, "#5cc46a", "#0b1a0e"),
+  SO4: () => O(0, -18, 8) + O(0, 18, 8) + O(-18, 0, 8) + O(18, 0, 8) + atom("S", 11, "#f2c94c", "#2a2208"),
+  NO3: () => O(0, -17, 8) + O(15, 9, 8) + O(-15, 9, 8) + atom("N", 10, "#5b8def", "#ffffff"),
+  OH: () => H(11, -9) + O(0, 0, 10),
+  O: () => O(0, 0, 10),
+  e: () => `<circle r="4" fill="#ffd24a"/><circle r="7" fill="#ffd24a" opacity=".25"/>`,
+  bubble: () => `<ellipse rx="24" ry="16" fill="none" stroke="#9fd0ff" stroke-width="1.5" opacity=".8"/>`,
+};
+const CHARGE_POS = { H: 8, Cl: 12, SO4: 22, NO3: 20, OH: 12, O: 10, M: 16 };
+
+/* ---------- Choreography ----------
+   Each entity has keyframes [t, x, y] in the zoom circle's local frame,
+   opacity keys [t, o] and charge labels [t, text]. */
+function buildEntities(mKey, pKey) {
+  const M = METALS[mKey], P = PARTNERS[pKey];
+  const metal = () => atom(mKey, 16, M.color, "#14212b");
+  const ents = [];
+  const add = (kind, draw, keys, opt = {}) => ents.push({ kind, draw, keys, op: opt.op || [[0, 1]], chg: opt.chg || [[0, ""]], cpos: CHARGE_POS[kind] || 10 });
+
+  if (P.type === "oxygen") {
+    for (const s of [-1, 1]) {
+      const y = 50 * s;
+      add("M", metal, [[0, -72, y], [4.2, -72, y], [5.6, -16, y]], { chg: [[0, ""], [3.4, "2+"]] });
+      add("O", DRAW.O, [[0, 30, 11 * s], [1, 30, 11 * s], [2.3, 34, y], [4.2, 34, y], [5.6, 16, y]], { chg: [[0, ""], [3.9, "2−"]] });
+      for (const k of [0, 1]) {
+        add("e", DRAW.e, [[2.5 + k * .3, -72, y + (k ? 6 : -6)], [3.7 + k * .3, 34, y + (k ? 6 : -6)]],
+          { op: [[0, 0], [2.5 + k * .3, 0], [2.55 + k * .3, 1], [3.7 + k * .3, 1], [3.85 + k * .3, 0]] });
+      }
+    }
+    return ents;
+  }
+
+  // Acids and water: hydrogen gets pushed out.
+  const hRise = [[-46, -80], [-26, -80]];
+  const twoAnions = P.per === 2;
+  add("M", metal, [[0, -72, 0], [5.5, -72, 0], [7, twoAnions ? -8 : -14, 0]], { chg: [[0, ""], [3.3, "2+"]] });
+  const hStarts = twoAnions ? [[12, -55], [12, 55]] : [[12, -34], [12, 34]];
+  hStarts.forEach(([hx, hy], i) => {
+    const split = [-4, hy < 0 ? -74 : 74];
+    add("H", DRAW.H, [[0, hx, hy], [1, hx, hy], [2.3, ...split], [4, ...split], [5.2, ...hRise[i]], [6.6, hRise[i][0], -175]],
+      { op: [[0, 1], [6.1, 1], [6.6, 0]], chg: [[0, ""], [1.6, "+"], [3.9, ""]] });
+    add("e", DRAW.e, [[2.6 + i * .2, -72, 0], [3.8 + i * .2, ...split]],
+      { op: [[0, 0], [2.6 + i * .2, 0], [2.65 + i * .2, 1], [3.8 + i * .2, 1], [3.95 + i * .2, 0]] });
+  });
+  const anionDraw = DRAW[P.anion];
+  const cLabel = P.charge === 2 ? "2−" : "−";
+  if (twoAnions) {
+    for (const s of [-1, 1]) {
+      const ax = P.anion === "OH" ? 36 : 42;
+      add(P.anion, anionDraw, [[0, ax, 55 * s], [1, ax, 55 * s], [2.3, 50, 52 * s], [5.5, 50, 52 * s], [7, 36, 38 * s]],
+        { chg: [[0, ""], [1.6, cLabel]] });
+    }
+  } else {
+    add(P.anion, anionDraw, [[0, 46, 0], [5.5, 46, 0], [7, 30, 0]], { chg: [[0, ""], [1.6, cLabel]] });
+  }
+  add("bubble", DRAW.bubble, [[5.2, -36, -80], [6.6, -36, -175]], { op: [[0, 0], [5.0, 0], [5.3, 1], [6.3, 1], [6.6, 0]] });
+  return ents;
+}
+
+function phasesFor(mKey, pKey) {
+  const M = METALS[mKey], P = PARTNERS[pKey], Mn = M.name, Cap = Mn[0].toUpperCase() + Mn.slice(1);
+  if (P.type === "oxygen") return [
+    [0, `${Cap} is heated in air, which contains oxygen gas (O₂). ${M.oxy.how}`],
+    [1, "Each O₂ molecule splits into two oxygen atoms."],
+    [2.5, `Each ${Mn} atom gives 2 electrons to an oxygen atom.`],
+    [4.2, `That makes ${mKey}²⁺ and oxide (O²⁻) ions. Opposite charges stick together.`],
+    [6, `The product is ${Mn} oxide, a ${M.oxy.powder} powder. No hydrogen this time, because oxygen has none to push out.`],
+  ];
+  const splitLine = P.type === "water"
+    ? "A few water molecules lose a hydrogen ion (H⁺), leaving hydroxide ions (OH⁻)."
+    : `In water the acid splits into hydrogen ions (H⁺) and ${P.ion} ions (${P.ionPlain}).`;
+  return [
+    [0, `A piece of ${Mn} goes into ${P.type === "water" ? "water" : P.label.toLowerCase()}.`],
+    [1, splitLine],
+    [2.5, `Each ${Mn} atom gives away 2 electrons and becomes ${mKey}²⁺.`],
+    [4, "Each H⁺ takes one electron and becomes a hydrogen atom. Two pair up as hydrogen gas (H₂) and bubble off."],
+    [5.5, `${mKey}²⁺ and the ${P.ion} ions are left behind. Together they make ${Mn} ${P.ion}${P.type === "acid" ? ", a salt" : ""}.`],
+    [7, "Test the gas: a lit splint makes a squeaky pop. That's the hydrogen burning."],
+  ];
+}
+
+function reaction(mKey, pKey) {
+  const M = METALS[mKey], P = PARTNERS[pKey];
+  if (P.type === "acid" && M.acid === 0) return { none: `Nothing happens. ${cap(M.name)} is not reactive enough to push hydrogen out of the acid. Metals like magnesium, zinc and calcium can.` };
+  if (P.type === "water" && M.water === 0) return { none: `Nothing happens with cold water. ${cap(M.name)} is not reactive enough. Very reactive metals like calcium do react with water.` };
+  const slow = P.type === "water" && M.water < .3;
+  return { slow, fizz: P.type === "acid" ? M.acid : P.type === "water" ? M.water : 0 };
+}
+const cap = s => s[0].toUpperCase() + s.slice(1);
+
+/* ---------- Formulas ---------- */
+function saltFormula(mKey, P) {
+  if (P.type === "oxygen") return `${mKey}O`;
+  const ion = { Cl: "Cl", SO4: "SO<sub>4</sub>", NO3: "NO<sub>3</sub>", OH: "OH" }[P.anion];
+  if (P.per === 1) return `${mKey}${ion}`;
+  return P.anion === "Cl" ? `${mKey}Cl<sub>2</sub>` : `${mKey}(${ion})<sub>2</sub>`;
+}
+function symbolEq(mKey, P) {
+  const s = saltFormula(mKey, P);
+  if (P.type === "oxygen") return `2${mKey} + O<sub>2</sub> → 2${s}`;
+  if (P.type === "water") return `${mKey} + 2H<sub>2</sub>O → ${s} + H<sub>2</sub>`;
+  return P.per === 2 ? `${mKey} + 2${P.f} → ${s} + H<sub>2</sub>` : `${mKey} + ${P.f} → ${s} + H<sub>2</sub>`;
+}
+function renderFormula() {
+  const M = METALS[sel.m], P = PARTNERS[sel.p], r = reaction(sel.m, sel.p);
+  let first;
+  if (P.type === "acid") {
+    first = `<div><span class="big">${P.f}</span><p>The ${P.ion} ion is ${P.ionF}, with a ${P.charge === 2 ? "<b>2−</b>" : "<b>1−</b>"} charge. It needs ${P.charge === 2 ? "<b>two</b> H<sup>+</sup> ions" : "<b>one</b> H<sup>+</sup> ion"} to balance, so the acid is ${P.f}.</p></div>`;
+  } else if (P.type === "water") {
+    first = `<div><span class="big">H<sub>2</sub>O</span><p>Water can lose one H<sup>+</sup>, leaving hydroxide, OH<sup>−</sup>.</p></div>`;
+  } else {
+    first = `<div><span class="big">O<sub>2</sub></span><p>Oxygen gas comes in pairs. Each oxygen atom takes 2 electrons and becomes oxide, O<sup>2−</sup>.</p></div>`;
+  }
+  let second = "";
+  if (!r.none) {
+    const s = saltFormula(sel.m, P);
+    const why = P.charge === 2
+      ? `${sel.m}<sup>2+</sup> and ${P.ionF} balance one to one: ${s}.`
+      : `${sel.m}<sup>2+</sup> needs <b>two</b> ${P.ionF} ions to balance: ${s}.`;
+    second = `<div><span class="big">${s}</span><p>${why}</p></div>`;
+  }
+  $("formula").innerHTML = first + second;
+  $("eqsym").innerHTML = r.none ? `${sel.m} + ${P.f} → no reaction` : symbolEq(sel.m, P);
+}
+
+/* ---------- Name builder ---------- */
+let productShown = false;
+function renderName(t) {
+  const M = METALS[sel.m], P = PARTNERS[sel.p], r = reaction(sel.m, sel.p);
+  $("pattern").textContent = P.type === "acid" ? "metal + acid → salt + hydrogen"
+    : P.type === "water" ? "metal + water → metal hydroxide + hydrogen" : "metal + oxygen → metal oxide";
+  const revealAt = P.type === "oxygen" ? 6 : 5.5;
+  const show = !r.none && t >= revealAt;
+  const product = r.none ? `<span class="q">no reaction</span>`
+    : show ? `<span class="prod reveal"><span class="metal">${M.name}</span> ${P.end}${P.type === "oxygen" ? "" : " + hydrogen"}</span>`
+    : `<span class="q">?</span>`;
+  if (show === productShown && $("wordeq").dataset.k === sel.m + sel.p) return;
+  productShown = show;
+  $("wordeq").dataset.k = sel.m + sel.p;
+  $("wordeq").innerHTML = `<span class="metal">${M.name}</span> + ${P.nameHTML} → ${product}`;
+}
+
+function renderNamesTable() {
+  const order = ["hcl", "h2so4", "hno3", "water", "o2"];
+  $("names").querySelector("tbody").innerHTML = order.map(k => {
+    const P = PARTNERS[k];
+    return `<tr class="${k === sel.p ? "on" : ""}"><td>${P.nameHTML}</td><td class="mono">${P.ionF}</td><td>…${P.end}</td></tr>`;
+  }).join("");
+}
+
+/* ---------- Picker ---------- */
+function renderPicker() {
+  const mr = $("metal-row"), pr = $("partner-row");
+  mr.querySelectorAll(".chip").forEach(c => c.remove());
+  pr.querySelectorAll(".chip").forEach(c => c.remove());
+  for (const [k, M] of Object.entries(METALS)) {
+    const b = document.createElement("button");
+    b.className = "chip"; b.id = "m-" + k;
+    b.innerHTML = `${cap(M.name)} <span class="f">${k}</span>`;
+    b.setAttribute("aria-pressed", String(sel.m === k));
+    b.onclick = () => { sel.m = k; start(); };
+    mr.appendChild(b);
+  }
+  for (const [k, P] of Object.entries(PARTNERS)) {
+    const b = document.createElement("button");
+    b.className = "chip"; b.id = "p-" + k;
+    b.innerHTML = `${P.label} <span class="f">${P.f}</span>`;
+    b.setAttribute("aria-pressed", String(sel.p === k));
+    b.onclick = () => { sel.p = k; start(); };
+    pr.appendChild(b);
+  }
+}
+
+/* ---------- Stage ---------- */
+let ents = [], phases = [], t = 0, playing = false, rx = null;
+const atomsG = $("atoms"), macroG = $("macro");
+
+function interp(keys, time) {
+  if (time <= keys[0][0]) return keys[0].slice(1);
+  for (let i = 0; i < keys.length - 1; i++) {
+    const [t0, ...a] = keys[i], [t1, ...b] = keys[i + 1];
+    if (time < t1) {
+      let k = (time - t0) / (t1 - t0);
+      k = reduceMotion ? (k < .5 ? 0 : 1) : k * k * (3 - 2 * k);
+      return a.map((v, j) => v + (b[j] - v) * k);
+    }
+  }
+  return keys[keys.length - 1].slice(1);
+}
+function stepVal(keys, time) {
+  let v = keys[0][1];
+  for (const [tk, val] of keys) if (time >= tk) v = val;
+  return v;
+}
+
+function buildStage() {
+  rx = reaction(sel.m, sel.p);
+  ents = rx.none ? noReactionEntities() : buildEntities(sel.m, sel.p);
+  atomsG.innerHTML = ents.map((e, i) =>
+    `<g id="ent-${i}">${e.draw()}<text class="chg" x="${e.cpos}" y="${-e.cpos + 2}" fill="#ffd24a" style="font:700 11px var(--f-mono)"></text></g>`).join("");
+  ents.forEach((e, i) => { e.el = $("ent-" + i); e.chgEl = e.el.querySelector(".chg"); e.ph = Math.random() * 6.28; });
+  buildMacro();
+}
+function noReactionEntities() {
+  // Show the starting particles jiggling, with nothing changing.
+  const P = PARTNERS[sel.p], M = METALS[sel.m];
+  const list = [{ kind: "M", draw: () => atom(sel.m, 16, M.color, "#14212b"), keys: [[0, -72, 0]], op: [[0, 1]], chg: [[0, ""]], cpos: 16 }];
+  const ys = P.per === 2 ? [-55, 55] : [0];
+  for (const y of ys) {
+    if (P.per === 1 && P.type === "acid") {
+      list.push({ kind: "H", draw: DRAW.H, keys: [[0, 12, -34]], op: [[0, 1]], chg: [[0, ""]], cpos: 8 });
+      list.push({ kind: "H", draw: DRAW.H, keys: [[0, 12, 34]], op: [[0, 1]], chg: [[0, ""]], cpos: 8 });
+      list.push({ kind: P.anion, draw: DRAW[P.anion], keys: [[0, 46, 0]], op: [[0, 1]], chg: [[0, ""]], cpos: 20 });
+    } else {
+      list.push({ kind: "H", draw: DRAW.H, keys: [[0, 12, y]], op: [[0, 1]], chg: [[0, ""]], cpos: 8 });
+      list.push({ kind: P.anion, draw: DRAW[P.anion], keys: [[0, P.anion === "OH" ? 36 : 42, y]], op: [[0, 1]], chg: [[0, ""]], cpos: 12 });
+    }
+  }
+  return list;
+}
+
+/* Macro view: beaker with bubbles, or tongs over a flame for oxygen. */
+const bubbles = [];
+let bubbleAcc = 0;
+function buildMacro() {
+  const M = METALS[sel.m], P = PARTNERS[sel.p];
+  if (P.type === "oxygen") {
+    macroG.innerHTML = `
+      <text x="70" y="322" text-anchor="middle" fill="#7f93a3" style="font:500 10px var(--f-mono);letter-spacing:.06em">HEATED IN AIR</text>
+      <circle id="glow" cx="70" cy="178" r="34" fill="${M.oxy.glow}" opacity="0"/>
+      <line x1="16" y1="140" x2="62" y2="176" stroke="#8a96a1" stroke-width="4" stroke-linecap="round"/>
+      <line x1="16" y1="148" x2="62" y2="180" stroke="#6c7782" stroke-width="4" stroke-linecap="round"/>
+      <line id="ribbon" x1="60" y1="178" x2="96" y2="182" stroke="${M.color}" stroke-width="5" stroke-linecap="round"/>
+      <path d="M70 258 C62 240 66 222 74 206 C80 222 84 240 76 258 Z" fill="#4f86ff" opacity=".85"/>
+      <path d="M71 258 C68 248 70 238 74 230 C77 238 78 248 75 258 Z" fill="#a8d8ff"/>
+      <rect x="60" y="258" width="28" height="44" fill="#8f9aa5"/>
+      <rect x="44" y="300" width="60" height="8" rx="3" fill="#6c7782"/>`;
+  } else {
+    const liquid = P.type === "water" ? "#6fa8dc" : "#8fc6e8";
+    macroG.innerHTML = `
+      <text x="70" y="322" text-anchor="middle" fill="#7f93a3" style="font:500 10px var(--f-mono);letter-spacing:.06em">IN THE BEAKER</text>
+      <rect x="24" y="160" width="92" height="128" fill="${liquid}" opacity=".28"/>
+      <rect x="24" y="160" width="92" height="2" fill="${liquid}" opacity=".7"/>
+      <rect id="strip" x="56" y="262" width="30" height="22" rx="2" fill="${M.color}"/>
+      <g id="bubbles"></g>
+      <path d="M18 100 L22 100 L22 290 Q22 296 28 296 L112 296 Q118 296 118 290 L118 100 L122 100" fill="none" stroke="#b9c7d3" stroke-width="2.5"/>
+      <g id="splint" opacity="0">
+        <line x1="70" y1="86" x2="128" y2="40" stroke="#c49a5a" stroke-width="5" stroke-linecap="round"/>
+        <path d="M70 86 C62 78 64 68 70 62 C74 70 78 78 70 86 Z" fill="#ffb347"/>
+      </g>
+      <text id="pop" x="70" y="40" text-anchor="middle" fill="#ffd24a" opacity="0" style="font:800 16px var(--f-display)">squeaky pop!</text>`;
+  }
+  bubbles.length = 0;
+}
+
+function drawMacro(time, dt) {
+  const M = METALS[sel.m], P = PARTNERS[sel.p];
+  if (P.type === "oxygen") {
+    const glow = $("glow"), ribbon = $("ribbon");
+    const g = Math.max(0, Math.min(1, (time - 1) / 1.5)) * (time < 6.5 ? 1 : .35);
+    glow.setAttribute("opacity", (g * (sel.m === "Cu" ? .25 : .7) * (0.85 + .15 * Math.sin(time * 20))).toFixed(2));
+    ribbon.setAttribute("stroke", time >= 6 ? M.oxy.pColor : M.color);
+    return;
+  }
+  // Bubbles
+  const fizz = rx.none ? 0 : rx.fizz;
+  if (time > 2.5 && fizz > 0) bubbleAcc += dt * fizz * 22;
+  const bg = $("bubbles");
+  while (bubbleAcc > 1 && bubbles.length < 40) {
+    bubbleAcc--;
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("fill", "none"); c.setAttribute("stroke", "#d9ecff"); c.setAttribute("stroke-width", "1.2");
+    bg.appendChild(c);
+    bubbles.push({ el: c, x: 58 + Math.random() * 26, y: 262, r: 1.5 + Math.random() * 2.5, v: 40 + Math.random() * 50, ph: Math.random() * 6 });
+  }
+  for (let i = bubbles.length - 1; i >= 0; i--) {
+    const b = bubbles[i];
+    b.y -= b.v * dt; b.r += dt * .6;
+    if (b.y < 162) { b.el.remove(); bubbles.splice(i, 1); continue; }
+    b.el.setAttribute("cx", (b.x + Math.sin(b.y * .08 + b.ph) * 2).toFixed(1));
+    b.el.setAttribute("cy", b.y.toFixed(1));
+    b.el.setAttribute("r", b.r.toFixed(1));
+  }
+  const splint = $("splint"), pop = $("pop");
+  const showSplint = !rx.none && time >= 7;
+  splint.setAttribute("opacity", showSplint ? 1 : 0);
+  const pk = time - POP_T;
+  if (!rx.none && pk >= 0) {
+    pop.setAttribute("opacity", pk < .15 ? pk / .15 : 1);
+    const s = pk < .3 && !reduceMotion ? 1 + .4 * Math.sin(pk / .3 * Math.PI) : 1;
+    pop.setAttribute("transform", `translate(70 40) scale(${s.toFixed(2)}) translate(-70 -40)`);
+  } else pop.setAttribute("opacity", 0);
+}
+
+function drawAtoms(time, now) {
+  for (const e of ents) {
+    const [x, y] = interp(e.keys, time);
+    const jig = reduceMotion || e.kind === "e" || e.kind === "bubble" ? 0 : 1.6;
+    const jx = Math.sin(now * 3.1 + e.ph) * jig, jy = Math.cos(now * 2.7 + e.ph) * jig;
+    e.el.setAttribute("transform", `translate(${(CX + x + jx).toFixed(1)} ${(CY + y + jy).toFixed(1)})`);
+    const op = e.op.length > 1 ? interp(e.op, time)[0] : e.op[0][1];
+    e.el.setAttribute("opacity", op.toFixed(2));
+    e.chgEl.textContent = stepVal(e.chg, time);
+  }
+}
+
+function renderPhases(time) {
+  const lis = $("phases").children;
+  let cur = 0;
+  phases.forEach(([pt], i) => { if (time >= pt) cur = i; });
+  for (let i = 0; i < lis.length; i++) lis[i].className = i < cur ? "past" : i === cur ? "now" : "";
+}
+
+function start() {
+  renderPicker();
+  renderNamesTable();
+  renderFormula();
+  buildStage();
+  phases = rx.none ? [] : phasesFor(sel.m, sel.p);
+  if (rx.slow) phases[0][1] += " (Magnesium reacts very slowly with cold water, so this is sped up a lot.)";
+  $("phases").innerHTML = phases.map(([, txt]) => `<li>${txt}</li>`).join("");
+  $("no-react").hidden = !rx.none;
+  $("no-react").textContent = rx.none || "";
+  $("replay").hidden = !!rx.none;
+  restart(false);
+}
+
+/* ---------- Narration (Max, ElevenLabs) ----------
+   The lines are shared across metals (the names are on screen), with acid-specific
+   lines where the acid matters. Each step holds until Max has finished it. */
+const audioCache = {};
+const clipOf = name => audioCache[name] || (audioCache[name] = Object.assign(new Audio(`audio/${name}.mp3`), { preload: "auto" }));
+let voiceOn = true;
+try { voiceOn = localStorage.getItem("reactions-voice") !== "off"; } catch {}
+const narr = { phase: -1, clip: null };
+function clipNames() {
+  const P = PARTNERS[sel.p];
+  if (rx.none) return [P.type === "acid" ? "rx-none-acid" : "rx-none-water"];
+  if (P.type === "oxygen") return ["rx-o-0", "rx-o-1", "rx-o-2", "rx-o-3", "rx-o-4"];
+  const k = P.type === "water" ? "water" : sel.p;
+  return [P.type === "water" ? "rx-water-0" : "rx-acid-0", `rx-${k}-1`, "rx-e", "rx-h2", `rx-${k}-salt`, "rx-pop"];
+}
+function stopVoice() { if (narr.clip) narr.clip.pause(); narr.clip = null; }
+function speakPhase(i) {
+  stopVoice();
+  if (!voiceOn || !playing) return;
+  const name = clipNames()[i];
+  if (!name) return;
+  const a = clipOf(name);
+  try { a.currentTime = 0; } catch {}
+  narr.clip = a;
+  const p = a.play();
+  if (p && p.catch) p.catch(() => { if (narr.clip === a) narr.clip = null; });
+}
+const speaking = () => !!(narr.clip && !narr.clip.paused && !narr.clip.ended);
+function phaseIndexAt(time) { let k = 0; phases.forEach(([pt], i) => { if (time >= pt) k = i; }); return k; }
+function advanceTime(dt) {
+  if (!playing) return;
+  let next = t + dt;
+  const k = phaseIndexAt(t);
+  const boundary = k + 1 < phases.length ? phases[k + 1][0] : T_END;
+  if (speaking() && next >= boundary) next = boundary - 0.001;
+  t = next;
+  const k2 = phaseIndexAt(t);
+  if (k2 !== narr.phase) { narr.phase = k2; speakPhase(k2); }
+  if (t >= T_END) { t = T_END; playing = false; }
+}
+function updateVoice() {
+  $("voice").textContent = voiceOn ? "🔊 Voice on" : "🔇 Voice off";
+  $("voice").setAttribute("aria-pressed", String(voiceOn));
+}
+$("voice").onclick = () => {
+  voiceOn = !voiceOn;
+  try { localStorage.setItem("reactions-voice", voiceOn ? "on" : "off"); } catch {}
+  if (!voiceOn) stopVoice(); else if (playing) speakPhase(narr.phase);
+  updateVoice();
+};
+function restart(rebuild) { stopVoice(); if (rebuild) buildStage(); t = 0; narr.phase = -1; playing = true; productShown = null; }
+$("replay").onclick = () => restart(true);
+updateVoice();
+
+let last = performance.now();
+function frame(nowMs) {
+  const dt = Math.min(.05, (nowMs - last) / 1000); last = nowMs;
+  advanceTime(dt);
+  drawAtoms(t, nowMs / 1000);
+  drawMacro(t, dt);
+  renderPhases(t);
+  renderName(t);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  { q: "Zinc + hydrochloric acid → ?", opts: ["Zinc chloride + hydrogen", "Zinc oxide + water", "Zinc sulfate + hydrogen", "Zinc hydroxide"], a: 0,
+    why: "Hydro<b>chlor</b>ic acid makes <b>chlor</b>ides, and the hydrogen bubbles off." },
+  { q: "Calcium + nitric acid → ?", opts: ["Calcium nitride + water", "Calcium nitrate + hydrogen", "Calcium chloride + hydrogen", "No reaction"], a: 1,
+    why: "<b>Nitr</b>ic acid makes <b>nitr</b>ates. Careful: it's nitr<b>ate</b>, not nitr<b>ide</b>." },
+  { q: "You want to make magnesium sulfate. Which acid do you add to magnesium?", opts: ["Hydrochloric acid", "Nitric acid", "Sulfuric acid"], a: 2,
+    why: "<b>Sulf</b>uric acid brings the <b>sulf</b>ate ion." },
+  { q: "Why does sulfuric acid have two hydrogens (H₂SO₄) but hydrochloric acid only one (HCl)?",
+    opts: ["Sulfuric acid is stronger", "Sulfate has a 2− charge, so it needs two H⁺", "Sulfur is heavier than chlorine"], a: 1,
+    why: "Charges must balance. SO₄²⁻ needs <b>two</b> H⁺; Cl⁻ needs only <b>one</b>." },
+  { q: "Magnesium ribbon burns in air with a bright white flame. What is the white powder left behind?",
+    opts: ["Magnesium hydroxide", "Magnesium oxide", "Magnesium carbonate", "Ash"], a: 1,
+    why: "Metal + oxygen → metal <b>oxide</b>. No hydrogen is involved." },
+  { q: "A lit splint held over a fizzing test tube makes a squeaky pop. Which gas is it?", opts: ["Oxygen", "Carbon dioxide", "Hydrogen"], a: 2,
+    why: "The squeaky pop is the test for <b>hydrogen</b>. It's the gas made when a metal reacts with an acid or water." },
+  { q: "Copper is dropped into hydrochloric acid. What happens?", opts: ["Copper chloride + hydrogen", "Nothing", "Copper oxide forms"], a: 1,
+    why: "Copper isn't reactive enough to push hydrogen out of an acid, so <b>nothing happens</b>." },
+  { q: "Calcium + water → ?", opts: ["Calcium oxide + hydrogen", "Calcium hydroxide + hydrogen", "Calcium hydroxide + oxygen"], a: 1,
+    why: "Metal + water → metal <b>hydroxide</b> + hydrogen." },
+];
+const answered = {};
+function renderQuiz() {
+  $("qs").innerHTML = QUIZ.map((item, qi) => `
+    <div class="q">
+      <p class="ask">${qi + 1}. ${item.q}</p>
+      <div class="opts">${item.opts.map((o, oi) => `<button class="opt" id="q${qi}o${oi}" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div>
+      <p class="why" id="why-${qi}" hidden></p>
+    </div>`).join("");
+  $("qs").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.q, +b.dataset.o));
+  updateScore();
+}
+function answer(qi, oi) {
+  if (qi in answered) return;
+  answered[qi] = oi;
+  const item = QUIZ[qi];
+  item.opts.forEach((_, i) => {
+    const b = $(`q${qi}o${i}`);
+    b.disabled = true;
+    if (i === item.a) b.classList.add("right"); else if (i === oi) b.classList.add("wrong");
+  });
+  const why = $("why-" + qi);
+  why.innerHTML = (oi === item.a ? "<b>Correct.</b> " : "<b>Not quite.</b> ") + item.why;
+  why.hidden = false;
+  updateScore();
+}
+function updateScore() {
+  const n = Object.keys(answered).length;
+  const right = Object.entries(answered).filter(([q, o]) => QUIZ[q].a === o).length;
+  $("score").textContent = n ? `${right} of ${n} right` : `${QUIZ.length} questions`;
+}
+
+renderQuiz();
+start();
+requestAnimationFrame(frame);
+</script>

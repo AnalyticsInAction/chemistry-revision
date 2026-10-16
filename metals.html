@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+</style>
+<title>Inside a Metal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: three scenes on a dark bench (sea of electrons, conducting, hammering) beside an explanation panel; then small molecules for contrast, quiz, cards. Same family as the other labs. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --accent-ink: #ffffff;
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --hl: #e8eff9;
+  --electron: #c99400;
+  --atom-h: #ffffff;
+  --atom-h-ink: #14212b;
+  --atom-o: #d64035;
+  --atom-c: #2b3138;
+  --atom-edge: #8a98a3;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  --stage: #0c1218;
+  --stage-ink: #dce5ec;
+  --stage-muted: #9fb1bf;
+  --stage-line: #24313c;
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+    --accent: #6ea8ff; --accent-ink: #0b1622;
+    --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+    --electron: #ffd24a; --atom-h: #e6edf2; --atom-h-ink: #14212b; --atom-o: #e5574c; --atom-c: #6b7783; --atom-edge: #18222b;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --stage: #080d12; --stage-line: #1f2a34;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
+  --accent: #6ea8ff; --accent-ink: #0b1622;
+  --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+  --electron: #ffd24a; --atom-h: #e6edf2; --atom-h-ink: #14212b; --atom-o: #e5574c; --atom-c: #6b7783; --atom-edge: #18222b;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --stage: #080d12; --stage-line: #1f2a34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: grid; gap: 1.5rem; }
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -.01em; margin: .25rem 0 0; text-wrap: balance; }
+header p.lede { margin: .5rem 0 0; color: var(--muted); max-width: 62ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+sub, sup { font-size: .7em; line-height: 0; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tab {
+  font: 700 .92rem var(--f-body); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: .45rem .9rem; border-radius: 999px; cursor: pointer; display: inline-flex; gap: .45rem; align-items: baseline;
+}
+.tab .n { font: 500 .75rem var(--f-mono); color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tab[aria-selected="true"] .n { color: inherit; opacity: .8; }
+
+.lab { display: grid; gap: 1.25rem; align-items: start; }
+@media (min-width: 56rem) { .lab { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+.bench { background: var(--stage); color: var(--stage-ink); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: grid; }
+#stage { display: block; width: 100%; aspect-ratio: 420 / 320; max-width: 100%; }
+.bench-controls { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding: 1rem; border-top: 1px solid var(--stage-line); min-height: 4.5rem; }
+.btn { font: 700 .95rem var(--f-body); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; border: 0; background: #6ea8ff; color: #0b1622; }
+.btn.ghost { background: transparent; color: var(--stage-ink); border: 1.5px solid #33424f; }
+.btn[aria-pressed="true"] { background: #ffd24a; color: #2a2208; }
+.bench .btn:focus-visible, .seg button:focus-visible { outline-color: #6ea8ff; }
+.seg { display: inline-flex; border: 1.5px solid #33424f; border-radius: 8px; overflow: hidden; }
+.seg button { font: 700 .88rem var(--f-body); background: transparent; color: var(--stage-muted); border: 0; padding: .5rem .8rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #24313c; color: var(--stage-ink); }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .82rem; color: var(--stage-muted); padding: 0 1rem 1rem; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.legend i { width: .8rem; height: .8rem; border-radius: 50%; display: inline-block; }
+
+.panel { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .7rem; }
+.chip-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.caption { min-height: 12rem; align-content: start; }
+.caption h3 { font-family: var(--f-display); font-weight: 800; font-size: 1.25rem; margin: 0; text-wrap: balance; }
+.caption p { margin: 0; max-width: 60ch; }
+.caption .try { font-size: .9rem; color: var(--muted); }
+.voice-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .2rem; }
+.listen { font: 700 .9rem var(--f-body); padding: .5rem .9rem; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.listen.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+.listen:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.props { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.props th { text-align: left; font: 500 .7rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 .5rem .4rem 0; }
+.props td { padding: .45rem .5rem .45rem 0; border-top: 1px solid var(--line); vertical-align: top; }
+.props td:first-child { font-weight: 700; white-space: nowrap; padding-left: .4rem; }
+.props tr.on td { background: var(--hl); }
+.table-wrap { overflow-x: auto; }
+
+.mols { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); }
+.mol { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: .9rem 1rem; display: grid; gap: .3rem; justify-items: center; text-align: center; }
+.mol svg { width: 100%; max-width: 11rem; height: auto; }
+.mol .f { font: 500 1.15rem var(--f-mono); }
+.mol .nm { font-weight: 700; }
+.mol p { margin: 0; font-size: .86rem; color: var(--muted); }
+.contrast { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .contrast { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.contrast .card h3 { margin: 0; font-family: var(--f-display); font-size: 1.05rem; }
+.contrast .card p { margin: 0; font-size: .93rem; }
+
+.quiz { display: grid; gap: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.score { font: 500 .85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.qs { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; align-content: start; }
+.q p.ask { margin: 0; font-weight: 700; }
+.opts { display: grid; gap: .4rem; }
+.opt { text-align: left; font: 400 .95rem var(--f-body); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: .5rem .7rem; cursor: pointer; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); font-weight: 700; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { margin: 0; font-size: .92rem; color: var(--muted); }
+.why b { color: var(--ink); }
+
+.cards-list { display: grid; gap: .5rem; }
+.cards-list div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; font-size: .92rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.cards-list div:first-child { border-top: 0; padding-top: 0; }
+.cards-list .front { font-weight: 700; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+a { color: var(--accent); }
+@media (max-width: 30rem) { .cards-list div { grid-template-columns: 1fr; gap: .1rem; } }
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <p class="eyebrow">Chemistry · Bonding</p>
+    <h1>Inside a Metal</h1>
+    <p class="lede">A metal is a grid of positive ions sitting in a "sea" of electrons that roam freely between them. That one idea explains why metals hold together, conduct electricity and bend instead of shattering.</p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <section class="lab">
+    <div class="bench">
+      <canvas id="stage" role="img" aria-label="Animated model of metal ions in a sea of moving electrons"></canvas>
+      <div class="bench-controls" id="controls"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="card caption" aria-live="polite">
+        <span class="chip-label" id="cap-eyebrow"></span>
+        <h3 id="cap-title"></h3>
+        <p id="cap-text"></p>
+        <p class="try" id="cap-try"></p>
+        <div class="voice-row">
+          <button class="listen" id="listen">🔊 Hear Max explain this</button>
+          <button class="listen ghost" id="auto" aria-pressed="true">Auto-narrate: on</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="chip-label">What the electron sea explains</span>
+        <div class="table-wrap">
+          <table class="props" id="props">
+            <thead><tr><th>Property</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr data-s="0"><td>Strong</td><td>Every positive ion is pulled on by the negative electrons all around it. Lots of attraction in every direction.</td></tr>
+              <tr data-s="0"><td>High melting point</td><td>It takes a lot of heat energy to overcome all that attraction.</td></tr>
+              <tr data-s="1"><td>Conducts electricity</td><td>The electrons are free to move, so they can flow through the metal when it's connected to a battery.</td></tr>
+              <tr data-s="1"><td>Conducts heat</td><td>Moving electrons carry energy quickly from the hot end to the cold end.</td></tr>
+              <tr data-s="2"><td>Malleable</td><td>Layers of ions can slide over each other. The electron sea moves with them, so the bonds aren't broken.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="gap:1rem">
+    <h2>Compare: three ways atoms hold together</h2>
+    <div class="contrast">
+      <div class="card"><h3>Metallic bonding</h3><p>Positive metal ions in a sea of <b>delocalised electrons</b> that belong to no single atom. Example: copper.</p></div>
+      <div class="card"><h3>Ionic bonding</h3><p>Positive and negative ions <b>electrostatically attracted</b> in a fixed grid. Electrons have been handed over, not shared. Example: sodium chloride. See the <a href="precipitate.html">Precipitate Lab</a>.</p></div>
+      <div class="card"><h3>Covalent bonding</h3><p>Non-metal atoms <b>share pairs of electrons</b>. The shared electrons stay between those two atoms. Examples: the gases and water below.</p></div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:1rem">
+    <h2>The small molecules on your sheet</h2>
+    <p class="note" style="max-width:62ch">Unlike in a metal, the electrons here stay put: each pair of dots is two electrons shared between two atoms. A lone hydrogen or oxygen atom isn't stable, so they pair up. That's why the gases are written H<sub>2</sub> and O<sub>2</sub>.</p>
+    <div class="mols" id="mols"></div>
+  </section>
+
+  <section class="quiz">
+    <div class="quiz-head"><h2>Check you've got it</h2><span class="score" id="score"></span></div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <section class="card">
+    <h2>Flashcards this explains</h2>
+    <div class="cards-list">
+      <div><span class="front">Metal structure</span><span>Delocalised electrons that move freely between metal nuclei, forming a strong bond</span></div>
+      <div><span class="front">Formula of hydrogen gas</span><span>H<sub>2</sub></span></div>
+      <div><span class="front">Formula of oxygen gas</span><span>O<sub>2</sub></span></div>
+      <div><span class="front">Formula of water</span><span>H<sub>2</sub>O</span></div>
+      <div><span class="front">Formula of carbon dioxide gas</span><span>CO<sub>2</sub></span></div>
+    </div>
+    <p class="note">The card says the electrons move between metal "nuclei". Strictly, they move between metal <b>ions</b>: the atoms without their outer electrons. <a href="flashcards.html">Flashcards</a> · <a href="bunsen.html">Bunsen Burner Lab</a> · <a href="reactions.html">Metal Reactions Lab</a> · <a href="precipitate.html">Precipitate Lab</a></p>
+  </section>
+  <p class="credit">Narration voice: Max, generated with ElevenLabs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const W = 420, H = 320;
+const COLS = 7, ROWS = 5, SP = 42, X0 = 84, Y0 = 70, IR = 15;
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const ease = k => k * k * (3 - 2 * k);
+
+/* ---------- State ---------- */
+const S = { scene: 0, follow: false, field: false, material: "metal", shift: 0, shiftTarget: 0, hammer: 0, hammering: false, broken: 0, hits: 0 };
+let electrons = [];
+const trail = [];
+function makeElectrons() {
+  electrons = Array.from({ length: 52 }, () => ({ x: rand(X0 - 18, X0 + (COLS - 1) * SP + 18), y: rand(Y0 - 18, Y0 + (ROWS - 1) * SP + 18), vx: rand(-60, 60), vy: rand(-60, 60) }));
+  trail.length = 0;
+}
+makeElectrons();
+
+/* ---------- Scenes ---------- */
+const SCENES = [
+  { tab: "Sea of electrons",
+    eyebrow: "Metallic bonding",
+    title: "Positive ions in a sea of electrons",
+    text: "Each metal atom lets go of its outer electrons and becomes a <b>positive ion</b>. Those electrons aren't owned by any one atom any more. They are <b>delocalised</b>: free to drift anywhere in the metal. The positive ions and the negative electron sea attract each other strongly, and that attraction is the <b>metallic bond</b>.",
+    tryText: "Try: tap “Follow one electron” to see how far a single electron wanders." },
+  { tab: "Conducting electricity",
+    eyebrow: "Why metals conduct",
+    title: "Free electrons can flow",
+    text: "Connect the metal to a battery and the electrons drift towards the <b>positive</b> end, while new ones flow in from the negative end. That flow of electrons is an <b>electric current</b>. Substances without free-moving charged particles, like plastic, can't do this.",
+    tryText: "Try: close the switch, then open it again." },
+  { tab: "Hammering",
+    eyebrow: "Why metals bend",
+    title: "Layers slide, the sea keeps them together",
+    text: "Hit a metal and the layers of ions slide over each other. The electron sea flows along with them, so every ion is still surrounded by electrons and still bonded. The metal changes shape instead of breaking: it is <b>malleable</b>.",
+    tryText: "Try: hammer the metal, then switch to the ionic crystal and hammer that." },
+];
+const IONIC_AFTER = { eyebrow: "Why ionic crystals shatter", title: "Like charges line up and push apart",
+  text: "In an ionic crystal like salt there's no electron sea. Slide one layer along by a single ion and suddenly <b>+ sits next to +</b> and <b>− next to −</b>. Like charges repel, so the crystal cracks. That's why salt shatters but copper bends.",
+  tryText: "Try: press Reset and compare with the metal again." };
+
+function renderTabs() {
+  $("tabs").innerHTML = SCENES.map((s, i) => `<button class="tab" role="tab" id="tab-${i}" aria-selected="${i === S.scene}"><span class="n">${i + 1}</span>${s.tab}</button>`).join("");
+  SCENES.forEach((_, i) => $("tab-" + i).onclick = () => setScene(i));
+}
+function setScene(i) {
+  S.scene = i; S.field = false; S.follow = false; S.material = "metal"; resetHammer();
+  renderTabs(); renderControls(); renderCaption();
+  document.querySelectorAll("#props tr[data-s]").forEach(tr => tr.classList.toggle("on", +tr.dataset.s === i));
+}
+function resetHammer() { S.shift = 0; S.shiftTarget = 0; S.hammer = 0; S.hammering = false; S.broken = 0; S.hits = 0; makeElectrons(); }
+
+function renderControls() {
+  const c = $("controls");
+  if (S.scene === 0) {
+    c.innerHTML = `<button class="btn" id="follow" aria-pressed="${S.follow}">${S.follow ? "Stop following" : "Follow one electron"}</button>`;
+    $("follow").onclick = () => { S.follow = !S.follow; trail.length = 0; renderControls(); };
+  } else if (S.scene === 1) {
+    c.innerHTML = `<button class="btn" id="switch" aria-pressed="${S.field}">${S.field ? "Open the switch" : "Close the switch"}</button>`;
+    $("switch").onclick = () => { S.field = !S.field; renderControls(); };
+  } else {
+    c.innerHTML = `<div class="seg" role="group" aria-label="Material">
+        <button id="mat-metal" aria-pressed="${S.material === "metal"}">Metal</button>
+        <button id="mat-ionic" aria-pressed="${S.material === "ionic"}">Ionic crystal (salt)</button>
+      </div>
+      <button class="btn" id="hammer" ${S.hits ? "disabled style=\"opacity:.5\"" : ""}>🔨 Hammer it</button>
+      <button class="btn ghost" id="reset">Reset</button>`;
+    $("mat-metal").onclick = () => { S.material = "metal"; resetHammer(); renderControls(); renderCaption(); };
+    $("mat-ionic").onclick = () => { S.material = "ionic"; resetHammer(); renderControls(); renderCaption(); };
+    $("hammer").onclick = () => { if (!S.hits) { S.hammering = true; S.hammer = 0; S.hits = 1; renderControls(); } };
+    $("reset").onclick = () => { resetHammer(); renderControls(); renderCaption(); };
+  }
+  const ionic = S.scene === 2 && S.material === "ionic";
+  $("legend").innerHTML = ionic
+    ? `<span><i style="background:#b48cff"></i>Na⁺ sodium ion</span><span><i style="background:#5cc46a"></i>Cl⁻ chloride ion</span><span>no free electrons</span>`
+    : `<span><i style="background:#a9b6c2"></i>positive metal ion</span><span><i style="background:#ffd24a"></i>delocalised electron (negative)</span>`;
+}
+function renderCaption() {
+  const after = S.scene === 2 && S.material === "ionic" && S.broken > .2;
+  const s = after ? IONIC_AFTER : SCENES[S.scene];
+  $("cap-eyebrow").textContent = s.eyebrow;
+  $("cap-title").textContent = s.title;
+  $("cap-text").innerHTML = s.text;
+  $("cap-try").textContent = s.tryText;
+  const key = after ? "metal-salt" : "metal-" + (S.scene + 1);
+  if (key !== voice.key) {
+    const backFromSalt = voice.key === "metal-salt" && key === "metal-3";
+    voice.key = key;
+    if (voice.armed && voice.auto && !backFromSalt) speak(); else stopSpeaking();
+  }
+}
+
+/* ---------- Narration (Max, ElevenLabs) ----------
+   Each scene, and the salt crystal cracking, has a clip. It plays when the learner opens
+   that scene (if auto-narrate is on), or whenever he presses the listen button. */
+const voice = { key: "metal-1", armed: false, auto: true, clips: {} };
+try { voice.auto = localStorage.getItem("metal-voice") !== "off"; } catch {}
+const clipFor = k => voice.clips[k] || (voice.clips[k] = (() => {
+  const a = new Audio(`audio/${k}.mp3`); a.preload = "auto";
+  ["play", "pause", "ended"].forEach(ev => a.addEventListener(ev, updateListen));
+  return a;
+})());
+function stopSpeaking() { Object.values(voice.clips).forEach(a => a.pause()); updateListen(); }
+function speak() {
+  stopSpeaking();
+  const a = clipFor(voice.key);
+  try { a.currentTime = 0; } catch {}
+  const p = a.play();
+  if (p && p.catch) p.catch(updateListen);
+}
+const isSpeaking = () => { const a = voice.clips[voice.key]; return !!(a && !a.paused && !a.ended); };
+function updateListen() {
+  const b = $("listen"); if (!b) return;
+  b.textContent = isSpeaking() ? "■ Stop" : "🔊 Hear Max explain this";
+  $("auto").textContent = "Auto-narrate: " + (voice.auto ? "on" : "off");
+  $("auto").setAttribute("aria-pressed", String(voice.auto));
+}
+$("listen").onclick = () => { voice.armed = true; isSpeaking() ? stopSpeaking() : speak(); };
+$("auto").onclick = () => {
+  voice.auto = !voice.auto;
+  try { localStorage.setItem("metal-voice", voice.auto ? "on" : "off"); } catch {}
+  if (!voice.auto) stopSpeaking();
+  updateListen();
+};
+// Audio can only start after the learner has tapped something, so the first tap anywhere arms auto-narration.
+document.addEventListener("pointerdown", () => { voice.armed = true; }, { once: true, capture: true });
+
+/* ---------- Simulation ---------- */
+function ionPos(c, r, now) {
+  const top = r <= 1 && S.scene === 2;
+  let x = X0 + c * SP + (top ? ease(S.shift) * SP : 0);
+  let y = Y0 + r * SP;
+  if (top && S.material === "ionic") { y -= S.broken * 12; x += S.broken * (r === 0 ? 5 : 2); }
+  const amp = reduceMotion ? 0 : 1.2;
+  return [x + Math.sin(now * 7 + c * 1.7 + r) * amp, y + Math.cos(now * 6 + r * 2.1 + c) * amp];
+}
+
+function step(dt, now) {
+  // Hammer swing, then the top layers slide
+  if (S.hammering) {
+    S.hammer += dt / .35;
+    if (S.hammer >= 1) { S.hammer = 1; S.hammering = false; S.shiftTarget = 1; }
+  } else if (S.hammer > 0 && S.shiftTarget === 1) S.hammer = Math.max(0, S.hammer - dt / .6);
+  if (S.shift < S.shiftTarget) S.shift = reduceMotion ? 1 : Math.min(1, S.shift + dt / .9);
+  if (S.scene === 2 && S.material === "ionic" && S.shift >= 1 && S.broken < 1) {
+    const before = S.broken;
+    S.broken = reduceMotion ? 1 : Math.min(1, S.broken + dt / .7);
+    if (before <= .2 && S.broken > .2) renderCaption();
+  }
+  if (S.scene === 2 && S.material === "ionic") return;
+  const xMin = X0 - 20, xMax = X0 + (COLS - 1) * SP + 20 + (S.scene === 2 ? ease(S.shift) * SP * .5 : 0);
+  const yMin = Y0 - 20, yMax = Y0 + (ROWS - 1) * SP + 20;
+  const drift = S.scene === 1 && S.field ? 55 : 0;
+  for (const e of electrons) {
+    e.vx += rand(-1, 1) * 400 * dt; e.vy += rand(-1, 1) * 400 * dt;
+    const sp = Math.hypot(e.vx, e.vy), max = 75;
+    if (sp > max) { e.vx *= max / sp; e.vy *= max / sp; }
+    e.x += (e.vx + drift) * dt; e.y += e.vy * dt;
+    if (drift) {
+      if (e.x > xMax) e.x = xMin + (e.x - xMax);
+    } else {
+      if (e.x < xMin) { e.x = xMin; e.vx = Math.abs(e.vx); }
+      if (e.x > xMax) { e.x = xMax; e.vx = -Math.abs(e.vx); }
+    }
+    if (e.y < yMin) { e.y = yMin; e.vy = Math.abs(e.vy); }
+    if (e.y > yMax) { e.y = yMax; e.vy = -Math.abs(e.vy); }
+  }
+  if (S.follow && S.scene === 0) {
+    trail.push([electrons[0].x, electrons[0].y]);
+    if (trail.length > 260) trail.shift();
+  }
+}
+
+/* ---------- Drawing ---------- */
+const canvas = $("stage"), ctx = canvas.getContext("2d");
+let dpr = 1, scale = 1;
+function resize() {
+  const w = canvas.clientWidth || W;
+  dpr = Math.min(2, window.devicePixelRatio || 1); scale = w / W;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(canvas); resize();
+
+function drawIon(x, y, fill, sign, label) {
+  ctx.fillStyle = fill;
+  ctx.beginPath(); ctx.arc(x, y, IR, 0, 7); ctx.fill();
+  ctx.strokeStyle = "#0f1922"; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = "#0b1622"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  if (label) { ctx.font = '700 10px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.fillText(label, x, y + .5); }
+  else { ctx.font = '800 17px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.fillText(sign, x, y + 1); }
+  ctx.textBaseline = "alphabetic";
+}
+
+function drawCircuit(now) {
+  const yMid = Y0 + 2 * SP, left = X0 - 34, right = X0 + (COLS - 1) * SP + 34, yBot = 296;
+  const on = S.field;
+  ctx.strokeStyle = on ? "#c9a24a" : "#5b6874"; ctx.lineWidth = 3; ctx.lineJoin = "round";
+  // metal bar outline
+  ctx.strokeStyle = "#33424f"; ctx.lineWidth = 1.5;
+  ctx.strokeRect(X0 - 24, Y0 - 24, (COLS - 1) * SP + 48, (ROWS - 1) * SP + 48);
+  ctx.strokeStyle = on ? "#c9a24a" : "#5b6874"; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(X0 - 24, yMid); ctx.lineTo(left, yMid); ctx.lineTo(left, yBot); ctx.lineTo(176, yBot);
+  ctx.moveTo(196, yBot); ctx.lineTo(on ? 230 : 226, on ? yBot : yBot - 12);
+  ctx.moveTo(250, yBot); ctx.lineTo(right, yBot); ctx.lineTo(right, yMid); ctx.lineTo(X0 + (COLS - 1) * SP + 24, yMid);
+  ctx.stroke();
+  // battery: long plate is +, short plate is −
+  ctx.lineWidth = 3; ctx.strokeStyle = "#dce5ec";
+  ctx.beginPath(); ctx.moveTo(176, yBot - 9); ctx.lineTo(176, yBot + 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(186, yBot - 16); ctx.lineTo(186, yBot + 16); ctx.stroke();
+  ctx.lineWidth = 3; ctx.strokeStyle = on ? "#c9a24a" : "#5b6874";
+  ctx.beginPath(); ctx.moveTo(186, yBot); ctx.lineTo(196, yBot); ctx.stroke();
+  ctx.fillStyle = "#9fb1bf"; ctx.font = '700 12px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.textAlign = "center";
+  ctx.fillText("−", 172, yBot - 18); ctx.fillText("+", 190, yBot - 20);
+  ctx.font = '600 11px "Atkinson Hyperlegible", system-ui, sans-serif';
+  ctx.fillText("battery", 181, yBot + 22);
+  ctx.fillText(on ? "switch closed" : "switch open", 238, yBot + 22);
+  // bulb on the right wire
+  const bx = right, by = yMid + 62;
+  if (on) {
+    const g = ctx.createRadialGradient(bx, by, 2, bx, by, 34);
+    g.addColorStop(0, "rgba(255,220,120,.85)"); g.addColorStop(1, "rgba(255,200,80,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, 34, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = on ? "#ffe9a8" : "#24313c"; ctx.strokeStyle = "#9fb1bf"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(bx, by, 11, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#9fb1bf"; ctx.textAlign = "left"; ctx.fillText("bulb", bx + 15, by + 4);
+  if (on) {
+    ctx.fillStyle = "#ffd24a"; ctx.textAlign = "center"; ctx.font = '700 12px "Atkinson Hyperlegible", system-ui, sans-serif';
+    ctx.fillText("electrons flow →", X0 + 3 * SP, Y0 - 34);
+  }
+  // the left wire is joined to −, so electrons enter from the left
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = '500 10px "IBM Plex Mono", monospace';
+  ctx.fillText("METAL WIRE, ZOOMED IN", X0 - 22, Y0 - 32 + (on ? -12 : 0) + (on ? 0 : 0));
+}
+
+function drawHammer() {
+  if (S.scene !== 2) return;
+  const swing = S.hammering ? ease(S.hammer) : S.hammer;
+  const angle = -1.1 + swing * 1.1;
+  ctx.save();
+  ctx.translate(30, 150);
+  ctx.rotate(angle);
+  ctx.fillStyle = "#8a6a3c"; ctx.fillRect(-4, -4, 8, 80);
+  ctx.fillStyle = "#a9b6c2"; ctx.fillRect(-10, -96 + 70, 34, 26);
+  ctx.restore();
+  if (S.hits && S.shift > 0 && S.shift < 1) {
+    ctx.fillStyle = "#ffd24a"; ctx.font = '800 13px "Schibsted Grotesk", system-ui, sans-serif'; ctx.textAlign = "left";
+    ctx.fillText("bang!", 14, 58);
+  }
+}
+
+function draw(now) {
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  ctx.fillStyle = "#0c1218"; ctx.fillRect(0, 0, W, H);
+  const ionic = S.scene === 2 && S.material === "ionic";
+
+  if (S.scene === 1) drawCircuit(now);
+  else {
+    ctx.fillStyle = "#7f93a3"; ctx.font = '500 10px "IBM Plex Mono", monospace'; ctx.textAlign = "left";
+    ctx.fillText(ionic ? "SALT CRYSTAL, ZOOMED IN" : "PIECE OF METAL, ZOOMED IN", X0 - 22, Y0 - 34);
+  }
+
+  // Electron sea glow behind ions (metal only)
+  if (!ionic) {
+    for (const e of electrons) {
+      ctx.fillStyle = "rgba(255,210,74,.06)";
+      ctx.beginPath(); ctx.arc(e.x, e.y, 14, 0, 7); ctx.fill();
+    }
+  }
+  // Crack + repulsion marks for the ionic crystal
+  if (ionic && S.broken > 0) {
+    ctx.strokeStyle = `rgba(255,120,100,${S.broken})`; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+    const yc = Y0 + 1.5 * SP;
+    ctx.beginPath(); ctx.moveTo(X0 - 30, yc); ctx.lineTo(X0 + (COLS) * SP + 20, yc); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = `rgba(255,140,120,${S.broken})`; ctx.font = '700 12px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.textAlign = "center";
+    ctx.fillText("+ next to +, − next to −: they repel!", X0 + 3.5 * SP, Y0 + (ROWS - 1) * SP + 44);
+  }
+  // Ions
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const [x, y] = ionPos(c, r, now);
+    if (ionic) {
+      const pos = (c + r) % 2 === 0;
+      drawIon(x, y, pos ? "#b48cff" : "#5cc46a", pos ? "+" : "−", pos ? "Na⁺" : "Cl⁻");
+    } else drawIon(x, y, "#a9b6c2", "+");
+  }
+  // Electrons
+  if (!ionic) {
+    if (S.follow && trail.length > 1) {
+      ctx.strokeStyle = "rgba(255,120,200,.7)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(trail[0][0], trail[0][1]);
+      for (const [x, y] of trail) ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+    electrons.forEach((e, i) => {
+      const followed = S.follow && i === 0 && S.scene === 0;
+      ctx.fillStyle = followed ? "#ff78c8" : "#ffd24a";
+      ctx.beginPath(); ctx.arc(e.x, e.y, followed ? 5.5 : 3.6, 0, 7); ctx.fill();
+    });
+  }
+  drawHammer();
+  if (S.scene === 2 && !ionic && S.shift >= 1) {
+    ctx.fillStyle = "#8fe0a8"; ctx.font = '700 12px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.textAlign = "center";
+    ctx.fillText("layers slid, still bonded", X0 + 3.5 * SP, Y0 + (ROWS - 1) * SP + 44);
+  }
+}
+
+let last = performance.now();
+function frame(ms) {
+  const dt = Math.min(.05, (ms - last) / 1000); last = ms;
+  step(dt, ms / 1000); draw(ms / 1000);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Molecules ---------- */
+function atomSVG(sym, x, y, r) {
+  const fill = { H: "var(--atom-h)", O: "var(--atom-o)", C: "var(--atom-c)" }[sym];
+  const ink = sym === "H" ? "var(--atom-h-ink)" : "#ffffff";
+  return `<circle cx="${x}" cy="${y}" r="${r}" style="fill:${fill};stroke:var(--atom-edge);stroke-width:1.5"/>` +
+    `<text x="${x}" y="${y + r * .36}" text-anchor="middle" style="fill:${ink};font:700 ${Math.round(r * .9)}px var(--f-body)">${sym}</text>`;
+}
+function pairSVG(x, y, vertical) {
+  const d = 4;
+  return vertical
+    ? `<circle cx="${x}" cy="${y - d}" r="2.6" style="fill:var(--electron)"/><circle cx="${x}" cy="${y + d}" r="2.6" style="fill:var(--electron)"/>`
+    : `<circle cx="${x - d}" cy="${y}" r="2.6" style="fill:var(--electron)"/><circle cx="${x + d}" cy="${y}" r="2.6" style="fill:var(--electron)"/>`;
+}
+const MOLS = [
+  { f: "H<sub>2</sub>", nm: "hydrogen gas", note: "One shared pair holds the two H atoms together.",
+    svg: atomSVG("H", 58, 40, 15) + atomSVG("H", 102, 40, 15) + pairSVG(80, 40, true) },
+  { f: "O<sub>2</sub>", nm: "oxygen gas", note: "Two shared pairs: a double bond.",
+    svg: atomSVG("O", 54, 40, 19) + atomSVG("O", 106, 40, 19) + pairSVG(77, 40, true) + pairSVG(84, 40, true) },
+  { f: "H<sub>2</sub>O", nm: "water", note: "Oxygen shares one pair with each hydrogen.",
+    svg: atomSVG("O", 80, 30, 19) + atomSVG("H", 46, 58, 14) + atomSVG("H", 114, 58, 14) + pairSVG(62, 45, false) + pairSVG(98, 45, false) },
+  { f: "CO<sub>2</sub>", nm: "carbon dioxide", note: "Carbon makes a double bond with each oxygen.",
+    svg: atomSVG("O", 28, 40, 17) + atomSVG("C", 80, 40, 17) + atomSVG("O", 132, 40, 17) + pairSVG(51, 40, true) + pairSVG(57, 40, true) + pairSVG(103, 40, true) + pairSVG(109, 40, true) },
+];
+$("mols").innerHTML = MOLS.map(m => `<div class="mol"><svg viewBox="0 0 160 80" role="img" aria-label="${m.nm} molecule">${m.svg}</svg><span class="f">${m.f}</span><span class="nm">${m.nm}</span><p>${m.note}</p></div>`).join("");
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  { q: "Why does a copper wire conduct electricity?", opts: ["It contains positive ions that can move", "Its delocalised electrons are free to move", "Copper atoms share electron pairs"], a: 1,
+    why: "In a metal the <b>delocalised electrons</b> can flow, carrying the current. The positive ions stay in place." },
+  { q: "What holds the particles in a metal together?", opts: ["Shared pairs of electrons between two atoms", "Attraction between positive ions and the sea of electrons", "Magnetism"], a: 1,
+    why: "The metallic bond is the attraction between <b>positive metal ions</b> and the <b>negative electron sea</b>." },
+  { q: "You can hammer a gold coin flat, but a salt crystal shatters. Why?", opts: ["Gold is heavier", "In gold the layers slide and the electron sea keeps them bonded; in salt like charges end up next to each other and repel", "Salt is wet"], a: 1,
+    why: "Metal layers slide without breaking bonds. In an ionic crystal sliding lines up <b>+ with +</b> and <b>− with −</b>, which repel." },
+  { q: "What does 'delocalised' mean for an electron in a metal?", opts: ["It has left the metal", "It isn't attached to any one atom and can move through the whole metal", "It is stuck between two atoms"], a: 1,
+    why: "Delocalised electrons belong to the <b>whole metal</b>, not to one atom." },
+  { q: "Why is hydrogen gas written H₂ and not H?", opts: ["Hydrogen atoms are too small to see alone", "Two hydrogen atoms share a pair of electrons and are more stable together", "It's a typo that stuck"], a: 1,
+    why: "A lone H atom isn't stable. Two H atoms <b>share a pair of electrons</b> (a covalent bond) to make H₂." },
+  { q: "Which of these has electrons that stay between two particular atoms?", opts: ["Copper", "Water", "Iron"], a: 1,
+    why: "Water is a covalent molecule: each shared pair stays between O and one H. In metals the electrons roam." },
+];
+const answered = {};
+function renderQuiz() {
+  $("qs").innerHTML = QUIZ.map((item, qi) => `
+    <div class="q">
+      <p class="ask">${qi + 1}. ${item.q}</p>
+      <div class="opts">${item.opts.map((o, oi) => `<button class="opt" id="q${qi}o${oi}" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div>
+      <p class="why" id="why-${qi}" hidden></p>
+    </div>`).join("");
+  $("qs").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.q, +b.dataset.o));
+  updateScore();
+}
+function answer(qi, oi) {
+  if (qi in answered) return;
+  answered[qi] = oi;
+  const item = QUIZ[qi];
+  item.opts.forEach((_, i) => { const b = $(`q${qi}o${i}`); b.disabled = true; if (i === item.a) b.classList.add("right"); else if (i === oi) b.classList.add("wrong"); });
+  const why = $("why-" + qi);
+  why.innerHTML = (oi === item.a ? "<b>Correct.</b> " : "<b>Not quite.</b> ") + item.why;
+  why.hidden = false; updateScore();
+}
+function updateScore() {
+  const n = Object.keys(answered).length;
+  const right = Object.entries(answered).filter(([q, o]) => QUIZ[q].a === o).length;
+  $("score").textContent = n ? `${right} of ${n} right` : `${QUIZ.length} questions`;
+}
+
+renderQuiz();
+setScene(0);
+updateListen();
+requestAnimationFrame(frame);
+</script>
