@@ -10,6 +10,12 @@ img { max-width: 100%; }
 .home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
 .home-link:hover, .home-link:focus-visible { text-decoration: underline; }
 .credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+/* Bigger tap targets on phones and tablets (about 44px, per platform guidelines). */
+@media (pointer: coarse) {
+  .chip, .tab, .step, .seg button, .tag, .home-link, .opt, .btn, .listen { min-height: 44px; }
+  .chip, .tag, .home-link { display: inline-flex; align-items: center; }
+  .step { min-height: 40px; }
+}
 </style>
 <title>Chemistry Flashcards</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
