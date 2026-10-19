@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chemistry Lineage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Same dark palette as map.html, so the two views feel like one tool. */
+:root {
+  --bg: #0b1016; --panel: #111921; --panel-2: #16202a; --ink: #e8eef3; --muted: #93a4b1; --line: #263440; --accent: #7fb2ff; --gold: #ffd166;
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --side: 23rem;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--f-body); overflow: hidden; }
+body { display: grid; grid-template-columns: minmax(0, 1fr) var(--side); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "top top" "stage side" "player side"; }
+button { font: inherit; color: inherit; }
+
+/* ---- top bar ---- */
+.top { grid-area: top; display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.2rem; padding: .8rem 1.2rem .7rem; border-bottom: 1px solid var(--line); background: var(--panel); }
+.brand { margin-right: auto; min-width: 0; }
+.eyebrow { font: 500 .66rem var(--f-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 0; }
+h1 { font: 800 1.55rem/1.05 var(--f-display); letter-spacing: -.02em; margin: .15rem 0 0; }
+h1 i { color: #ff6b5e; font-style: normal; }
+.tabs { display: flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.tabs button { border: 0; background: none; color: var(--muted); font-weight: 700; font-size: .85rem; padding: .45rem .8rem; cursor: pointer; white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: #0b1016; }
+.years button { display: grid; line-height: 1.15; padding: .3rem .7rem; text-align: center; }
+.years button small { font: 500 .6rem var(--f-mono); letter-spacing: .04em; text-transform: uppercase; opacity: .8; }
+.years button[aria-pressed="true"] { background: var(--gold); color: #0b1016; }
+.tools { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.searchbox { position: relative; }
+.searchbox input { width: 13rem; font: inherit; font-size: .86rem; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: .42rem .6rem; }
+.results { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; min-width: 15rem; }
+.results button { display: block; width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--line); font-size: .85rem; padding: .4rem .6rem; cursor: pointer; }
+.results button:first-child { border-top: 0; }
+.results button:hover, .results button:focus-visible { background: rgb(127 178 255 / .15); outline: none; }
+.results small { color: var(--muted); }
+select { font: inherit; font-size: .84rem; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: .4rem .4rem; }
+.tools label { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .35rem; }
+.tools a { font-weight: 700; font-size: .82rem; color: var(--accent); text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: .42rem .6rem; white-space: nowrap; }
+.picker { flex-basis: 100%; display: flex; gap: .4rem; align-items: center; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; min-height: 2rem; }
+.picker .lbl { font: 500 .66rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); white-space: nowrap; margin-right: .2rem; }
+.chip { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid var(--line); background: var(--panel-2); border-radius: 999px; padding: .25rem .7rem; font-size: .82rem; cursor: pointer; white-space: nowrap; }
+.chip .dot { width: .55rem; height: .55rem; border-radius: 50%; flex: none; }
+.chip .n { color: var(--muted); font: 500 .7rem var(--f-mono); }
+.chip[aria-pressed="true"] { border-color: var(--gold); background: rgb(255 209 102 / .12); }
+.chip:hover { border-color: #3c5162; }
+
+/* ---- stage ---- */
+.stage { grid-area: stage; position: relative; min-height: 0; overflow: hidden; }
+svg#svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; user-select: none; }
+svg#svg.dragging { cursor: grabbing; }
+.band { fill: rgb(255 255 255 / .022); stroke: rgb(255 255 255 / .05); }
+.band-lbl { font: 800 15px var(--f-display); fill: #c3cfd8; }
+.band-sub { font: 500 10.5px var(--f-mono); fill: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.edge { fill: none; stroke: #1c2731; stroke-width: 1.2; transition: stroke .4s, opacity .4s; }
+.edge.soft { stroke-dasharray: 4 4; }
+.edge.ghost { stroke: #2a3a47; }
+.edge.lit { stroke: rgb(199 214 226 / .55); stroke-width: 1.6; }
+.edge.off { opacity: 0; }
+.edge.ghost { opacity: .45; }
+.node { cursor: pointer; transition: opacity .4s; }
+.node rect.box { fill: #121a22; stroke: #26343f; stroke-width: 1.2; transition: fill .4s, stroke .4s; }
+.node rect.bar { transition: opacity .4s; }
+.node text { font: 700 12px var(--f-body); fill: #6f8291; transition: fill .4s; pointer-events: none; }
+.node.off { opacity: 0; pointer-events: none; }
+.node.ghost { opacity: .32; }
+.node.ghost rect.bar { opacity: .25; }
+.node.on text { fill: var(--ink); }
+.node.focus rect.box { stroke: #fff; stroke-width: 2.4; }
+.node:hover rect.box { stroke: #8aa0b2; }
+.node.reveal .inner { animation: reveal 1.1s ease-out; }
+@keyframes reveal { from { opacity: .2; } to { opacity: 1; } }
+.node.bridge .inner { opacity: .62; }
+.node.bridge rect.box { stroke-dasharray: 5 4; }
+.node.ctx .inner { opacity: .5; }
+.node.ctx rect.box { stroke-dasharray: 2 3; }
+.band.ctx { fill: rgb(255 255 255 / .008); stroke-dasharray: 6 6; }
+.flag { fill: #ff6b8b; }
+.learn { cursor: pointer; }
+.learn circle { fill: #5cc48a; transition: r .15s; }
+.learn:hover circle { r: 9; }
+.learn path { fill: #0b1016; }
+.learnbtn { display: grid; grid-template-columns: 2rem 1fr; gap: .1rem .6rem; align-items: center; text-decoration: none; color: var(--ink); background: rgb(92 196 138 / .1); border: 1px solid #5cc48a; border-radius: 10px; padding: .55rem .7rem; margin-bottom: .4rem; }
+.learnbtn:hover { background: rgb(92 196 138 / .2); }
+.learnbtn .ic { grid-row: span 2; width: 2rem; height: 2rem; border-radius: 50%; background: #5cc48a; color: #0b1016; display: grid; place-items: center; font-size: .8rem; }
+.learnbtn b { font-size: .9rem; }
+.learnbtn small { color: var(--muted); font-size: .76rem; }
+.warn { position: absolute; left: 12px; top: 10px; font-size: .74rem; color: var(--muted); background: rgb(11 16 22 / .8); border: 1px solid var(--line); border-radius: 6px; padding: .2rem .5rem; pointer-events: none; }
+.choose { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; overflow-y: auto; background: radial-gradient(ellipse at center, rgb(11 16 22 / .82) 40%, rgb(11 16 22 / .35)); z-index: 3; }
+.choose[hidden] { display: none; }
+.choose .card { width: min(44rem, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1.4rem 1.5rem 1.3rem; box-shadow: 0 20px 60px rgb(0 0 0 / .45); }
+.choose h2 { font: 800 clamp(1.4rem, 3vw, 1.9rem)/1.1 var(--f-display); margin: .3rem 0 .5rem; letter-spacing: -.01em; }
+.choose p { color: #c9d4dc; margin: 0 0 1rem; font-size: .95rem; }
+.starts { display: grid; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)); gap: .5rem; }
+.start { display: grid; grid-template-columns: .8rem 1fr; gap: .1rem .6rem; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: .6rem .7rem; cursor: pointer; }
+.start:hover, .start:focus-visible { border-color: var(--accent); outline: none; background: rgb(127 178 255 / .08); }
+.start .dot { width: .8rem; height: .8rem; border-radius: 50%; margin-top: .25rem; box-shadow: 0 0 10px currentColor; }
+.start b { font-size: .92rem; line-height: 1.25; }
+.start small { grid-column: 2; color: var(--muted); font-size: .78rem; }
+.start .desc { grid-column: 2; color: #c3cfd8; font-size: .8rem; line-height: 1.35; }
+.choose .all { margin-top: 1rem; background: none; border: 0; color: var(--accent); font-weight: 700; cursor: pointer; padding: 0; font-size: .9rem; }
+.choose .all:hover { text-decoration: underline; }
+.chip.ctl { color: var(--accent); font-weight: 700; }
+.zoom { position: absolute; right: 12px; top: 10px; display: flex; gap: .3rem; }
+.zoom button { min-width: 2.1rem; height: 2.1rem; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); font-weight: 700; cursor: pointer; padding: 0 .5rem; font-size: .85rem; }
+
+/* ---- player ---- */
+.player { grid-area: player; border-top: 1px solid var(--line); background: var(--panel); padding: .6rem 1rem .7rem; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .3rem 1rem; align-items: center; }
+.controls { display: flex; align-items: center; gap: .3rem; }
+.controls button { width: 2.2rem; height: 2.2rem; border-radius: 50%; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer; font-size: .9rem; line-height: 1; }
+.controls button#play { width: 2.7rem; height: 2.7rem; background: var(--accent); color: #0b1016; border: 0; font-size: 1.05rem; }
+.controls select { margin-left: .3rem; }
+.caption { min-width: 0; }
+.caption .ct { display: flex; align-items: baseline; gap: .6rem; }
+.caption .ct b { font: 800 1.02rem/1.2 var(--f-display); }
+.caption .ct span { color: var(--muted); font: 500 .7rem var(--f-mono); white-space: nowrap; }
+.caption .chips { display: flex; gap: .35rem; overflow-x: auto; scrollbar-width: thin; margin-top: .3rem; padding-bottom: 2px; }
+.caption .chip { font-size: .78rem; padding: .15rem .6rem; }
+input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); margin: 0; }
+.sheet-btn { display: none; }
+
+/* ---- side panel ---- */
+.side { grid-area: side; border-left: 1px solid var(--line); background: var(--panel); overflow-y: auto; padding: 1rem 1.1rem 1.4rem; min-height: 0; }
+.side h2 { font: 800 1.3rem/1.15 var(--f-display); margin: .25rem 0 .5rem; }
+.side p { margin: 0 0 .6rem; color: #c9d4dc; font-size: .9rem; }
+.side .fine { color: var(--muted); font-size: .8rem; }
+.back { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: .15rem .55rem; cursor: pointer; font-size: .8rem; }
+.crumb { display: flex; align-items: center; gap: .4rem; font: 500 .68rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: .7rem; }
+.crumb .dot { width: .55rem; height: .55rem; border-radius: 50%; }
+.sub { font: 500 .66rem var(--f-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 1.1rem 0 .4rem; }
+.big { display: flex; align-items: baseline; gap: .5rem; margin: .5rem 0 .3rem; }
+.big b { font: 800 1.9rem var(--f-display); font-variant-numeric: tabular-nums; }
+.big span { color: var(--muted); font-size: .85rem; }
+.list { display: grid; gap: .1rem; }
+.item { display: grid; grid-template-columns: .6rem minmax(0, 1fr) auto; gap: .55rem; align-items: start; background: none; border: 0; text-align: left; font-size: .87rem; padding: .3rem .25rem; border-radius: 6px; cursor: pointer; width: 100%; }
+.item:hover, .item:focus-visible { background: rgb(255 255 255 / .06); outline: none; }
+.item .dot { width: .55rem; height: .55rem; border-radius: 50%; margin-top: .42rem; }
+.item .why { display: block; color: var(--muted); font-size: .78rem; }
+.item .yr { color: var(--muted); font: 500 .68rem var(--f-mono); white-space: nowrap; margin-top: .18rem; }
+.actions { display: flex; gap: .4rem; flex-wrap: wrap; margin: .6rem 0 .2rem; }
+.actions button { border: 1px solid var(--accent); background: rgb(127 178 255 / .1); color: var(--accent); font-weight: 700; font-size: .82rem; border-radius: 8px; padding: .35rem .65rem; cursor: pointer; }
+.quote { border-left: 2px solid var(--line); padding-left: .6rem; font-size: .85rem; color: #c9d4dc; margin-bottom: .4rem; }
+.quote small { display: block; color: var(--muted); font: 500 .68rem var(--f-mono); margin-top: .1rem; }
+.tag { display: inline-block; font-size: .74rem; border: 1px solid var(--line); border-radius: 999px; padding: .05rem .5rem; color: var(--muted); margin: 0 .25rem .25rem 0; }
+.tag.hot { color: #ff8a7a; border-color: #ff8a7a; }
+.tag.ben { color: #f0b35a; border-color: #f0b35a; }
+.go { color: var(--accent); font-weight: 700; text-decoration: none; }
+.go:hover { text-decoration: underline; }
+.keys { display: grid; grid-template-columns: 1fr 1fr; gap: .15rem .6rem; font-size: .8rem; }
+.keys span { display: flex; align-items: center; gap: .4rem; }
+.keys i { width: .65rem; height: .65rem; border-radius: 3px; flex: none; }
+ul.ev { margin: 0 0 .4rem; padding-left: 1.1rem; font-size: .86rem; color: #c9d4dc; }
+
+@media (max-width: 900px) {
+  body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "stage" "player"; }
+  .top { padding: .6rem 16px .5rem; gap: .45rem .6rem; }
+  h1 { font-size: 1.2rem; }
+  .eyebrow { display: none; }
+  .tools { flex-basis: 100%; }
+  .searchbox { flex: 1; min-width: 0; }
+  .searchbox input { width: 100%; }
+  .tools label span { display: none; }
+  .tools a.opt { display: none; }
+  .player { padding: .5rem 16px .6rem; grid-template-columns: minmax(0, 1fr); }
+  .controls { gap: .25rem; }
+  .controls button { width: 2rem; height: 2rem; }
+  .controls button#play { width: 2.4rem; height: 2.4rem; }
+  .controls select { margin-left: 0; padding: .3rem .2rem; }
+  .controls .sheet-btn { width: auto; height: auto; margin-left: auto; border-radius: 8px; }
+  .sheet-btn { display: inline-block; border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: .3rem .6rem; font-weight: 700; font-size: .82rem; cursor: pointer; }
+  .side { position: fixed; left: 0; right: 0; bottom: 0; max-height: 70vh; z-index: 10; border: 1px solid var(--line); border-radius: 14px 14px 0 0; box-shadow: 0 -10px 30px rgb(0 0 0 / .5); transform: translateY(105%); transition: transform .25s; }
+  body.sheet .side { transform: none; }
+  .warn { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .node.reveal .inner { animation: none; }
+}
+/* ---- AI tutor: explanation card in the panel, linked visual over the map ---- */
+.aibtn { display: grid; grid-template-columns: 2rem 1fr; gap: .1rem .6rem; align-items: center; width: 100%; text-align: left; cursor: pointer; background: rgb(127 178 255 / .1); border: 1px solid var(--accent); border-radius: 10px; padding: .55rem .7rem; margin: .2rem 0 .4rem; }
+.aibtn:hover { background: rgb(127 178 255 / .2); }
+.aibtn .ic { grid-row: span 2; width: 2rem; height: 2rem; border-radius: 50%; background: var(--accent); color: #0b1016; display: grid; place-items: center; }
+.aibtn b { font-size: .9rem; } .aibtn small { color: var(--muted); font-size: .76rem; }
+.ai { border: 1px solid var(--accent); border-radius: 10px; padding: .7rem .8rem .75rem; margin: .2rem 0 .5rem; background: rgb(127 178 255 / .06); animation: reveal .8s ease-out; }
+.ai .head { display: flex; align-items: center; gap: .5rem; font: 500 .68rem var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.ai .head button { margin-left: auto; font: 600 .75rem var(--f-body); text-transform: none; letter-spacing: 0; background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: .15rem .6rem; cursor: pointer; }
+.ai .txt { margin: .5rem 0 .4rem; font-size: .9rem; line-height: 1.55; }
+.ai .txt span { color: #8796a3; transition: color .5s ease; }
+.ai .txt span.said { color: #c3cfd8; }
+.ai .txt span.now { color: var(--ink); }
+.ai .fine { font-size: .72rem; color: var(--muted); margin: 0; }
+.visual { position: absolute; z-index: 20; inset: 3.2rem 1.2rem 1.2rem; display: grid; grid-template-rows: auto minmax(0, 1fr); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 40px #000a; overflow: hidden; animation: reveal .9s ease-out; }
+.visual[hidden] { display: none; }
+.visual .bar { display: flex; align-items: center; gap: .6rem; padding: .45rem .7rem; border-bottom: 1px solid var(--line); font: 500 .7rem var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.visual .bar b { color: var(--ink); font: 700 .85rem var(--f-display); letter-spacing: 0; text-transform: none; }
+.visual .bar a { margin-left: auto; color: var(--accent); font: 600 .78rem var(--f-body); letter-spacing: 0; text-transform: none; text-decoration: none; }
+.visual .bar button { background: none; border: 0; color: var(--muted); font-size: 1.1rem; cursor: pointer; }
+.visual iframe { width: 100%; height: 100%; border: 0; background: var(--bg); }
+
+/* ---- hover tooltip: our explanation of the concept ---- */
+#tip { position: fixed; z-index: 30; max-width: 19rem; padding: .55rem .7rem .6rem; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 24px #0008; pointer-events: none; opacity: 0; transition: opacity .25s ease; font-size: .82rem; line-height: 1.4; color: #c3cfd8; }
+#tip.show { opacity: 1; }
+#tip b { display: block; font-family: var(--f-display); font-size: .9rem; color: var(--ink); margin-bottom: .1rem; }
+#tip small { display: block; color: var(--muted); font-size: .72rem; margin-bottom: .3rem; }
+#tip .k { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+#tip .go { display: block; margin-top: .35rem; color: #5cc48a; }
+@media (hover: none) { #tip { display: none; } }
+</style>
+
+<header class="top">
+  <div class="brand">
+    <p class="eyebrow">Chemistry · NZ Curriculum · private pilot</p>
+    <h1>How ideas grow<i>.</i></h1>
+  </div>
+  <div class="tabs" role="tablist" aria-label="View">
+    <button type="button" role="tab" data-mode="seed" aria-selected="true">Starting points</button>
+    <button type="button" role="tab" data-mode="topic" aria-selected="false">Topics</button>
+  </div>
+  <div class="tabs years" role="group" aria-label="Year" id="years">
+    <button type="button" data-year="" aria-pressed="true"><b>All</b><small>years</small></button>
+    <button type="button" data-year="L5" aria-pressed="false" title="Years 9–10 foundations (no NCEA)"><b>Y9–10</b><small>Foundations</small></button>
+    <button type="button" data-year="L6" aria-pressed="false" title="Year 11: chemistry strand of 11SCIa, graded by the school (no NCEA chemistry)"><b>Y11</b><small>11SCIa</small></button>
+    <button type="button" data-year="L7" aria-pressed="false" title="Year 12: CHE201, NCEA Level 2"><b>Y12</b><small>NCEA L2</small></button>
+  </div>
+  <div class="tools">
+    <div class="searchbox">
+      <input id="q" type="search" placeholder="Find a concept…" aria-label="Find a concept" autocomplete="off">
+      <div class="results" id="results" hidden></div>
+    </div>
+    <label><span>Colour</span>
+      <select id="colour" aria-label="Colour by">
+        <option value="lineage">Starting point</option><option value="topic">Topic</option><option value="year">Year</option>
+        <option value="national">Exam weak spots</option><option value="material">Learning material</option>
+      </select>
+    </label>
+    <a href="./" class="opt">Labs</a>
+  </div>
+  <div class="picker" id="picker"></div>
+</header>
+
+<main class="stage">
+  <div id="tip" role="tooltip"></div>
+  <div class="visual" id="visual" hidden><div class="bar">Linked visual · <b id="visualT"></b><a id="visualA" target="_blank" rel="noopener">Open the full lab ↗</a><button type="button" id="visualX" aria-label="Close the visual">×</button></div><iframe id="visualF" title="Linked visual"></iframe></div>
+  <svg id="svg" role="img" aria-label="Flow of chemistry concepts from Years 9–10 to Year 12. Use the side panel lists to move between concepts."></svg>
+  <div class="warn">Concepts: official sources · Links: our inference, not yet reviewed</div>
+  <div class="choose" id="choose" hidden>
+    <div class="card">
+      <p class="eyebrow">Start here</p>
+      <h2 id="chooseT"></h2>
+      <p id="chooseP"></p>
+      <div class="starts" id="starts"></div>
+      <button type="button" class="all" data-all>Or watch the whole course grow →</button>
+    </div>
+  </div>
+  <div class="zoom"><button type="button" id="zin" aria-label="Zoom in">+</button><button type="button" id="zout" aria-label="Zoom out">−</button><button type="button" id="zfit">Fit</button></div>
+</main>
+
+<footer class="player">
+  <div class="controls">
+    <button type="button" id="restart" aria-label="Start again">⏮</button>
+    <button type="button" id="prev" aria-label="Step back">◀</button>
+    <button type="button" id="play" aria-label="Play">▶</button>
+    <button type="button" id="next" aria-label="Step forward">▶▏</button>
+    <select id="speed" aria-label="Speed"><option value=".5">Slow</option><option value="1" selected>Normal</option><option value="2">Fast</option></select>
+    <button type="button" class="sheet-btn" id="sheetBtn">Details</button>
+  </div>
+  <div class="caption" aria-live="polite"><div class="ct"><b id="capT"></b><span id="capN"></span></div><div class="chips" id="capChips"></div></div>
+  <input type="range" id="scrub" min="0" max="1" value="0" aria-label="Step">
+</footer>
+
+<aside class="side" id="side"></aside>
+
+<script type="application/json" id="data">{"concepts": {"_about": "Chemistry learning-lineage pilot. One entry per teachable concept. Every concept cites at least one official source (see sources.json) with the passage it is drawn from. Tiers follow the 2007 NZ Curriculum levels: L5 = Years 9–10 foundations, L6 = Year 11 (Ben's 11SCIa; chemistry is about one third of that course), L7 = Year 12 (CHE201 / NCEA Level 2). Descriptions and evidence are our wording, closely following the cited text.", "tiers": {"L5": {"label": "Foundations", "year": "Years 9–10", "curriculumLevel": 5}, "L6": {"label": "Year 11 (11SCIa chemistry strand)", "year": "Year 11", "curriculumLevel": 6}, "L7": {"label": "Year 12 (CHE201, NCEA Level 2)", "year": "Year 12", "curriculumLevel": 7}}, "topics": ["Atoms & ions", "Bonding & structure", "Equations & quantities", "Reactions", "Acids & bases", "Rates & equilibrium", "Energy", "Properties & uses", "Organic", "Redox"], "concepts": [{"id": "l5-atom-structure", "tier": "L5", "topic": "Atoms & ions", "type": "conceptual", "name": "Structure of an atom", "description": "Atoms have a nucleus of protons and neutrons with electrons around it; different elements have different numbers of protons.", "evidence": ["Name the three sub-atomic particles and where they are found", "Use atomic number to give the number of protons and electrons in a neutral atom"], "sources": [{"id": "nzc2007-science", "ref": "L5.SM.1", "quote": "describe the structure of the atoms of different elements"}], "ben": {"course": "Years 9–10", "status": "foundation"}, "content": [{"page": "atoms.html", "label": "Inside an Atom: protons, neutrons and electrons", "params": "step=1"}]}, {"id": "l5-elements-compounds-mixtures", "tier": "L5", "topic": "Atoms & ions", "type": "conceptual", "name": "Elements, compounds and mixtures", "description": "An element contains one kind of atom; a compound has different atoms chemically joined; a mixture has substances that are not chemically joined. Pure substances versus mixtures.", "evidence": ["Classify a substance as element, compound or mixture from a particle diagram", "Explain the difference between a pure substance and a mixture"], "sources": [{"id": "nzc2007-science", "ref": "L5.PCM.2", "quote": "distinguish between pure substances and mixtures and between elements and compounds"}, {"id": "nzc2007-science", "ref": "L5.SM.2", "quote": "distinguish between an element and a compound, a pure substance, and a mixture at the particle level"}], "ben": {"course": "Years 9–10", "status": "foundation"}}, {"id": "l5-symbols-formulae", "tier": "L5", "topic": "Equations & quantities", "type": "representational", "name": "Chemical symbols and simple formulae", "description": "Each element has a symbol; a formula such as H₂O or CO₂ shows which atoms, and how many, make up a substance.", "evidence": ["Read the elements and number of atoms from a simple formula", "Write formulae for common substances such as H₂, O₂, H₂O and CO₂"], "sources": [{"id": "nzc2007-science", "ref": "L5.SM.2", "quote": "distinguish between an element and a compound ... at the particle level"}], "ben": {"course": "Years 9–10", "status": "foundation"}, "content": [{"page": "flashcards.html", "label": "Flashcards: formulas deck", "params": "deck=Formulas"}, {"page": "metals.html", "label": "Inside a Metal: the small molecules H₂, O₂, H₂O, CO₂"}]}, {"id": "l5-chemical-change", "tier": "L5", "topic": "Reactions", "type": "conceptual", "name": "Chemical reactions make new substances", "description": "In a chemical change reactants turn into new products; reactions can be written as word equations.", "evidence": ["Tell a chemical change from a physical change using observations", "Write a word equation for a described reaction"], "sources": [{"id": "nzc2007-science", "ref": "L5.PCM.1", "quote": "investigate the chemical and physical properties of different groups of substances"}], "ben": {"course": "Years 9–10", "status": "foundation"}}, {"id": "l5-acids-bases", "tier": "L5", "topic": "Acids & bases", "type": "conceptual", "name": "Acids, bases and indicators", "description": "Acids and bases have typical properties; indicators and the pH scale show whether a solution is acidic, neutral or basic.", "evidence": ["Use litmus or universal indicator to classify a solution", "Place acidic, neutral and basic solutions on the pH scale"], "sources": [{"id": "nzc2007-science", "ref": "L5.PCM.1", "quote": "for example, acids and bases, fuels, and metals"}], "ben": {"course": "Years 9–10", "status": "foundation"}}, {"id": "l5-metals", "tier": "L5", "topic": "Properties & uses", "type": "conceptual", "name": "Properties of metals", "description": "Metals share properties such as conductivity, malleability and lustre, and some react with acids, water or oxygen.", "evidence": ["List typical physical properties of metals", "Describe what is seen when a reactive metal is added to acid"], "sources": [{"id": "nzc2007-science", "ref": "L5.PCM.1", "quote": "for example, acids and bases, fuels, and metals"}], "ben": {"course": "Years 9–10", "status": "foundation"}, "content": [{"page": "metals.html", "label": "Inside a Metal: why metals conduct", "params": "step=2"}, {"page": "metals.html", "label": "Inside a Metal: why metals bend", "params": "step=3"}]}, {"id": "l5-fuels", "tier": "L5", "topic": "Reactions", "type": "conceptual", "name": "Fuels and burning", "description": "Fuels react with oxygen when they burn, releasing energy.", "evidence": ["Name the reactants needed for burning", "Give examples of fuels and where they are used"], "sources": [{"id": "nzc2007-science", "ref": "L5.PCM.1", "quote": "for example, acids and bases, fuels, and metals"}], "ben": {"course": "Years 9–10", "status": "foundation"}, "content": [{"page": "bunsen.html", "label": "Bunsen Burner Lab: step 1, the fuel is methane", "params": "step=1"}]}, {"id": "l5-properties-uses", "tier": "L5", "topic": "Properties & uses", "type": "conceptual", "name": "Properties decide uses", "description": "The way a substance is used, or where it occurs in nature, depends on its properties.", "evidence": ["Explain why a material suits a given use in terms of one property"], "sources": [{"id": "nzc2007-science", "ref": "L5.CS.1", "quote": "link the properties of different groups of substances to the way they are used in society or occur in nature"}], "ben": {"course": "Years 9–10", "status": "foundation"}}, {"id": "l6-electron-arrangement", "tier": "L6", "topic": "Atoms & ions", "type": "conceptual", "name": "Electron arrangement and valence shells", "description": "Electrons fill shells in order (e.g. 2,8,1); the outer (valence) shell controls how an atom reacts, and atoms tend towards a stable (full) valence shell.", "evidence": ["Write the electron arrangement for elements 1–20", "Identify the number of valence electrons", "Explain what a stable (full) valence shell is"], "sources": [{"id": "nzc2007-science", "ref": "L6.SM.2", "quote": "link atomic structure to the organisation of the periodic table"}, {"id": "cb-slo", "ref": "92021 particles", "quote": "to achieve a stable (full) valence shell of electrons"}, {"id": "lhs-courses", "ref": "11SCIa", "quote": "Aspects of atomic structure, including ion formation"}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "atoms.html", "label": "Inside an Atom: filling the shells", "params": "step=2"}]}, {"id": "l6-periodic-table", "tier": "L6", "topic": "Atoms & ions", "type": "conceptual", "name": "Organisation of the periodic table", "description": "Groups share the same number of valence electrons and periods share the same number of shells; position shows whether an element is a metal or non-metal.", "evidence": ["Link group number to valence electrons", "Predict metal or non-metal character from position"], "sources": [{"id": "nzc2007-science", "ref": "L6.SM.2", "quote": "link atomic structure to the organisation of the periodic table"}, {"id": "cb-slo", "ref": "92023 properties", "quote": "Relate the position of an element in the periodic table to its metal or non-metal character."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "atoms.html", "label": "Inside an Atom: the valence shell and the table", "params": "step=3"}]}, {"id": "l6-atoms-molecules-ions", "tier": "L6", "topic": "Atoms & ions", "type": "conceptual", "name": "Atoms, molecules and ions", "description": "The particles of chemistry: neutral atoms, molecules (atoms covalently joined) and ions (charged particles).", "evidence": ["Classify given particles as atoms, molecules or ions", "Use the correct particle word in explanations (not just 'particle')"], "sources": [{"id": "nzc2007-science", "ref": "L6.SM.1", "quote": "distinguish between atoms, molecules, and ions (includes covalent and ionic bonding)"}], "ben": {"course": "11SCIa", "status": "in course"}}, {"id": "l6-ion-formation", "tier": "L6", "topic": "Atoms & ions", "type": "conceptual", "name": "Ion formation and charge", "description": "Metal atoms lose and non-metal atoms gain electrons to reach a full valence shell, forming monatomic ions with a predictable charge.", "evidence": ["Justify the charge on a monatomic ion from the electron arrangement", "Predict ion charges from group number"], "sources": [{"id": "cb-slo", "ref": "92021 particles", "quote": "Justify the charge on a monatomic ion when it is formed from an atom to achieve a stable (full) valence shell of electrons."}, {"id": "lhs-courses", "ref": "11SCIa", "quote": "Aspects of atomic structure, including ion formation"}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "atoms.html", "label": "Inside an Atom: becoming an ion", "params": "step=4"}]}, {"id": "l6-polyatomic-ions", "tier": "L6", "topic": "Atoms & ions", "type": "representational", "name": "Polyatomic ions", "description": "Some ions are groups of atoms with an overall charge, e.g. NO₃⁻, SO₄²⁻, CO₃²⁻, OH⁻, NH₄⁺.", "evidence": ["Recall the formula and charge of common polyatomic ions"], "sources": [{"id": "cb-slo", "ref": "92021 particles", "quote": "Justify the ratio of ions (monatomic and polyatomic) in the formula of ionic compounds"}], "ben": {"course": "11SCIa", "status": "in course"}}, {"id": "l6-ionic-bonding", "tier": "L6", "topic": "Bonding & structure", "type": "conceptual", "name": "Ionic compounds", "description": "Ionic compounds form when metal atoms transfer electrons to non-metal atoms; the oppositely charged ions attract.", "evidence": ["Explain how an ionic compound forms from its atoms", "Describe the attraction holding ions together"], "sources": [{"id": "cb-slo", "ref": "92021 particles", "quote": "Recognise that ionic compounds are formed when non-metal atoms gain electrons from metal atoms"}, {"id": "nzc2007-science", "ref": "L6.SM.1", "quote": "(includes covalent and ionic bonding)"}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "precipitate.html", "label": "Precipitate Lab: ionic compounds"}, {"page": "metals.html", "label": "Inside a Metal: three ways atoms hold together"}]}, {"id": "l6-ionic-formulae", "tier": "L6", "topic": "Equations & quantities", "type": "procedural", "name": "Writing ionic formulae", "description": "The ratio of ions in an ionic formula is the one that makes the charges cancel, using brackets for multiple polyatomic ions, e.g. Ca(NO₃)₂.", "evidence": ["Write the formula of an ionic compound from its ions", "Justify the ratio by showing the charges cancel"], "sources": [{"id": "cb-slo", "ref": "92021 particles", "quote": "explaining how the charges of the component ions cancel out to give an uncharged compound"}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "precipitate.html", "label": "Precipitate Lab: why calcium chloride is CaCl₂", "params": "rx=ca"}]}, {"id": "l6-covalent-bonding", "tier": "L6", "topic": "Bonding & structure", "type": "conceptual", "name": "Covalent bonding and molecules", "description": "Non-metal atoms share valence electrons to reach full shells, forming molecules.", "evidence": ["Explain how a molecule such as H₂O forms", "Tell covalent from ionic bonding by the elements involved"], "sources": [{"id": "cb-slo", "ref": "92021 particles", "quote": "Recognise that molecules are formed by non-metal atoms sharing valence electrons"}, {"id": "nzc2007-science", "ref": "L6.SM.1", "quote": "(includes covalent and ionic bonding)"}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "metals.html", "label": "Inside a Metal: covalent bonding and small molecules"}]}, {"id": "l6-reading-formulae", "tier": "L6", "topic": "Equations & quantities", "type": "representational", "name": "Reading formulae and equations", "description": "Subscripts, brackets and coefficients each change the number of atoms shown; coefficients give the ratio of reactants and products.", "evidence": ["Count each type of atom in 2Ca(NO₃)₂", "State the reacting ratio from a balanced equation"], "sources": [{"id": "cb-slo", "ref": "92021 equations", "quote": "Recognise the relevance of subscripts, brackets, and coefficients in chemical formulae on the number of each type of atoms present."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "equations.html", "label": "Balancing Equations: counting atoms", "params": "step=2&f=CaNO32"}]}, {"id": "l6-conservation-of-mass", "tier": "L6", "topic": "Equations & quantities", "type": "conceptual", "name": "Conservation of mass", "description": "Atoms are rearranged, not created or destroyed, so total mass stays constant; apparent mass changes come from gases leaving or joining.", "evidence": ["Explain why mass is conserved in a reaction", "Link a mass loss to a gaseous product and a mass gain to a gaseous reactant"], "sources": [{"id": "cb-slo", "ref": "92021 conservation", "quote": "Recognise that atoms are neither created nor destroyed in chemical reactions but are rearranged"}, {"id": "cb-matrix", "ref": "Significant Learning", "quote": "explore the implications of the conservation of mass in a chemical reaction"}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "equations.html", "label": "Balancing Equations: mass is conserved", "params": "step=1"}]}, {"id": "l6-balancing-equations", "tier": "L6", "topic": "Equations & quantities", "type": "procedural", "name": "Balancing chemical equations", "description": "Write a balanced symbol equation with the same number of each type of atom on both sides.", "evidence": ["Balance an equation by adjusting coefficients only", "Check a balanced equation atom by atom"], "sources": [{"id": "lhs-courses", "ref": "11SCIa", "quote": "Specific chemical reactions and how to write balanced equations for them."}, {"id": "cb-slo", "ref": "92021 conservation", "quote": "Analyse balanced chemical equations to show that there are the same number of atoms of each element on both sides"}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "equations.html", "label": "Balancing Equations: balance it", "params": "step=3"}]}, {"id": "l6-limiting-reactant", "tier": "L6", "topic": "Equations & quantities", "type": "conceptual", "name": "Reactant amounts and products", "description": "One reactant can limit how much product forms, and different proportions of reactants can change which products form.", "evidence": ["Identify which reactant runs out first in a simple case", "Give an example where reactant proportions change the product"], "sources": [{"id": "cb-slo", "ref": "92021 equations", "quote": "Recognise that one reactant can determine the amount of product that is formed in a chemical reaction."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "equations.html", "label": "Balancing Equations: which runs out?", "params": "step=4"}]}, {"id": "l6-naming-products", "tier": "L6", "topic": "Reactions", "type": "procedural", "name": "Naming products from reactants", "description": "Product names follow from the reactants, e.g. nitric acid gives a nitrate salt, hydrochloric acid gives a chloride.", "evidence": ["Name the salt formed from a given acid and metal or base"], "sources": [{"id": "cb-slo", "ref": "92021 conservation", "quote": "Recognise links between names of reactants and products in a given word equation eg, nitric acid producing a nitrate salt."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "reactions.html", "label": "Metal Reactions Lab: zinc + sulfuric acid makes zinc sulfate", "params": "m=Zn&p=h2so4"}]}, {"id": "l6-observations-tests", "tier": "L6", "topic": "Reactions", "type": "procedural", "name": "Observations and tests for products", "description": "Link observations to chemical species and use tests: limewater (CO₂), glowing splint (O₂), cobalt chloride paper (water), indicator colour, colour changes.", "evidence": ["Choose the test for a named gas and give the positive result", "Identify a reaction type from observations"], "sources": [{"id": "cb-slo", "ref": "92021 patterns", "quote": "Use secondary tests to identify reaction products including carbon dioxide (limewater), oxygen (glowing splint) and water (cobalt chloride paper)."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "reactions.html", "label": "Metal Reactions Lab: magnesium + hydrochloric acid, the squeaky pop test", "params": "m=Mg&p=hcl"}]}, {"id": "l6-acids-ph", "tier": "L6", "topic": "Acids & bases", "type": "conceptual", "name": "pH, H⁺ and OH⁻", "description": "pH reflects the relative amounts of H⁺ and OH⁻ in solution; indicators change colour as pH changes. Common acids: HCl, HNO₃, H₂SO₄.", "evidence": ["Link a pH value to relative H⁺ and OH⁻ concentration", "Give formulae of hydrochloric, nitric and sulfuric acid"], "sources": [{"id": "cb-slo", "ref": "92021 neutralisation", "quote": "Link changes in ph to the relative concentrations of H+ and OH- present during a neutralisation reaction."}, {"id": "nzc2007-science", "ref": "L6.PCM.1", "quote": "identify patterns and trends in the properties of a range of groups of substances, for example, acids and bases"}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "reactions.html", "label": "Metal Reactions Lab: the acid formulas", "params": "p=h2so4"}, {"page": "neutralise.html", "label": "Neutralisation Lab: pH as the acid is used up", "params": "step=1"}]}, {"id": "l6-neutralisation", "tier": "L6", "topic": "Acids & bases", "type": "conceptual", "name": "Neutralisation", "description": "Acid + base gives a salt and water; carbonates and hydrogen carbonates also give CO₂. The salt depends on the acid and base used.", "evidence": ["Predict the salt from a named acid and base", "Explain fizzing when an acid meets a carbonate"], "sources": [{"id": "cb-slo", "ref": "92021 neutralisation", "quote": "Explain the relationship between the acid and base reactants and the specific salt product of a neutralisation reaction."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "neutralise.html", "label": "Neutralisation Lab: drop by drop", "params": "step=1"}, {"page": "neutralise.html", "label": "Neutralisation Lab: which salt?", "params": "step=2"}, {"page": "neutralise.html", "label": "Neutralisation Lab: carbonates", "params": "step=3"}]}, {"id": "l6-metal-reactions", "tier": "L6", "topic": "Reactions", "type": "conceptual", "name": "Reactions of metals (acids, water, oxygen)", "description": "Metals follow patterns: metal + acid → salt + hydrogen; reactive metal + water → metal hydroxide + hydrogen; metal + oxygen → metal oxide.", "evidence": ["Write the word equation for a metal with each acid", "Use the pop test as evidence of hydrogen"], "sources": [{"id": "nzc2007-science", "ref": "L6.PCM.1", "quote": "identify patterns and trends in the properties of a range of groups of substances, for example, acids and bases, metals, metal compounds"}, {"id": "lhs-courses", "ref": "11SCIa", "quote": "Specific chemical reactions and how to write balanced equations for them."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "reactions.html", "label": "Metal Reactions Lab: pick any metal and partner"}, {"page": "flashcards.html", "label": "Flashcards: reactions deck", "params": "deck=Reactions"}]}, {"id": "l6-combustion", "tier": "L6", "topic": "Reactions", "type": "conceptual", "name": "Complete and incomplete combustion", "description": "With plenty of oxygen a fuel burns completely (blue flame, CO₂ + water, more heat); with limited oxygen it burns incompletely (yellow flame, CO and soot).", "evidence": ["Contrast flame colour and heat for complete and incomplete combustion", "Justify, using conservation of mass, how oxygen supply decides the products"], "sources": [{"id": "cb-slo", "ref": "92021 combustion", "quote": "Contrast the flame colour and heat produced for complete and incomplete combustion reactions."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "bunsen.html", "label": "Bunsen Burner Lab: step 2, complete combustion", "params": "step=2"}, {"page": "bunsen.html", "label": "Bunsen Burner Lab: step 3, carbon monoxide", "params": "step=3"}, {"page": "flashcards.html", "label": "Flashcards: combustion deck", "params": "deck=Combustion"}]}, {"id": "l6-solubility", "tier": "L6", "topic": "Reactions", "type": "conceptual", "name": "Solubility of ionic compounds", "description": "An ionic compound dissolves if attractions to water molecules beat the attractions between its ions; solubility rules predict which do.", "evidence": ["Explain soluble and insoluble in terms of attractions", "Use a solubility table to predict solubility"], "sources": [{"id": "cb-slo", "ref": "92021 precipitation", "quote": "Relate solubility of ionic compounds to the relative strength of attractions between the ions and water molecules."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "precipitate.html", "label": "Precipitate Lab: no precipitate, all ions stay dissolved", "params": "rx=none"}]}, {"id": "l6-precipitation", "tier": "L6", "topic": "Reactions", "type": "conceptual", "name": "Precipitation reactions", "description": "Mixing two solutions forms a solid if a new ion pairing is insoluble; the ions left in solution are spectator ions.", "evidence": ["Predict and justify whether a precipitate forms", "Identify the spectator ions"], "sources": [{"id": "cb-slo", "ref": "92021 precipitation", "quote": "Predict and justify whether or not a precipitate will occur when two solutions of ionic compounds are mixed."}], "ben": {"course": "11SCIa", "status": "in course"}, "content": [{"page": "precipitate.html", "label": "Precipitate Lab: lead nitrate + sodium hydroxide", "params": "rx=pb"}]}, {"id": "l6-combination-decomposition", "tier": "L6", "topic": "Reactions", "type": "conceptual", "name": "Combination and decomposition reactions", "description": "Elements combine to give ionic solids (metal + non-metal) or molecular compounds (non-metal + non-metal); compounds decompose into products set by the atoms present, e.g. metal carbonate → metal oxide + CO₂.", "evidence": ["Predict the type of product of a combination reaction", "Predict products of a decomposition from a generic equation"], "sources": [{"id": "cb-slo", "ref": "92021 combination", "quote": "combination reactions between metal and non-metal elements will produce ionic compounds"}, {"id": "cb-slo", "ref": "92021 decomposition", "quote": "a metal carbonate when heated produces a metal oxide and carbon dioxide"}], "ben": {"course": "11SCIa", "status": "in course"}}, {"id": "l6-reactions-in-context", "tier": "L6", "topic": "Reactions", "type": "conceptual", "name": "Reactions in context", "description": "The impact of reactants and products depends on quantity, location and state, e.g. phosphate run-off, baking soda in cakes, soil acidity, forest fires.", "evidence": ["Link a reaction type to a real effect on people or the environment"], "sources": [{"id": "cb-slo", "ref": "92021 context", "quote": "the impact of reactants and products in different contexts can depend on quantity, location and state"}, {"id": "nzc2007-science", "ref": "L6.CS.1", "quote": "investigate how chemical knowledge is used in a technological application of chemistry"}], "ben": {"course": "11SCIa", "status": "in course"}}, {"id": "l6-rates-particle-theory", "tier": "L6", "topic": "Rates & equilibrium", "type": "conceptual", "name": "Factors affecting reaction rate", "description": "Particle theory explains why temperature, concentration, surface area and catalysts change how fast a reaction goes.", "evidence": ["Predict the effect of a change on rate", "Explain it using particles colliding"], "sources": [{"id": "nzc2007-science", "ref": "L6.SM.3", "quote": "use particle theory to explain factors that affect chemical processes"}, {"id": "nzc2007-science", "ref": "L6.PCM.2", "quote": "explore factors that affect chemical processes"}], "ben": {"course": "Curriculum Level 6", "status": "not listed in 11SCIa"}, "content": [{"page": "rates.html", "label": "Reaction Rates: collisions", "params": "step=1"}, {"page": "rates.html", "label": "Reaction Rates: temperature, concentration, surface area, catalysts", "params": "step=2"}]}, {"id": "l6-attractions-properties", "tier": "L6", "topic": "Properties & uses", "type": "conceptual", "name": "Attractions between particles decide properties", "description": "Melting and boiling points, and state at a given temperature, depend on how strongly the particles attract each other.", "evidence": ["Relate melting/boiling point to physical state at a given temperature", "Relate melting/boiling point to the strength of attractions"], "sources": [{"id": "cb-slo", "ref": "92023 describing", "quote": "Relate melting and boiling points to the strength of attractions between particles."}, {"id": "cb-matrix", "ref": "Big Ideas", "quote": "Matter is made of very small particles interacting to determine properties of materials"}], "ben": {"course": "Curriculum Level 6", "status": "not listed in 11SCIa"}, "content": [{"page": "properties.html", "label": "Structure & Properties: heat four solids", "params": "step=1"}]}, {"id": "l6-molecular-substances", "tier": "L6", "topic": "Bonding & structure", "type": "conceptual", "name": "Properties of molecular substances", "description": "Discrete molecules: strong covalent bonds inside, weak attractions between, so low melting points, softness and no conductivity.", "evidence": ["Explain a low melting point using weak attractions between molecules", "Explain lack of conductivity"], "sources": [{"id": "cb-slo", "ref": "92023 molecular", "quote": "discrete molecules containing non-metal atoms held together by strong covalent bonds but with only weak attractions between the molecules"}], "ben": {"course": "Curriculum Level 6", "status": "not listed in 11SCIa"}, "content": [{"page": "properties.html", "label": "Structure & Properties: strong inside, weak between", "params": "step=2"}]}, {"id": "l6-metallic-bonding", "tier": "L6", "topic": "Bonding & structure", "type": "conceptual", "name": "Metallic bonding and metal properties", "description": "Metal cations in a sea of delocalised valence electrons explain conductivity, malleability, high melting points and density; alloys change the packing.", "evidence": ["Explain conductivity using delocalised electrons", "Explain malleability using layers sliding without breaking the bond"], "sources": [{"id": "cb-slo", "ref": "92023 metallic", "quote": "strong metallic bonds between the metal cations and a common pool of delocalised, valence electrons"}], "ben": {"course": "Curriculum Level 6", "status": "not listed in 11SCIa"}, "content": [{"page": "metals.html", "label": "Inside a Metal: the electron sea", "params": "step=1"}, {"page": "flashcards.html", "label": "Flashcards: definitions deck", "params": "deck=Definitions"}]}, {"id": "l6-ionic-properties", "tier": "L6", "topic": "Bonding & structure", "type": "conceptual", "name": "Properties of ionic solids", "description": "A 3-D lattice of ions: high melting points, brittle, and conducts only when molten or dissolved.", "evidence": ["Explain conductivity when molten but not solid", "Explain brittleness"], "sources": [{"id": "cb-slo", "ref": "92023 ionic", "quote": "Explain electrical conductivity when molten or dissolved in water, but not in solid form"}], "ben": {"course": "Curriculum Level 6", "status": "not listed in 11SCIa"}, "content": [{"page": "metals.html", "label": "Inside a Metal: why ionic crystals shatter", "params": "step=3&material=ionic"}, {"page": "properties.html", "label": "Structure & Properties: does salt conduct?", "params": "step=3&sub=salt&state=molten"}]}, {"id": "l6-covalent-networks", "tier": "L6", "topic": "Bonding & structure", "type": "conceptual", "name": "Covalent network solids", "description": "Diamond and silica are 3-D networks of covalent bonds (very hard, very high melting point); graphite's 2-D layers make it soft and conductive.", "evidence": ["Explain diamond's hardness", "Explain graphite's conductivity as an exception"], "sources": [{"id": "cb-slo", "ref": "92023 networks", "quote": "covalent network solids such as diamond and silica as 3-D (or graphite as 2-D) networks"}], "ben": {"course": "Curriculum Level 6", "status": "not listed in 11SCIa"}, "content": [{"page": "properties.html", "label": "Structure & Properties: diamond and graphite", "params": "step=4"}]}, {"id": "l6-polymers", "tier": "L6", "topic": "Bonding & structure", "type": "conceptual", "name": "Polymers", "description": "Long chain molecules of repeating units: strong bonds along the chain, weaker attractions between chains.", "evidence": ["Explain why polymers are flexible and non-conductive"], "sources": [{"id": "cb-slo", "ref": "92023 polymers", "quote": "large chain molecules made from repeating units with strong covalent bonds between atoms within the chain, but weaker attractions between the chains"}], "ben": {"course": "Curriculum Level 6", "status": "not listed in 11SCIa"}}, {"id": "l6-material-choice", "tier": "L6", "topic": "Properties & uses", "type": "conceptual", "name": "Choosing materials for a purpose", "description": "Evaluate and justify which material best suits a use from its physical properties.", "evidence": ["Justify a material choice using two or more properties"], "sources": [{"id": "cb-slo", "ref": "92023 evaluating", "quote": "Evaluate the most appropriate material ... for a specific purpose."}, {"id": "cb-matrix", "ref": "Significant Learning", "quote": "explore how materials can meet the needs of a sustainable future by relating properties to purpose and use"}], "ben": {"course": "Curriculum Level 6", "status": "not listed in 11SCIa"}}, {"id": "l7-lewis-structures", "tier": "L7", "topic": "Bonding & structure", "type": "representational", "name": "Lewis structures", "description": "Draw Lewis structures for simple molecules (no more than four electron pairs about any atom, including multiple bonds).", "evidence": ["Draw Lewis structures for molecules such as NH₃, CO₂, HCN", "Identify bonding and non-bonding regions"], "sources": [{"id": "as91164", "ref": "EN4", "quote": "Lewis structures, shape and polarity of simple molecules"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-molecular-shape", "tier": "L7", "topic": "Bonding & structure", "type": "conceptual", "name": "Molecular shape (VSEPR)", "description": "Repulsion between regions of electron density around a central atom decides shape and bond angle.", "evidence": ["Name the shape and bond angle of a simple molecule", "Explain shape using electron-density repulsion"], "sources": [{"id": "as91164", "ref": "EN4", "quote": "Lewis structures, shape and polarity of simple molecules"}, {"id": "report-l2-2025", "ref": "91164 Merit", "quote": "linked regions of electron density and repulsion with regard to a central atom"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-electronegativity", "tier": "L7", "topic": "Bonding & structure", "type": "conceptual", "name": "Electronegativity and polar bonds", "description": "Atoms differ in how strongly they attract bonding electrons; a difference makes a polar bond with a dipole.", "evidence": ["Define electronegativity", "Mark partial charges on a polar bond"], "sources": [{"id": "as91164", "ref": "EN4", "quote": "shape and polarity of simple molecules"}, {"id": "report-l2-2025", "ref": "91164 Achieved", "quote": "identified a difference in electronegativity between atoms in bonds"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-molecular-polarity", "tier": "L7", "topic": "Bonding & structure", "type": "conceptual", "name": "Polarity of molecules", "description": "A molecule is polar if its bond dipoles don't cancel, which depends on both bond polarity and shape (symmetry).", "evidence": ["Justify whether a molecule is polar using bond polarity and symmetry"], "sources": [{"id": "as91164", "ref": "EN4", "quote": "shape and polarity of simple molecules"}, {"id": "report-l2-2025", "ref": "91164 Excellence", "quote": "justified the polarity of a molecule with reference to electronegativity, bond polarity, and symmetry"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-intermolecular-forces", "tier": "L7", "topic": "Bonding & structure", "type": "conceptual", "name": "Intermolecular forces", "description": "Weak attractions between molecules; stronger ones mean higher melting and boiling points (types need not be distinguished at Level 2).", "evidence": ["Explain a boiling-point difference in terms of intermolecular forces"], "sources": [{"id": "as91164", "ref": "EN4", "quote": "intermolecular forces (the distinction between the different types of intermolecular forces is not required)"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-solid-types", "tier": "L7", "topic": "Bonding & structure", "type": "conceptual", "name": "Four types of solid: structure → properties", "description": "Molecular, ionic, metallic and covalent network substances: identify the particles and forces, and use them to explain hardness, malleability, ductility, conductivity and melting points.", "evidence": ["Identify the particles and attractive forces in each type of solid", "Justify melting points and conductivity from structure and bonding"], "sources": [{"id": "as91164", "ref": "EN4–5", "quote": "molecular, ionic, metallic and covalent network substances"}, {"id": "nzc2007-science", "ref": "L7.SM.1", "quote": "relate properties of matter to structure and bonding"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-solubility-polarity", "tier": "L7", "topic": "Bonding & structure", "type": "conceptual", "name": "Solubility in polar and non-polar solvents", "description": "'Like dissolves like': solubility depends on polarity and the strength of solute–solvent attractions compared with those that must be overcome.", "evidence": ["Draw NaCl dissolving with hydrated ions and water dipoles", "Justify the solubility of an ionic compound and a non-polar molecule in water"], "sources": [{"id": "spec-l2-2027", "ref": "91164", "quote": "In Explanatory Note 5, solubility refers to polar and non-polar solvents."}, {"id": "report-l2-2025", "ref": "91164 Merit", "quote": "included hydrated ions in their diagram of NaCl dissolving"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-exo-endo", "tier": "L7", "topic": "Energy", "type": "conceptual", "name": "Exothermic and endothermic changes", "description": "Reactions and changes of state release or absorb energy; ΔH is negative for exothermic and positive for endothermic.", "evidence": ["Classify a change as exo- or endothermic with a reason", "Link the sign of ΔH to energy released or absorbed"], "sources": [{"id": "as91164", "ref": "EN4", "quote": "exothermic and endothermic reactions including energy (enthalpy) changes associated with differing amounts of substances and changes of state"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-moles", "tier": "L7", "topic": "Equations & quantities", "type": "procedural", "name": "The mole and molar mass", "description": "Amount of substance in moles: n = m/M using molar masses from the periodic table.", "evidence": ["Calculate moles from mass and molar mass", "Give answers to three significant figures with units"], "sources": [{"id": "as91164", "ref": "EN4", "quote": "calculations of energy changes using ΔrH and reaction stoichiometry"}, {"id": "spec-l2-2027", "ref": "General", "quote": "candidates will be expected to use the molar mass values given"}], "ben": {"course": "CHE201", "status": "next year"}}, {"id": "l7-concentration", "tier": "L7", "topic": "Equations & quantities", "type": "procedural", "name": "Concentration (n = cV)", "description": "Concentration in mol L⁻¹ links amount and volume of a solution.", "evidence": ["Use n = cV to find amount, concentration or volume"], "sources": [{"id": "spec-l2-2027", "ref": "Resources", "quote": "relevant chemical formulae needed for Level 2 Chemistry, e.g. n = cV"}], "ben": {"course": "CHE201", "status": "next year"}}, {"id": "l7-enthalpy-calcs", "tier": "L7", "topic": "Energy", "type": "procedural", "name": "Enthalpy calculations (ΔrH and stoichiometry)", "description": "Scale ΔrH to the amount of substance reacting.", "evidence": ["Calculate energy released for a given mass of fuel", "Use correct sign, units and significant figures"], "sources": [{"id": "as91164", "ref": "EN4", "quote": "calculations of energy changes using ΔrH and reaction stoichiometry"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-bond-enthalpy", "tier": "L7", "topic": "Energy", "type": "procedural", "name": "Bond enthalpy", "description": "Breaking bonds absorbs energy and making bonds releases it; ΔH ≈ bonds broken − bonds formed.", "evidence": ["Count the bonds broken and formed", "Calculate ΔrH from bond enthalpies"], "sources": [{"id": "as91164", "ref": "EN4", "quote": "enthalpy changes associated with the making and breaking of chemical bonds"}], "ben": {"course": "CHE201 · 2.4", "status": "next year"}}, {"id": "l7-organic-naming", "tier": "L7", "topic": "Organic", "type": "representational", "name": "Naming and drawing organic compounds", "description": "IUPAC names and structural formulae for alkanes, alkenes, alkynes, haloalkanes, primary amines, alcohols and carboxylic acids (up to eight carbons in the longest chain).", "evidence": ["Name a compound from its structural formula", "Draw a structural formula from a name"], "sources": [{"id": "as91165", "ref": "EN3", "quote": "naming and/or drawing structural formulae of selected organic compounds (no more than eight carbons in the longest chain)"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-functional-groups", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Functional groups and homologous series", "description": "Recognise the functional group that defines each family and drives its reactions.", "evidence": ["Identify the functional groups in a molecule", "Tell an alcohol –OH from a hydroxide ion"], "sources": [{"id": "as91165", "ref": "EN3", "quote": "Selected organic compounds are limited to: alkanes, alkenes, alkynes, haloalkanes, primary amines, alcohols, and carboxylic acids."}, {"id": "report-l2-2024", "ref": "91165 Not Achieved", "quote": "were unable to identify the functional groups in a compound"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-isomers", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Constitutional and geometric isomers", "description": "Same formula, different arrangement; cis/trans isomers need a C=C (no rotation) with two different groups on each carbon.", "evidence": ["Draw constitutional isomers that are genuinely different", "Explain the requirements for geometric isomerism"], "sources": [{"id": "as91165", "ref": "EN3", "quote": "constitutional and geometric (cis and trans) isomers"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-classification", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Primary, secondary and tertiary", "description": "Classify alcohols and haloalkanes by how many carbons are attached to the carbon bearing the functional group.", "evidence": ["Classify a given alcohol or haloalkane", "Draw a tertiary haloalkane"], "sources": [{"id": "as91165", "ref": "EN3", "quote": "classification of alcohols and haloalkanes as primary, secondary or tertiary"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-organic-physical", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Physical properties of organic compounds", "description": "Carbon-chain length and functional group affect solubility, melting and boiling points.", "evidence": ["Predict how boiling point changes with chain length", "Predict water solubility from the functional group"], "sources": [{"id": "as91165", "ref": "EN3", "quote": "solubility, melting and boiling points"}, {"id": "spec-l2-2027", "ref": "91165", "quote": "how carbon-chain length and functional groups affect these properties"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-addition", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Addition reactions of alkenes", "description": "Alkenes add H₂/Pt, Cl₂, Br₂, H₂O/H⁺ and hydrogen halides; asymmetric alkenes give major and minor products.", "evidence": ["Give the product and observation for bromine water + alkene", "Identify major and minor products"], "sources": [{"id": "as91165", "ref": "EN4", "quote": "addition reactions of alkenes with H2/Pt, Cl2, Br2, H2O/H+ ... and hydrogen halides (including identification of major and minor products"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-polymerisation", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Addition polymerisation", "description": "Alkene monomers join when the double bond breaks; draw a polymer from a monomer and back.", "evidence": ["Draw the repeating unit from a monomer", "Explain why the polymer is less reactive than the monomer"], "sources": [{"id": "as91165", "ref": "EN4", "quote": "polymerisation"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-substitution", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Substitution reactions", "description": "Alkanes with halogens; alcohols with hydrogen halides, PCl₃, PCl₅, SOCl₂; haloalkanes with ammonia and aqueous KOH.", "evidence": ["Give the reagent and product for a substitution"], "sources": [{"id": "as91165", "ref": "EN4", "quote": "substitution reactions of: ... alkanes with halogens ... alcohols with hydrogen halides, PCl3, PCl5, SOCl2 ... haloalkanes with ammonia and aqueous potassium hydroxide"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-elimination", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Elimination reactions", "description": "Remove water from alcohols or a hydrogen halide from haloalkanes to make alkenes; asymmetric reactants give major/minor products (Zaitsev).", "evidence": ["Draw elimination products", "Justify the major product"], "sources": [{"id": "as91165", "ref": "EN4", "quote": "elimination of (including identification of major and minor products for asymmetric reactants)"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-organic-oxidation", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Oxidation of alcohols and alkenes", "description": "Primary alcohols oxidise to carboxylic acids with acidified MnO₄⁻ or Cr₂O₇²⁻; alkenes react with MnO₄⁻.", "evidence": ["Give reagent, observation and product for oxidising a primary alcohol"], "sources": [{"id": "as91165", "ref": "EN4", "quote": "primary alcohols to form carboxylic acids with MnO4-/H+ or Cr2O72-/H+"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-organic-acid-base", "tier": "L7", "topic": "Organic", "type": "conceptual", "name": "Acid–base reactions of acids and amines", "description": "Carboxylic acids react as acids (e.g. fizz with carbonates) and amines as bases.", "evidence": ["Give a chemical test for a carboxylic acid and its observation"], "sources": [{"id": "as91165", "ref": "EN4", "quote": "acid–base reactions of carboxylic acids and amines"}, {"id": "report-l2-2025", "ref": "91165 Merit", "quote": "using a carbonate to identify a carboxylic acid"}], "ben": {"course": "CHE201 · 2.5", "status": "next year"}}, {"id": "l7-collision-theory", "tier": "L7", "topic": "Rates & equilibrium", "type": "conceptual", "name": "Collision theory and activation energy", "description": "Reactions happen through successful collisions with enough energy (activation energy) and the right orientation.", "evidence": ["Explain 'successful collision'", "Explain how a catalyst lowers activation energy (it does not supply energy)"], "sources": [{"id": "as91166", "ref": "EN4", "quote": "using collision theory to explain the factors (includes activation energy)"}], "ben": {"course": "CHE201 · 2.6", "status": "next year"}}, {"id": "l7-rate-factors", "tier": "L7", "topic": "Rates & equilibrium", "type": "conceptual", "name": "Rate factors explained", "description": "Explain the effects of concentration, temperature, surface area and catalysts on rate with collision theory.", "evidence": ["Link a change to the frequency of successful collisions"], "sources": [{"id": "as91166", "ref": "EN4", "quote": "factors affecting rates of reaction – restricted to changes in concentration, temperature, surface area, and the presence of a catalyst"}], "ben": {"course": "CHE201 · 2.6", "status": "next year"}}, {"id": "l7-dynamic-equilibrium", "tier": "L7", "topic": "Rates & equilibrium", "type": "conceptual", "name": "Dynamic equilibrium", "description": "In a closed system forward and reverse reactions continue at equal rates, so concentrations stay constant.", "evidence": ["Explain what 'dynamic' means at equilibrium", "Use equilibrium arrows correctly"], "sources": [{"id": "as91166", "ref": "EN5", "quote": "the dynamic nature of equilibrium"}], "ben": {"course": "CHE201 · 2.6", "status": "next year"}}, {"id": "l7-equilibrium-shifts", "tier": "L7", "topic": "Rates & equilibrium", "type": "conceptual", "name": "Changing an equilibrium", "description": "Predict and explain the effect of changing temperature, concentration or pressure, or adding a catalyst, on an equilibrium.", "evidence": ["Predict the direction of shift after a stress", "Explain why a catalyst does not shift the position"], "sources": [{"id": "as91166", "ref": "EN5", "quote": "the effect of changes in temperature, concentration, pressure, or addition of a catalyst on equilibrium systems"}], "ben": {"course": "CHE201 · 2.6", "status": "next year"}}, {"id": "l7-kc", "tier": "L7", "topic": "Rates & equilibrium", "type": "procedural", "name": "The equilibrium constant Kc", "description": "Write Kc expressions for homogeneous systems, calculate Kc, and interpret its size.", "evidence": ["Write a Kc expression from an equation", "Interpret a large or small Kc"], "sources": [{"id": "as91166", "ref": "EN5", "quote": "the significance of the equilibrium constant (Kc) for homogeneous systems. This may involve calculations"}], "ben": {"course": "CHE201 · 2.6", "status": "next year"}}, {"id": "l7-proton-transfer", "tier": "L7", "topic": "Acids & bases", "type": "conceptual", "name": "Acids and bases as proton transfer", "description": "An acid donates a proton (H⁺) and a base accepts one; conjugate acid–base pairs.", "evidence": ["Identify the acid and base in a proton-transfer equation", "Name conjugate pairs"], "sources": [{"id": "as91166", "ref": "EN5", "quote": "the nature of acids and bases in terms of proton transfer"}], "ben": {"course": "CHE201 · 2.6", "status": "next year"}}, {"id": "l7-strong-weak", "tier": "L7", "topic": "Acids & bases", "type": "conceptual", "name": "Strong and weak acids and bases", "description": "Degree of dissociation explains differences in conductivity, rate of reaction and pH between strong and weak acids and bases.", "evidence": ["Write dissociation equations for strong and weak acids", "Compare conductivity and pH with reference to ions present"], "sources": [{"id": "as91166", "ref": "EN5", "quote": "properties of aqueous solutions of strong and weak acids and bases including ionic species"}], "ben": {"course": "CHE201 · 2.6", "status": "next year"}}, {"id": "l7-ph-kw", "tier": "L7", "topic": "Acids & bases", "type": "procedural", "name": "pH and Kw calculations", "description": "pH = −log[H₃O⁺] and Kw = [H₃O⁺][OH⁻] = 1×10⁻¹⁴ for strong acids and bases.", "evidence": ["Calculate pH from a strong acid concentration", "Calculate [H₃O⁺] for a strong base using Kw"], "sources": [{"id": "as91166", "ref": "EN5", "quote": "calculations involving Kw and pH (restricted to strong acids and bases)"}], "ben": {"course": "CHE201 · 2.6", "status": "next year"}}, {"id": "l7-oxidation-numbers", "tier": "L7", "topic": "Redox", "type": "procedural", "name": "Oxidation numbers", "description": "Assign oxidation numbers to track electron loss and gain.", "evidence": ["Assign oxidation numbers in ions and compounds such as MnO₄⁻"], "sources": [{"id": "as91167", "ref": "EN4", "quote": "oxidation numbers"}], "ben": {"course": "CHE201 · 2.7", "status": "next year"}}, {"id": "l7-electron-transfer", "tier": "L7", "topic": "Redox", "type": "conceptual", "name": "Redox as electron transfer", "description": "Oxidation is electron loss and reduction is electron gain; oxidants are reduced and reductants are oxidised.", "evidence": ["Identify the oxidant and reductant in a reaction", "Explain each in terms of electrons and oxidation numbers"], "sources": [{"id": "as91167", "ref": "EN4", "quote": "electron transfer in reactions ... oxidants and/or reductants"}], "ben": {"course": "CHE201 · 2.7", "status": "next year"}}, {"id": "l7-redox-observations", "tier": "L7", "topic": "Redox", "type": "procedural", "name": "Observations of common oxidants and reductants", "description": "Know the appearance of common species and their products, e.g. MnO₄⁻ purple → colourless, Cr₂O₇²⁻ orange → green, I₂ brown.", "evidence": ["Give start and end colours for a redox reaction"], "sources": [{"id": "as91167", "ref": "EN5", "quote": "Knowledge of the appearance of redox reactants and their products"}], "ben": {"course": "CHE201 · 2.7", "status": "next year"}}, {"id": "l7-half-equations", "tier": "L7", "topic": "Redox", "type": "procedural", "name": "Redox half-equations", "description": "Balance half-equations for atoms and charge, using H₂O, H⁺ and electrons in acidic solution.", "evidence": ["Balance the half-equation for MnO₄⁻/H⁺ → Mn²⁺"], "sources": [{"id": "as91167", "ref": "EN4", "quote": "balanced oxidation-reduction half equations"}], "ben": {"course": "CHE201 · 2.7", "status": "next year"}}, {"id": "l7-overall-redox", "tier": "L7", "topic": "Redox", "type": "procedural", "name": "Overall redox equations", "description": "Combine half-equations so electrons cancel, giving the overall balanced equation.", "evidence": ["Combine two half-equations into a balanced overall equation"], "sources": [{"id": "as91167", "ref": "EN4", "quote": "overall balanced oxidation-reduction equations"}], "ben": {"course": "CHE201 · 2.7", "status": "next year"}}]}, "links": [{"id": "k001", "from": "l5-atom-structure", "to": "l6-electron-arrangement", "strength": "hard", "reason": "Arranging electrons in shells needs the idea of electrons around a nucleus and atomic number.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k002", "from": "l5-atom-structure", "to": "l6-periodic-table", "strength": "hard", "reason": "The table is ordered by atomic number, so atomic structure comes first.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k003", "from": "l5-elements-compounds-mixtures", "to": "l6-atoms-molecules-ions", "strength": "hard", "reason": "Telling atoms, molecules and ions apart builds on describing substances at the particle level.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k004", "from": "l5-symbols-formulae", "to": "l6-reading-formulae", "strength": "hard", "reason": "Subscripts, brackets and coefficients extend basic symbols and formulae.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k005", "from": "l5-chemical-change", "to": "l6-conservation-of-mass", "strength": "hard", "reason": "You need to know reactions make new substances before explaining that atoms are only rearranged.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k006", "from": "l5-chemical-change", "to": "l6-observations-tests", "strength": "soft", "reason": "Observations are the evidence that a chemical change has happened.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k007", "from": "l5-acids-bases", "to": "l6-acids-ph", "strength": "hard", "reason": "Linking pH to H⁺ and OH⁻ builds on knowing acids, bases and the pH scale.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k008", "from": "l5-metals", "to": "l6-metal-reactions", "strength": "hard", "reason": "Patterns in metal reactions build on knowing that some metals react with acids, water and oxygen.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k009", "from": "l5-metals", "to": "l6-metallic-bonding", "strength": "soft", "reason": "Metallic bonding explains the metal properties already met.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k010", "from": "l5-fuels", "to": "l6-combustion", "strength": "hard", "reason": "Complete vs incomplete combustion refines the idea of fuels reacting with oxygen.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k011", "from": "l5-properties-uses", "to": "l6-material-choice", "strength": "hard", "reason": "Evaluating materials extends linking properties to uses.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k012", "from": "l5-properties-uses", "to": "l6-reactions-in-context", "strength": "soft", "reason": "Both connect chemistry to everyday use and the environment.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k013", "from": "l6-electron-arrangement", "to": "l6-periodic-table", "strength": "hard", "reason": "Groups and periods are explained by valence electrons and number of shells.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k014", "from": "l6-electron-arrangement", "to": "l6-ion-formation", "strength": "hard", "reason": "Ion charge is justified by gaining or losing electrons to reach a full valence shell.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k015", "from": "l6-periodic-table", "to": "l6-ion-formation", "strength": "soft", "reason": "Group number lets you predict ion charges quickly.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k016", "from": "l6-ion-formation", "to": "l6-atoms-molecules-ions", "strength": "hard", "reason": "You can't distinguish ions without knowing how they form.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k017", "from": "l6-covalent-bonding", "to": "l6-atoms-molecules-ions", "strength": "hard", "reason": "Molecules are defined by covalent bonding.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k018", "from": "l6-electron-arrangement", "to": "l6-covalent-bonding", "strength": "hard", "reason": "Sharing electrons to fill valence shells needs electron arrangements.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k019", "from": "l6-ion-formation", "to": "l6-ionic-bonding", "strength": "hard", "reason": "Ionic compounds are made of the ions formed by electron transfer.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k020", "from": "l6-ion-formation", "to": "l6-ionic-formulae", "strength": "hard", "reason": "Ionic formulae balance ion charges, so you need the charges.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k021", "from": "l6-polyatomic-ions", "to": "l6-ionic-formulae", "strength": "hard", "reason": "Many formulae (nitrates, sulfates, carbonates, hydroxides) use polyatomic ions.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k022", "from": "l6-ionic-formulae", "to": "l6-naming-products", "strength": "soft", "reason": "Product names and formulae go together for salts.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k023", "from": "l6-reading-formulae", "to": "l6-balancing-equations", "strength": "hard", "reason": "Balancing means counting atoms, using subscripts, brackets and coefficients.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k024", "from": "l6-conservation-of-mass", "to": "l6-balancing-equations", "strength": "hard", "reason": "Conservation of atoms is why equations must balance.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k025", "from": "l6-ionic-formulae", "to": "l6-balancing-equations", "strength": "hard", "reason": "Correct formulae must be written first; balancing changes coefficients, never formulae.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k026", "from": "l6-reading-formulae", "to": "l6-limiting-reactant", "strength": "hard", "reason": "Coefficients give the reacting ratio that decides which reactant runs out.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k027", "from": "l6-acids-ph", "to": "l6-neutralisation", "strength": "hard", "reason": "Neutralisation is identified by the pH change as H⁺ and OH⁻ react.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k028", "from": "l6-naming-products", "to": "l6-neutralisation", "strength": "soft", "reason": "Predicting the salt uses the acid-to-salt naming pattern.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k029", "from": "l6-naming-products", "to": "l6-metal-reactions", "strength": "hard", "reason": "Metal + acid products are named from the acid (chloride, nitrate, sulfate).", "provenance": "inferred", "status": "unreviewed"}, {"id": "k030", "from": "l6-observations-tests", "to": "l6-metal-reactions", "strength": "soft", "reason": "The pop test is the evidence for hydrogen.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k031", "from": "l6-observations-tests", "to": "l6-neutralisation", "strength": "soft", "reason": "Limewater confirms CO₂ from carbonates.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k032", "from": "l6-conservation-of-mass", "to": "l6-combustion", "strength": "hard", "reason": "The learning outcome asks students to justify combustion products using conservation of mass.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k033", "from": "l6-ionic-bonding", "to": "l6-solubility", "strength": "hard", "reason": "Solubility compares attractions between ions with attractions to water.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k034", "from": "l6-solubility", "to": "l6-precipitation", "strength": "hard", "reason": "A precipitate forms when a new ion pairing is insoluble.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k035", "from": "l6-ionic-formulae", "to": "l6-precipitation", "strength": "hard", "reason": "Predicting the precipitate means writing the new ion pairing's formula.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k036", "from": "l6-ionic-bonding", "to": "l6-combination-decomposition", "strength": "soft", "reason": "Metal + non-metal combination gives an ionic compound.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k037", "from": "l6-covalent-bonding", "to": "l6-combination-decomposition", "strength": "soft", "reason": "Non-metal + non-metal combination gives a molecular compound.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k038", "from": "l6-conservation-of-mass", "to": "l6-combination-decomposition", "strength": "soft", "reason": "Decomposition products depend on the atoms present in the reactant.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k039", "from": "l6-neutralisation", "to": "l6-reactions-in-context", "strength": "soft", "reason": "e.g. indigestion remedies, soil acidity.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k040", "from": "l6-combustion", "to": "l6-reactions-in-context", "strength": "soft", "reason": "e.g. forest fires, LPG burners.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k041", "from": "l6-precipitation", "to": "l6-reactions-in-context", "strength": "soft", "reason": "e.g. water treatment, kidney stones.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k042", "from": "l6-attractions-properties", "to": "l6-molecular-substances", "strength": "hard", "reason": "Molecular properties are explained by weak attractions between molecules.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k043", "from": "l6-covalent-bonding", "to": "l6-molecular-substances", "strength": "hard", "reason": "Molecules are held together internally by covalent bonds.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k044", "from": "l6-attractions-properties", "to": "l6-metallic-bonding", "strength": "hard", "reason": "High melting points are explained by strong metallic bonds.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k045", "from": "l6-electron-arrangement", "to": "l6-metallic-bonding", "strength": "soft", "reason": "The 'sea' is made of the metal atoms' valence electrons.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k046", "from": "l6-attractions-properties", "to": "l6-ionic-properties", "strength": "hard", "reason": "High melting points are explained by strong ionic attractions.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k047", "from": "l6-ionic-bonding", "to": "l6-ionic-properties", "strength": "hard", "reason": "The lattice of oppositely charged ions explains the properties.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k048", "from": "l6-covalent-bonding", "to": "l6-covalent-networks", "strength": "hard", "reason": "Networks are huge structures of covalent bonds.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k049", "from": "l6-attractions-properties", "to": "l6-covalent-networks", "strength": "hard", "reason": "Very high melting points come from breaking strong covalent bonds.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k050", "from": "l6-molecular-substances", "to": "l6-polymers", "strength": "hard", "reason": "Polymers are very large molecules: strong bonds within, weaker attractions between.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k051", "from": "l6-metallic-bonding", "to": "l6-material-choice", "strength": "soft", "reason": "Choosing materials draws on explaining each type's properties.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k052", "from": "l6-ionic-properties", "to": "l6-material-choice", "strength": "soft", "reason": "Choosing materials draws on explaining each type's properties.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k053", "from": "l6-polymers", "to": "l6-material-choice", "strength": "soft", "reason": "Choosing materials draws on explaining each type's properties.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k054", "from": "l6-electron-arrangement", "to": "l7-lewis-structures", "strength": "hard", "reason": "Lewis structures show valence electrons.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k055", "from": "l6-covalent-bonding", "to": "l7-lewis-structures", "strength": "hard", "reason": "Lewis structures draw shared and non-bonding electron pairs.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k056", "from": "l7-lewis-structures", "to": "l7-molecular-shape", "strength": "hard", "reason": "Shape comes from counting bonding and non-bonding regions in the Lewis structure.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k057", "from": "l6-covalent-bonding", "to": "l7-electronegativity", "strength": "hard", "reason": "Electronegativity describes how evenly a shared pair is held.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k058", "from": "l6-periodic-table", "to": "l7-electronegativity", "strength": "soft", "reason": "Electronegativity follows periodic table trends.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k059", "from": "l7-electronegativity", "to": "l7-molecular-polarity", "strength": "hard", "reason": "Molecular polarity starts from polar bonds.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k060", "from": "l7-molecular-shape", "to": "l7-molecular-polarity", "strength": "hard", "reason": "Whether bond dipoles cancel depends on shape and symmetry.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k061", "from": "l6-molecular-substances", "to": "l7-intermolecular-forces", "strength": "hard", "reason": "Intermolecular forces are the 'weak attractions between molecules' from Year 11.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k062", "from": "l7-molecular-polarity", "to": "l7-intermolecular-forces", "strength": "soft", "reason": "Polar molecules attract each other more strongly.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k063", "from": "l6-molecular-substances", "to": "l7-solid-types", "strength": "hard", "reason": "One of the four solid types, met in Year 11.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k064", "from": "l6-metallic-bonding", "to": "l7-solid-types", "strength": "hard", "reason": "One of the four solid types, met in Year 11.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k065", "from": "l6-ionic-properties", "to": "l7-solid-types", "strength": "hard", "reason": "One of the four solid types, met in Year 11.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k066", "from": "l6-covalent-networks", "to": "l7-solid-types", "strength": "hard", "reason": "One of the four solid types, met in Year 11.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k067", "from": "l7-intermolecular-forces", "to": "l7-solid-types", "strength": "hard", "reason": "Melting points of molecular solids are explained with intermolecular forces.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k068", "from": "l6-solubility", "to": "l7-solubility-polarity", "strength": "hard", "reason": "Extends the attraction-to-water idea to polar and non-polar solvents.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k069", "from": "l7-molecular-polarity", "to": "l7-solubility-polarity", "strength": "hard", "reason": "'Like dissolves like' needs polarity.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k070", "from": "l6-combustion", "to": "l7-exo-endo", "strength": "soft", "reason": "Combustion is the familiar exothermic reaction.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k071", "from": "l6-attractions-properties", "to": "l7-exo-endo", "strength": "soft", "reason": "Changes of state need energy to overcome attractions.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k072", "from": "l6-balancing-equations", "to": "l7-moles", "strength": "hard", "reason": "Mole calculations use the ratios in balanced equations.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k073", "from": "l6-reading-formulae", "to": "l7-moles", "strength": "hard", "reason": "Molar mass is worked out from the formula.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k074", "from": "l6-limiting-reactant", "to": "l7-moles", "strength": "soft", "reason": "Reaction stoichiometry makes 'how much product' quantitative.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k075", "from": "l7-moles", "to": "l7-concentration", "strength": "hard", "reason": "Concentration is moles per litre.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k076", "from": "l7-moles", "to": "l7-enthalpy-calcs", "strength": "hard", "reason": "ΔrH is scaled by the number of moles reacting.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k077", "from": "l7-exo-endo", "to": "l7-enthalpy-calcs", "strength": "hard", "reason": "The sign of ΔH must be interpreted.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k078", "from": "l7-exo-endo", "to": "l7-bond-enthalpy", "strength": "hard", "reason": "Bond breaking absorbs and bond making releases energy.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k079", "from": "l7-lewis-structures", "to": "l7-bond-enthalpy", "strength": "hard", "reason": "Counting bonds broken and formed needs the structures, including double bonds.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k080", "from": "l6-covalent-bonding", "to": "l7-functional-groups", "strength": "hard", "reason": "Organic molecules are covalent; functional groups are covalently bonded atom groups.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k081", "from": "l7-functional-groups", "to": "l7-organic-naming", "strength": "hard", "reason": "The name's ending comes from the functional group.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k082", "from": "l7-organic-naming", "to": "l7-isomers", "strength": "hard", "reason": "Isomers are recognised by drawing and naming different structures.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k083", "from": "l7-organic-naming", "to": "l7-classification", "strength": "hard", "reason": "Classifying needs reading the carbon skeleton from a structure.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k084", "from": "l7-functional-groups", "to": "l7-organic-physical", "strength": "hard", "reason": "Solubility depends on the functional group.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k085", "from": "l7-intermolecular-forces", "to": "l7-organic-physical", "strength": "soft", "reason": "Helps understand chain-length trends (2027 spec says the explanation isn't required in 2.5).", "provenance": "inferred", "status": "unreviewed"}, {"id": "k086", "from": "l7-functional-groups", "to": "l7-addition", "strength": "hard", "reason": "Addition happens at the C=C of alkenes.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k087", "from": "l7-addition", "to": "l7-polymerisation", "strength": "hard", "reason": "Addition polymerisation is repeated addition across C=C bonds.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k088", "from": "l6-polymers", "to": "l7-polymerisation", "strength": "soft", "reason": "Year 11 polymer structure leads into how polymers are made.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k089", "from": "l7-functional-groups", "to": "l7-substitution", "strength": "hard", "reason": "Substitution swaps one functional group for another.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k090", "from": "l7-functional-groups", "to": "l7-elimination", "strength": "hard", "reason": "Elimination turns alcohols or haloalkanes into alkenes.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k091", "from": "l7-classification", "to": "l7-elimination", "strength": "soft", "reason": "Major/minor products depend on the carbons around the functional group.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k092", "from": "l7-addition", "to": "l7-elimination", "strength": "soft", "reason": "The major/minor product idea is met first with addition.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k093", "from": "l7-functional-groups", "to": "l7-organic-oxidation", "strength": "hard", "reason": "Oxidation converts an alcohol group to a carboxylic acid group.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k094", "from": "l7-classification", "to": "l7-organic-oxidation", "strength": "soft", "reason": "It is primary alcohols that oxidise to carboxylic acids.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k095", "from": "l7-redox-observations", "to": "l7-organic-oxidation", "strength": "soft", "reason": "Same oxidants and colour changes as in redox (MnO₄⁻, Cr₂O₇²⁻).", "provenance": "inferred", "status": "unreviewed"}, {"id": "k096", "from": "l7-functional-groups", "to": "l7-organic-acid-base", "strength": "hard", "reason": "Needs recognising carboxylic acid and amine groups.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k097", "from": "l6-neutralisation", "to": "l7-organic-acid-base", "strength": "hard", "reason": "Same acid + carbonate / acid + base patterns as Year 11.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k098", "from": "l7-proton-transfer", "to": "l7-organic-acid-base", "strength": "soft", "reason": "Amines act as bases by accepting a proton.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k099", "from": "l6-rates-particle-theory", "to": "l7-collision-theory", "strength": "hard", "reason": "Collision theory formalises the Year 11 particle explanation of rates.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k100", "from": "l7-collision-theory", "to": "l7-rate-factors", "strength": "hard", "reason": "Each factor is explained via successful collisions.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k101", "from": "l6-rates-particle-theory", "to": "l7-rate-factors", "strength": "hard", "reason": "Same four factors, now explained in more depth.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k102", "from": "l7-collision-theory", "to": "l7-dynamic-equilibrium", "strength": "soft", "reason": "Equilibrium is about forward and reverse rates being equal.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k103", "from": "l7-dynamic-equilibrium", "to": "l7-equilibrium-shifts", "strength": "hard", "reason": "Shifts only make sense once equilibrium is understood.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k104", "from": "l7-exo-endo", "to": "l7-equilibrium-shifts", "strength": "hard", "reason": "The effect of temperature depends on whether the forward reaction is exo- or endothermic.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k105", "from": "l7-dynamic-equilibrium", "to": "l7-kc", "strength": "hard", "reason": "Kc describes the equilibrium mixture.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k106", "from": "l7-concentration", "to": "l7-kc", "strength": "hard", "reason": "Kc is calculated from equilibrium concentrations.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k107", "from": "l6-acids-ph", "to": "l7-proton-transfer", "strength": "hard", "reason": "Builds from acids producing H⁺ to acids donating protons.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k108", "from": "l6-neutralisation", "to": "l7-proton-transfer", "strength": "soft", "reason": "Neutralisation is the familiar proton-transfer reaction.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k109", "from": "l7-proton-transfer", "to": "l7-strong-weak", "strength": "hard", "reason": "Strength is about how fully an acid donates protons.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k110", "from": "l7-dynamic-equilibrium", "to": "l7-strong-weak", "strength": "hard", "reason": "Weak acids partially dissociate, an equilibrium.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k111", "from": "l6-ionic-properties", "to": "l7-strong-weak", "strength": "soft", "reason": "Conductivity needs mobile ions (not electrons), first met with ionic solutions.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k112", "from": "l7-concentration", "to": "l7-ph-kw", "strength": "hard", "reason": "pH is calculated from [H₃O⁺].", "provenance": "inferred", "status": "unreviewed"}, {"id": "k113", "from": "l6-acids-ph", "to": "l7-ph-kw", "strength": "hard", "reason": "Quantitative pH builds on the pH scale and H⁺/OH⁻ link.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k114", "from": "l7-strong-weak", "to": "l7-ph-kw", "strength": "soft", "reason": "Calculations are limited to strong acids and bases, so you need to tell which are strong.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k115", "from": "l6-ionic-formulae", "to": "l7-oxidation-numbers", "strength": "hard", "reason": "Oxidation numbers build on ion charges and charge balance.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k116", "from": "l6-polyatomic-ions", "to": "l7-oxidation-numbers", "strength": "soft", "reason": "Many redox species are polyatomic ions (MnO₄⁻, Cr₂O₇²⁻).", "provenance": "inferred", "status": "unreviewed"}, {"id": "k117", "from": "l6-ion-formation", "to": "l7-electron-transfer", "strength": "hard", "reason": "Redox generalises atoms losing and gaining electrons.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k118", "from": "l7-oxidation-numbers", "to": "l7-electron-transfer", "strength": "hard", "reason": "Changes in oxidation number identify oxidation and reduction.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k119", "from": "l6-metal-reactions", "to": "l7-electron-transfer", "strength": "soft", "reason": "Metal + acid is a familiar redox reaction.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k120", "from": "l7-electron-transfer", "to": "l7-redox-observations", "strength": "soft", "reason": "Observations are linked to which species is oxidised or reduced.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k121", "from": "l6-observations-tests", "to": "l7-redox-observations", "strength": "soft", "reason": "Builds on linking colour changes to chemical species.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k122", "from": "l7-electron-transfer", "to": "l7-half-equations", "strength": "hard", "reason": "Half-equations show the electrons lost or gained.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k123", "from": "l6-balancing-equations", "to": "l7-half-equations", "strength": "hard", "reason": "Balancing atoms is the first step; charge is balanced with electrons.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k124", "from": "l7-half-equations", "to": "l7-overall-redox", "strength": "hard", "reason": "Overall equations combine two half-equations.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k125", "from": "l6-ion-formation", "to": "l6-polyatomic-ions", "strength": "hard", "reason": "Polyatomic ions carry a charge for the same reason as simple ions: electrons gained or lost overall.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k126", "from": "l6-covalent-bonding", "to": "l6-polyatomic-ions", "strength": "soft", "reason": "The atoms inside a polyatomic ion are covalently bonded to each other.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k127", "from": "l5-chemical-change", "to": "l6-rates-particle-theory", "strength": "hard", "reason": "You need to know what a reaction is before asking what makes it faster.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k128", "from": "l6-atoms-molecules-ions", "to": "l6-attractions-properties", "strength": "hard", "reason": "Explaining properties needs knowing which particles (atoms, molecules or ions) are attracting.", "provenance": "inferred", "status": "unreviewed"}, {"id": "k129", "from": "l5-properties-uses", "to": "l6-attractions-properties", "strength": "soft", "reason": "Year 11 explains, in terms of particles, the properties met earlier.", "provenance": "inferred", "status": "unreviewed"}], "sources": [{"id": "nzc2007-science", "title": "The New Zealand Curriculum – Science (2007 learning area), Material World achievement objectives, Levels 5–7", "publisher": "Ministry of Education (Tāhūrangi)", "url": "https://newzealandcurriculum.tahurangi.education.govt.nz/the-new-zealand-curriculum---science/5637209897.p?activeTab=tab:3", "local": "sources/curriculum/NZC-2007-Science-Material-World-L5-L7.txt", "accessed": "2026-10-18", "licence": "CC BY-NC 4.0", "role": "anchor", "note": "Current National Curriculum Statement for Year 11 (to end 2027) and Year 12 (to end 2028), per Tāhūrangi. Refs like L6.SM.1 are our labels for individual objectives."}, {"id": "cb-slo", "title": "Chemistry and Biology NCEA Level 1 Subject Learning Outcomes for 1.2 (92021) and 1.4 (92023)", "publisher": "Ministry of Education (NCEA.education)", "url": "https://ncea-live-3-storagestack-53q-assetstorages3bucket-2o21xte0r81u.s3.amazonaws.com/s3fs-public/2024-04/CB%201.2%20and%201.4%20NCEA%20Level%201%20Subject%20Learning%20Outcomes.pdf?VersionId=_CB2VKLFweEOyPFnqcbUC5k5E0qp0KWx", "local": "sources/curriculum/CB-1.2-1.4-Subject-Learning-Outcomes.pdf", "accessed": "2026-10-18", "licence": "Ministry of Education; check NCEA.education copyright before publishing", "role": "reference", "note": "Reference only: Ben is not assessed against these standards. Used for the detail behind Curriculum Level 6 chemistry."}, {"id": "cb-matrix", "title": "Chemistry and Biology Learning Matrix (Curriculum Level 6), Big Ideas and Significant Learning", "publisher": "Ministry of Education (NCEA.education)", "url": "https://ncea.education.govt.nz/science/chemistry-and-biology?view=learning", "local": "sources/curriculum/CB-Learning-Matrix-current.pdf", "accessed": "2026-10-18", "licence": "Ministry of Education; check NCEA.education copyright before publishing", "role": "reference", "note": "Reference only (see cb-slo)."}, {"id": "as91164", "title": "AS91164 Chemistry 2.4: Demonstrate understanding of bonding, structure, properties and energy changes (5 credits, external)", "publisher": "NZQA", "url": "https://www.nzqa.govt.nz/nqfdocs/ncea-resource/achievements/2019/as91164.pdf", "local": "sources/nzqa/as91164.pdf", "accessed": "2026-10-18", "licence": "NZQA copyright; terms not yet checked", "role": "assessed", "note": "CHE201 core topic 2.4"}, {"id": "as91165", "title": "AS91165 Chemistry 2.5: Demonstrate understanding of the properties of selected organic compounds (4 credits, external)", "publisher": "NZQA", "url": "https://www.nzqa.govt.nz/nqfdocs/ncea-resource/achievements/2019/as91165.pdf", "local": "sources/nzqa/as91165.pdf", "accessed": "2026-10-18", "licence": "NZQA copyright; terms not yet checked", "role": "assessed", "note": "CHE201 core topic 2.5"}, {"id": "as91166", "title": "AS91166 Chemistry 2.6: Demonstrate understanding of chemical reactivity (4 credits, external)", "publisher": "NZQA", "url": "https://www.nzqa.govt.nz/nqfdocs/ncea-resource/achievements/2019/as91166.pdf", "local": "sources/nzqa/as91166.pdf", "accessed": "2026-10-18", "licence": "NZQA copyright; terms not yet checked", "role": "assessed", "note": "CHE201 core topic 2.6"}, {"id": "as91167", "title": "AS91167 Chemistry 2.7: Demonstrate understanding of oxidation-reduction (3 credits, internal)", "publisher": "NZQA", "url": "https://www.nzqa.govt.nz/nqfdocs/ncea-resource/achievements/2019/as91167.pdf", "local": "sources/nzqa/as91167.pdf", "accessed": "2026-10-18", "licence": "NZQA copyright; terms not yet checked", "role": "assessed", "note": "CHE201 core topic 2.7"}, {"id": "spec-l2-2027", "title": "Level 2 Chemistry Assessment Specifications 2027 (91164, 91165, 91166)", "publisher": "NZQA", "url": "https://www2.nzqa.govt.nz/assets/NCEA/Subject-pages/4-Next-years-specs/CHEM-L2-spc-2027.pdf", "local": "sources/nzqa/CHEM-L2-spc-2027.pdf", "accessed": "2026-10-18", "licence": "NZQA copyright; terms not yet checked", "role": "assessed", "note": "Published October 2026 for Ben's Year 12 exams."}, {"id": "report-l2-2025", "title": "2025 NCEA Assessment Report – Level 2 Chemistry (91164, 91165, 91166)", "publisher": "NZQA", "url": "https://www.nzqa.govt.nz/nqfdocs/ncea-resource/reports/2025/91164-report-2025.pdf", "local": "sources/nzqa/CHEM-L2-report-2025.pdf", "accessed": "2026-10-18", "licence": "NZQA copyright; terms not yet checked", "role": "national-performance"}, {"id": "report-l2-2024", "title": "2024 NCEA Assessment Report – Level 2 Chemistry (91164, 91165, 91166)", "publisher": "NZQA", "url": "https://www.nzqa.govt.nz/nqfdocs/ncea-resource/reports/2024/91164-report-2024.pdf", "local": "sources/nzqa/CHEM-L2-report-2024.pdf", "accessed": "2026-10-18", "licence": "NZQA copyright; terms not yet checked", "role": "national-performance"}, {"id": "lhs-courses", "title": "Lincoln High School course pages: 11SCIa (Year 11 General Science) and CHE201 (Year 12 Chemistry)", "publisher": "Lincoln High School", "url": "https://lincoln.bridge.school.nz/course_selection/courses/11SCIa", "local": "sources/school/lincoln-course-pages.txt", "accessed": "2026-10-18", "licence": "School website", "role": "school", "note": "Tells us which concepts are in Ben's actual courses. CHE201: https://lincoln.bridge.school.nz/course_selection/courses/CHE201"}], "national": {"_about": "National weak spots: what NZQA examiners said candidates awarded Not Achieved commonly did, mapped to concepts. Source: NCEA Level 2 Chemistry assessment reports (report-l2-2025, report-l2-2024). Quotes are short excerpts; mapping to concepts is our judgement. 'mentions' = number of separate weak-spot statements, used for heat intensity.", "layer": "national-difficulty", "scope": "Level 2 Chemistry externals (91164, 91165, 91166). 91167 is internal and not covered by these reports.", "entries": [{"concept": "l7-solid-types", "notes": [{"source": "report-l2-2025", "quote": "did not recognise diamond as a 3D covalent network substance"}, {"source": "report-l2-2025", "quote": "used generic terms such as “particle” rather than identify the type of particle"}, {"source": "report-l2-2025", "quote": "attributed conductivity solely to mobile electrons"}, {"source": "report-l2-2025", "quote": "did not explain malleability of metals, or recognise that non-directional bonding allows cations or atoms to slide"}, {"source": "report-l2-2024", "quote": "used the wrong particle type and attractive forces for types of solid"}, {"source": "report-l2-2024", "quote": "attributed conductivity solely to mobile electrons"}]}, {"concept": "l7-molecular-polarity", "notes": [{"source": "report-l2-2025", "quote": "incorrectly described NaCl as a polar molecule"}, {"source": "report-l2-2025", "quote": "used incorrect terminology for ions, molecules, electronegativity, dipoles, polar, and non-polar"}, {"source": "report-l2-2024", "quote": "could not describe the polarity of a water molecule"}]}, {"concept": "l7-solubility-polarity", "notes": [{"source": "report-l2-2025", "quote": "did not correctly assign charges to ions when portraying the solubility of an ionic salt (NaCl)"}, {"source": "report-l2-2024", "quote": "did not recognise that attractions were needed for substances to dissolve"}]}, {"concept": "l7-molecular-shape", "notes": [{"source": "report-l2-2024", "quote": "assigned incorrect bond angles to shapes of molecules"}]}, {"concept": "l7-enthalpy-calcs", "notes": [{"source": "report-l2-2024", "quote": "used incorrect formulae for thermodynamic calculations"}]}, {"concept": "l7-organic-naming", "notes": [{"source": "report-l2-2025", "quote": "drew bonds to the wrong atom, e.g., C–HO instead of C–OH"}, {"source": "report-l2-2024", "quote": "gave Fl as the symbol for fluorine"}]}, {"concept": "l7-functional-groups", "notes": [{"source": "report-l2-2024", "quote": "were unable to identify the functional groups in a compound"}, {"source": "report-l2-2024", "quote": "referred to an alcohol group as OH–, hydroxide, or OH atom"}]}, {"concept": "l7-isomers", "notes": [{"source": "report-l2-2025", "quote": "drew \"isomers\" that were actually the same molecule just drawn from a different angle"}, {"source": "report-l2-2025", "quote": "failed to recognise that geometric isomers must have two different groups on each carbon"}, {"source": "report-l2-2024", "quote": "drew structural isomers that were the same but drawn differently"}]}, {"concept": "l7-elimination", "notes": [{"source": "report-l2-2025", "quote": "confused elimination with substitution or addition reactions"}, {"source": "report-l2-2024", "quote": "did not identify or draw addition / elimination reactions or products"}]}, {"concept": "l7-addition", "notes": [{"source": "report-l2-2025", "quote": "used non-scientific terms like \"it changes colour\" without specifying the initial and final colours"}]}, {"concept": "l7-polymerisation", "notes": [{"source": "report-l2-2025", "quote": "did not draw a monomer from a polymer or vice versa; often included double bonds inside the polymer chain"}, {"source": "report-l2-2024", "quote": "did not explain any aspects of addition polymerisation"}]}, {"concept": "l7-organic-acid-base", "notes": [{"source": "report-l2-2025", "quote": "provided incorrect colour changes for litmus paper or failed to state the starting colour"}]}, {"concept": "l7-organic-physical", "notes": [{"source": "report-l2-2024", "quote": "did not determine whether a functional group was soluble in water"}, {"source": "report-l2-2024", "quote": "did not identify whether MP / BP increased or decreased with size"}]}, {"concept": "l7-classification", "notes": [{"source": "report-l2-2024", "quote": "did not draw a tertiary haloalkane or explain what tertiary means"}]}, {"concept": "l7-ph-kw", "notes": [{"source": "report-l2-2025", "quote": "could not calculate pH"}, {"source": "report-l2-2024", "quote": "did not calculate [H3O+] from a given solution concentration"}]}, {"concept": "l7-kc", "notes": [{"source": "report-l2-2025", "quote": "could not ... write Kc expressions"}, {"source": "report-l2-2024", "quote": "did not write an equilibrium reaction equation based on given expression"}]}, {"concept": "l7-rate-factors", "notes": [{"source": "report-l2-2025", "quote": "failed to link surface area to reaction rate"}, {"source": "report-l2-2024", "quote": "did not recognise that concentration links closely with rate of reaction"}]}, {"concept": "l7-collision-theory", "notes": [{"source": "report-l2-2025", "quote": "misunderstood the role of a catalyst (e.g., thought it supplied energy)"}, {"source": "report-l2-2024", "quote": "struggled to identify the role of a catalyst"}]}, {"concept": "l7-strong-weak", "notes": [{"source": "report-l2-2025", "quote": "confused electrons with ions for conductivity"}, {"source": "report-l2-2025", "quote": "wrote incorrect dissociation equations"}, {"source": "report-l2-2024", "quote": "not identifying ammonia and HNO3 as a weak base and a strong acid"}, {"source": "report-l2-2024", "quote": "confused electrons with ions when describing electrical conductivity"}]}, {"concept": "l7-equilibrium-shifts", "notes": [{"source": "report-l2-2025", "quote": "did not identify changes in equilibrium under stress"}, {"source": "report-l2-2024", "quote": "did not identify the changes to the direction of an equilibrium under stress"}]}, {"concept": "l7-proton-transfer", "notes": [{"source": "report-l2-2024", "quote": "did not identify conjugate acid-base pairs"}]}]}, "ben": null, "ai": {"l6-combustion": {"generated": "2026-10-18", "author": "Claude (AI), reviewed against the official source", "audio": "ai/l6-combustion.mp3", "voice": "Steve Fox (voice clone), generated with ElevenLabs", "visual": {"page": "bunsen.html", "label": "Bunsen Burner Lab", "param": "bunsenStep"}, "sentences": [{"at": 0, "text": "Burning is a fuel reacting with oxygen.", "step": 1}, {"at": 2.95, "text": "In a Bunsen burner the fuel is methane: one carbon atom joined to four hydrogen atoms."}, {"at": 9.6, "text": "With the air hole open, there's plenty of oxygen.", "step": 2}, {"at": 12.85, "text": "Each carbon gets two oxygens and becomes carbon dioxide, and the hydrogen becomes water."}, {"at": 19.0, "text": "That's complete combustion: a blue, hot, clean flame."}, {"at": 23.7, "text": "Now close the air hole. Oxygen runs short.", "step": 3}, {"at": 27.3, "text": "The hydrogen still becomes water, but some carbon gets only one oxygen, and makes carbon monoxide, a poisonous gas you can't see or smell."}, {"at": 36.6, "text": "Some carbon gets no oxygen at all, and stays as tiny specks of soot.", "step": 4}, {"at": 41.6, "text": "The hot soot glows yellow. That's incomplete combustion."}, {"at": 45.9, "text": "So remember: more oxygen means a bluer, cleaner flame.", "step": 5}]}}}</script>
+<script>
+const D = JSON.parse(document.getElementById("data").textContent);
+const C = D.concepts.concepts, TIERS = D.concepts.tiers, TOPICS = D.concepts.topics, TORDER = Object.keys(TIERS);
+const byId = Object.fromEntries(C.map(c => [c.id, c]));
+const SRC = Object.fromEntries(D.sources.map(s => [s.id, s]));
+const inc = {}, out = {};
+for (const c of C) { inc[c.id] = []; out[c.id] = []; }
+for (const k of D.links) { inc[k.to].push(k); out[k.from].push(k); }
+const heat = {}; for (const e of (D.national?.entries || [])) heat[e.concept] = e.notes;
+const benRes = {}; for (const r of (D.ben?.results || [])) for (const id of r.concepts) (benRes[id] ||= []).push(r);
+const esc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const TOPIC_COL = {
+  "Atoms & ions": "#7fb2ff", "Bonding & structure": "#b48cff", "Equations & quantities": "#5ad1c8",
+  "Reactions": "#ff9f5a", "Acids & bases": "#ff6b8b", "Rates & equilibrium": "#ffd166",
+  "Energy": "#ff6b5e", "Properties & uses": "#9be07a", "Organic": "#62d39a", "Redox": "#f78fd8"
+};
+const YEAR_COL = { L5: "#8fa3b5", L6: "#5cc48a", L7: "#7fb2ff" };
+const GRADE_COL = { Emerging: "#ff6b5e", Developing: "#ff9f5a", Consolidating: "#ffd166", Proficient: "#9be07a", Exceeding: "#5ad1c8",
+  "Not Achieved": "#ff6b5e", Achieved: "#ffd166", Merit: "#9be07a", Excellence: "#5ad1c8" };
+const NONE = "#4a5a68";
+const TIER_TEXT = {
+  L5: ["Years 9–10", "Foundations"],
+  L6: ["Year 11", "11SCIa chemistry strand · about a third of the course"],
+  L7: ["Year 12", "CHE201 · NCEA Level 2"]
+};
+let colourBy = "lineage";
+function colour(id) {
+  const c = byId[id];
+  if (colourBy === "lineage" && mode === "seed") { const sd = (seeds.length ? seeds : ROOTS).find(x => x === id || reach(x).has(id)); return sd ? seedCol(sd) : NONE; }
+  if (colourBy === "topic" || colourBy === "lineage") return TOPIC_COL[c.topic];
+  if (colourBy === "year") return YEAR_COL[c.tier];
+  if (colourBy === "material") return c.content?.length ? "#5cc48a" : heat[id] ? "#ff6b5e" : NONE;
+  if (colourBy === "national") { const n = heat[id]?.length || 0; return n >= 5 ? "#ff3b6b" : n >= 2 ? "#ff8a5a" : n ? "#ffd166" : NONE; }
+  const r = benRes[id]; return r ? GRADE_COL[r[r.length - 1].grade] : NONE;
+}
+
+// ---------- Layout: columns are steps along the chain, banded by year ----------
+// Within a year, a concept sits one column right of its furthest same-year prerequisite.
+const col = {}; let nextStart = 0; const tierCols = {};
+for (const t of TORDER) {
+  const start = nextStart;
+  const f = id => {
+    if (col[id] !== undefined) return col[id];
+    let v = start;
+    for (const k of inc[id]) v = Math.max(v, byId[k.from].tier === t ? f(k.from) + 1 : start);
+    return col[id] = v;
+  };
+  C.filter(c => c.tier === t).forEach(c => f(c.id));
+  nextStart = Math.max(...C.filter(c => c.tier === t).map(c => col[c.id])) + 1;
+  tierCols[t] = [start, nextStart - 1];
+}
+const NCOL = nextStart;
+const cols = Array.from({ length: NCOL }, () => []);
+C.forEach(c => cols[col[c.id]].push(c.id));
+cols.forEach(l => l.sort((a, b) => TOPICS.indexOf(byId[a].topic) - TOPICS.indexOf(byId[b].topic)));
+const maxRows = Math.max(...cols.map(l => l.length));
+const ry = {};
+const settle = l => { const top = (maxRows - l.length) / 2; l.forEach((id, i) => ry[id] = top + i); };
+cols.forEach(settle);
+// Barycentre sweeps: order each column by the average row of its neighbours, to cut crossings.
+for (let s = 0; s < 16; s++) {
+  const fwd = s % 2 === 0, seq = [...cols.keys()]; if (!fwd) seq.reverse();
+  for (const ci of seq) {
+    const key = {};
+    for (const id of cols[ci]) {
+      const nb = fwd ? inc[id].map(k => k.from) : out[id].map(k => k.to);
+      key[id] = nb.length ? nb.reduce((a, n) => a + ry[n], 0) / nb.length : ry[id];
+    }
+    cols[ci].sort((a, b) => key[a] - key[b]); settle(cols[ci]);
+  }
+}
+// Then let each concept drift toward its neighbours (keeping order and spacing) so lines run straighter.
+for (let s = 0; s < 30; s++) for (const l of cols) {
+  const want = l.map(id => {
+    const nb = [...inc[id].map(k => k.from), ...out[id].map(k => k.to)];
+    return nb.length ? .5 * ry[id] + .5 * nb.reduce((a, n) => a + ry[n], 0) / nb.length : ry[id];
+  });
+  for (let i = 1; i < want.length; i++) want[i] = Math.max(want[i], want[i - 1] + 1);
+  const shift = l.reduce((a, id, i) => a + ry[id] - want[i], 0) / l.length;
+  l.forEach((id, i) => ry[id] = Math.max(-1, Math.min(maxRows, want[i] + shift)));
+}
+const NW = 176, NH = 42, COLW = 214, ROWH = 56, TIERGAP = 40, HEAD = 70;
+// P0 = the whole-course layout; P = the current one (a topic gets its own compact layout).
+const P0 = {};
+for (const c of C) {
+  const ti = TORDER.indexOf(c.tier);
+  P0[c.id] = { x: col[c.id] * COLW + ti * TIERGAP, y: HEAD + ry[c.id] * ROWH };
+}
+let P = { ...P0 };
+const allY = Object.values(P0).map(p => p.y);
+const WORLD = { x: -30, y: Math.min(...allY) - HEAD - 10, w: NCOL * COLW + 2 * TIERGAP + 30, h: Math.max(...allY) - Math.min(...allY) + NH + HEAD + 40 };
+
+// ---------- SVG build ----------
+const NS = "http://www.w3.org/2000/svg", svg = document.getElementById("svg");
+const mk = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+const defs = mk("defs", {}, svg);
+defs.innerHTML = `<filter id="glow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+const world = mk("g", {}, svg);
+const gBands = mk("g", {}, world), gEdges = mk("g", {}, world), gLit = mk("g", {}, world), gNodes = mk("g", {}, world);
+const BANDS = {};
+for (const t of TORDER) BANDS[t] = { g: mk("g", {}, gBands) };
+for (const t of TORDER) {
+  const b = BANDS[t];
+  b.rect = mk("rect", { class: "band", rx: 16 }, b.g);
+  b.lbl = mk("text", { class: "band-lbl" }, b.g); b.lbl.textContent = TIER_TEXT[t][0];
+  b.sub = mk("text", { class: "band-sub" }, b.g); b.sub.textContent = TIER_TEXT[t][1];
+}
+function edgeD(k) {
+  const a = P[k.from], b = P[k.to];
+  const x1 = a.x + NW, y1 = a.y + NH / 2, x2 = b.x, y2 = b.y + NH / 2, dx = Math.max(40, (x2 - x1) * .5);
+  return `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
+}
+const E = {};
+for (const k of D.links) E[k.id] = { k, path: mk("path", { class: "edge" + (k.strength === "soft" ? " soft" : ""), d: edgeD(k) }, gEdges) };
+// Place every box, line and year band. With a set, pack just those concepts into consecutive columns
+// (keeping their top-to-bottom order) so a small topic fills the screen instead of a few dots on a wide map.
+function applyLayout(set) {
+  P = { ...P0 };
+  if (set) {
+    const rank = lay, byCol = {};
+    for (const id of set) (byCol[rank[id]] ||= []).push(id);
+    const mid = HEAD + (maxRows - 1) / 2 * ROWH;
+    for (const [r, ids] of Object.entries(byCol)) {
+      ids.sort((a, b) => ry[a] - ry[b]);
+      ids.forEach((id, j) => P[id] = { x: r * COLW + TORDER.indexOf(byId[id].tier) * TIERGAP, y: mid + (j - (ids.length - 1) / 2) * ROWH });
+    }
+  }
+  for (const c of C) G[c.id]?.g.setAttribute("transform", `translate(${P[c.id].x},${P[c.id].y})`);
+  for (const e of Object.values(E)) e.path.setAttribute("d", edgeD(e.k));
+  const ids = set ? [...set] : C.map(c => c.id), ys = ids.map(i => P[i].y);
+  const top = set ? Math.min(...ys) - HEAD - 10 : WORLD.y, h = set ? Math.max(...ys) - Math.min(...ys) + NH + HEAD + 40 : WORLD.h;
+  for (const t of TORDER) {
+    const xs = ids.filter(i => byId[i].tier === t).map(i => P[i].x), b = BANDS[t];
+    b.g.style.display = xs.length ? "" : "none";
+    if (!xs.length) continue;
+    // With a year chosen, the other bands only hold context: what it needs first, and where it leads.
+    const side = year && t !== year ? (TORDER.indexOf(t) < TORDER.indexOf(year) ? "needed first" : "where it leads") : null;
+    b.rect.classList.toggle("ctx", !!side);
+    b.sub.textContent = side || TIER_TEXT[t][1];
+    const x0 = Math.min(...xs) - 16, x1 = Math.max(...xs) + NW + 16;
+    Object.entries({ x: x0, y: top, width: x1 - x0, height: h }).forEach(([k, v]) => b.rect.setAttribute(k, v));
+    b.lbl.setAttribute("x", x0 + 16); b.lbl.setAttribute("y", top + 28);
+    b.sub.setAttribute("x", x0 + 16); b.sub.setAttribute("y", top + 46);
+  }
+}
+const mctx = document.createElement("canvas").getContext("2d");
+function wrap(s, max) {
+  mctx.font = '700 12px "Atkinson Hyperlegible", "Segoe UI", sans-serif';
+  const lines = []; let cur = "";
+  for (const w of s.split(" ")) { const t = cur ? cur + " " + w : w; if (!cur || mctx.measureText(t).width <= max) cur = t; else { lines.push(cur); cur = w; } }
+  lines.push(cur);
+  if (lines.length > 2) { let l = lines.slice(1).join(" "); while (l && mctx.measureText(l + "…").width > max) l = l.slice(0, -1); lines.length = 1; lines.push(l.trimEnd() + "…"); }
+  return lines;
+}
+const G = {};
+function buildNodes() {
+  gNodes.textContent = "";
+  for (const c of C) {
+    const p = P[c.id];
+    const g = mk("g", { class: "node", transform: `translate(${p.x},${p.y})`, "data-id": c.id }, gNodes);
+    const inner = mk("g", { class: "inner" }, g);
+    const box = mk("rect", { class: "box", width: NW, height: NH, rx: 9 }, inner);
+    const bar = mk("rect", { class: "bar", x: 0, y: 0, width: 5, height: NH, rx: 2.5 }, inner);
+    const lines = wrap(c.name, NW - 22);
+    lines.forEach((ln, i) => mk("text", { x: 13, y: lines.length === 1 ? 25.5 : 18 + i * 14.5 }, inner).textContent = ln);
+    if (heat[c.id]) mk("circle", { class: "flag", cx: NW - 7, cy: 7, r: 3.2 }, inner);
+    if (c.content?.length) {
+      const l = mk("g", { class: "learn", transform: `translate(${NW - 11},${NH - 11})` }, inner);
+      mk("circle", { r: 7.5 }, l); mk("path", { d: "M-2.2,-3.5 L3.8,0 L-2.2,3.5 Z" }, l);
+    }
+    G[c.id] = { g, box, bar };
+  }
+}
+
+// ---------- Camera ----------
+let cam = { x: WORLD.x, y: WORLD.y, s: .5 }, camT = null;
+function viewSize() { const r = svg.getBoundingClientRect(); return { w: Math.max(r.width, 1), h: Math.max(r.height, 1) }; }
+function applyCam() { const v = viewSize(); svg.setAttribute("viewBox", `${cam.x} ${cam.y} ${v.w / cam.s} ${v.h / cam.s}`); }
+function fitBox(b, instant, maxS = 1.25) {
+  const v = viewSize(), pad = 40;
+  const s = Math.min(v.w / (b.w + 2 * pad), v.h / (b.h + 2 * pad), maxS);
+  const t = { s, x: b.x + b.w / 2 - v.w / s / 2, y: b.y + b.h / 2 - v.h / s / 2 };
+  if (instant || reduced) { cam = t; camT = null; applyCam(); } else camT = t;
+}
+function boxOf(ids) {
+  if (!ids.length) return WORLD;
+  const xs = ids.map(i => P[i].x), ys = ids.map(i => P[i].y);
+  const x = Math.min(...xs), y = Math.min(...ys);
+  return { x, y: y - 24, w: Math.max(...xs) - x + NW, h: Math.max(...ys) - y + NH + 24 };
+}
+function zoomAt(f, cx, cy) {
+  const v = viewSize(); cx ??= v.w / 2; cy ??= v.h / 2; camT = null;
+  const s = Math.max(.12, Math.min(3, cam.s * f));
+  cam.x += cx / cam.s - cx / s; cam.y += cy / cam.s - cy / s; cam.s = s; applyCam();
+}
+// downTarget: what was pressed. Pointer capture makes the release report the svg itself, so clicks use this.
+const ptrs = new Map(); let drag = null, moved = 0, pinch0 = 0, downTarget = null;
+svg.addEventListener("pointerdown", e => {
+  svg.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptrs.size === 1) { drag = { x: e.clientX, y: e.clientY }; moved = 0; downTarget = e.target; }
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); }
+});
+svg.addEventListener("pointermove", e => {
+  if (!ptrs.has(e.pointerId)) return;
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptrs.size === 2) {
+    const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y), r = svg.getBoundingClientRect();
+    if (pinch0) zoomAt(d / pinch0, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
+    pinch0 = d; moved = 99; return;
+  }
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y; moved += Math.abs(dx) + Math.abs(dy);
+  if (moved > 4) { svg.classList.add("dragging"); camT = null; cam.x -= dx / cam.s; cam.y -= dy / cam.s; applyCam(); }
+  drag = { x: e.clientX, y: e.clientY };
+});
+// Hover tooltip: shows our explanation after a short pause, hidden while dragging.
+const tip = document.getElementById("tip"); let tipId = null, tipTimer = 0;
+function hideTip() { clearTimeout(tipTimer); tipId = null; tip.classList.remove("show"); }
+function placeTip(e) {
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = e.clientX + 16, y = e.clientY + 18;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 16;
+  if (y + h > innerHeight - 8) y = e.clientY - h - 14;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+}
+svg.addEventListener("pointermove", e => {
+  if (e.pointerType === "touch" || (drag && moved > 4)) return hideTip();
+  const n = e.target.closest?.(".node"), onLearn = !!e.target.closest?.(".learn");
+  if (!n) return hideTip();
+  const key = n.dataset.id + (onLearn ? ">" : "");
+  if (key !== tipId) {
+    hideTip(); tipId = key;
+    const c = byId[n.dataset.id];
+    tip.innerHTML = `<b>${esc(c.name)}</b><small>${esc(TIER_TEXT[c.tier][0])} · ${esc(c.topic)}${heat[c.id] ? " · flagged in examiner reports" : ""}</small><span class="k">Our explanation</span><br>${esc(c.description)}`
+      + (onLearn ? `<span class="go">▶ Opens “${esc(c.content[0].label)}” in a new tab</span>` : "");
+    placeTip(e);
+    tipTimer = setTimeout(() => tip.classList.add("show"), 350);
+  } else placeTip(e);
+});
+svg.addEventListener("pointerleave", hideTip);
+svg.addEventListener("pointerdown", hideTip);
+function endPtr(e) {
+  ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = 0;
+  if (ptrs.size === 0) {
+    svg.classList.remove("dragging");
+    const learn = drag && moved <= 4 && downTarget?.closest?.(".learn");
+    if (learn) { const id = learn.closest(".node").dataset.id; window.open(learnUrl(byId[id].content[0]), "_blank", "noopener"); showNode(id, true); drag = null; return; }
+    if (drag && moved <= 4) { const n = downTarget?.closest?.(".node"); if (n) (mode === "seed" && !seeds.length && !year ? toggleSeed(n.dataset.id) : showNode(n.dataset.id)); }
+    drag = null;
+  }
+}
+svg.addEventListener("pointerup", endPtr);
+svg.addEventListener("pointercancel", endPtr);
+svg.addEventListener("wheel", e => { e.preventDefault(); const r = svg.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * .0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+document.getElementById("zin").onclick = () => zoomAt(1.3);
+document.getElementById("zout").onclick = () => zoomAt(1 / 1.3);
+document.getElementById("zfit").onclick = () => fitBox(boxOf([...S]), false, .95);
+addEventListener("resize", () => applyCam());
+
+// ---------- Scenarios ----------
+// S = concepts in play; gen[id] = the step at which a concept lights up.
+// keepOn = concepts already shown before the latest starting point was added; they stay lit.
+// bridges = (topic mode) ideas from other topics that the chosen topic builds on directly.
+// year = a tier to focus on (null = all years); core = that year's concepts in play, ctx = the earlier ideas
+// they build on directly and the later ideas they unlock directly, shown faded around them.
+let mode = "seed", seeds = [], topic = null, S = new Set(), gen = {}, maxGen = 0, keepOn = new Set(), bridges = new Set();
+let year = null, core = new Set(), ctx = new Set(), lay = {};
+const YEAR_NUM = { L5: "9", L6: "11", L7: "12" }, yearOf = n => Object.keys(YEAR_NUM).find(t => YEAR_NUM[t] === n) || null;
+const YEAR_ABOUT = {
+  L5: "Foundations from Years 9–10. Not assessed for NCEA.",
+  L6: "Ben's Year 11: the chemistry strand of 11SCIa, about a third of the course. Graded by the school; there is no NCEA chemistry this year.",
+  L7: "Year 12: CHE201, NCEA Level 2 Chemistry."
+};
+const picked = () => mode === "seed" ? seeds.length > 0 : !!topic;
+function closure(id, dir) {
+  const seen = new Set(), st = [id];
+  while (st.length) for (const k of (dir === "up" ? inc : out)[st.pop()]) { const n = dir === "up" ? k.from : k.to; if (!seen.has(n)) { seen.add(n); st.push(n); } }
+  return seen;
+}
+const reachCache = {};
+const reach = id => reachCache[id] ??= closure(id, "down");
+// Light concepts column by column, so every view sweeps left to right (a prerequisite is always in an earlier column).
+function colRank(set) {
+  const cs = [...new Set([...set].map(i => col[i]))].sort((a, b) => a - b);
+  return Object.fromEntries([...set].map(i => [i, cs.indexOf(col[i])]));
+}
+// Year focus: the ideas needed first share one column, the year's own ideas keep their order, and the ideas
+// it leads to share one column (two, zigzagged, if there are many), so the context never crowds out the year.
+function yearRank() {
+  const r = {}, g = {}, yi = TORDER.indexOf(year), cr = colRank(core);
+  const before = [...ctx].filter(i => TORDER.indexOf(byId[i].tier) < yi), after = [...ctx].filter(i => !before.includes(i));
+  const off = before.length ? 1 : 0, last = core.size ? Math.max(...Object.values(cr)) + off : off - 1;
+  before.forEach(i => r[i] = 0);
+  for (const i of core) r[i] = cr[i] + off;
+  const split = after.length > 12 ? 2 : 1;
+  after.sort((a, b) => ry[a] - ry[b]).forEach((i, j) => { r[i] = last + 1 + j % split; g[i] = last + 1; });
+  return { lay: r, gen: { ...r, ...g } };
+}
+function gensWithin(set) {
+  const g = {};
+  const f = id => g[id] ?? (g[id] = Math.max(-1, ...inc[id].filter(k => set.has(k.from)).map(k => f(k.from))) + 1);
+  set.forEach(f); return g;
+}
+const ROOTS = C.filter(c => !inc[c.id].length).map(c => c.id).sort((a, b) => reach(b).size - reach(a).size);
+const SEED_PAL = ["#7fb2ff", "#ff9f5a", "#5ad1c8", "#9be07a", "#b48cff", "#ffd166", "#ff6b8b", "#f78fd8"];
+const seedCol = id => ROOTS.includes(id) ? SEED_PAL[ROOTS.indexOf(id) % SEED_PAL.length] : "#e8eef3";
+// Plain-English summaries of each topic (our wording).
+const TOPIC_DESC = {
+  "Atoms & ions": "What atoms are made of, how their electrons are arranged, and how atoms become charged ions.",
+  "Bonding & structure": "How particles hold together (ionic, covalent and metallic bonding) and the shapes, forces and solids that result.",
+  "Equations & quantities": "Writing formulae and balanced equations, and counting particles with moles and concentration.",
+  "Reactions": "The main types of reaction, what you see happen, and how to predict the products.",
+  "Acids & bases": "What makes a substance acidic or basic, pH, and what happens when acids and bases react.",
+  "Rates & equilibrium": "What makes reactions faster or slower, and reactions that run both ways until they balance.",
+  "Energy": "Heat given out or taken in by reactions, and how to calculate it from bonds and equations.",
+  "Properties & uses": "How a substance's particles and structure explain its properties, and why that decides what it is used for.",
+  "Organic": "Carbon compounds: how to name them, their families, and the reactions they take part in.",
+  "Redox": "Reactions where electrons move from one substance to another, and how to write and balance them."
+};
+const topicSlug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const topicOf = slug => TOPICS.find(t => topicSlug(t) === slug);
+// NCEA standards a topic's concepts are drawn from, e.g. "2.6 chemical reactivity (AS91166, 4 credits, external)".
+const standardsOf = t => standardsFor(C.filter(c => c.topic === t).map(c => c.id));
+function standardsFor(cids) {
+  const ids = [...new Set(cids.map(i => byId[i]).flatMap(c => c.sources.map(x => x.id)).filter(i => /^as9116\d$/.test(i)))].sort();
+  return ids.map(i => { const m = SRC[i]?.title.match(/^(AS\d+) Chemistry (\d\.\d): Demonstrate understanding of (.+) \((.+)\)$/); return m ? `${m[2]} ${m[3]} (${m[1]}, ${m[4]})` : SRC[i]?.title || i; });
+}
+const allSeeds = () => seeds.length === ROOTS.length && ROOTS.every(r => seeds.includes(r));
+
+// mode "seed": arg = the starting points to show (empty = the "choose a starting point" prompt).
+// mode "topic": arg = the topic name (empty = the "choose a topic" prompt).
+// opts.add: keep what is already lit and animate only the new lineage. opts.still: show it all at once.
+function setScenario(m, arg, opts = {}) {
+  const prevS = S;
+  mode = m; keepOn = new Set(); bridges = new Set();
+  if (m === "seed") {
+    seeds = arg ?? seeds;
+    S = new Set(seeds.flatMap(x => [x, ...reach(x)]));
+    if (opts.add) keepOn = new Set([...prevS].filter(i => S.has(i)));
+  } else {
+    topic = arg === undefined ? topic : arg;
+    const own = C.filter(c => c.topic === topic).map(c => c.id);
+    bridges = new Set(own.flatMap(id => inc[id].map(k => k.from)).filter(i => byId[i].topic !== topic));
+    S = new Set([...own, ...bridges]);
+  }
+  core = new Set(); ctx = new Set();
+  if (year) {
+    // With nothing picked, the year itself is the way in: the whole of that year.
+    const base = picked() ? S : new Set(C.map(c => c.id)), yi = TORDER.indexOf(year);
+    core = new Set([...base].filter(i => byId[i].tier === year));
+    for (const id of core) {
+      for (const k of inc[id]) if (base.has(k.from) && TORDER.indexOf(byId[k.from].tier) < yi) ctx.add(k.from);
+      for (const k of out[id]) if (base.has(k.to) && TORDER.indexOf(byId[k.to].tier) > yi) ctx.add(k.to);
+    }
+    bridges = new Set([...bridges].filter(i => core.has(i)));
+    S = new Set([...core, ...ctx]);
+  }
+  if (year) ({ lay, gen } = yearRank()); else lay = gen = colRank(S);
+  applyLayout((m === "topic" && topic) || year ? S : null);
+  maxGen = S.size ? Math.max(...[...S].map(i => gen[i])) : 0;
+  const choosing = !S.size;
+  renderChoose();
+  document.querySelectorAll(".controls button:not(.sheet-btn), #scrub").forEach(b => b.disabled = choosing);
+  document.querySelectorAll(".tabs button[data-mode]").forEach(b => b.setAttribute("aria-selected", b.dataset.mode === m));
+  document.querySelectorAll("#years button").forEach(b => b.setAttribute("aria-pressed", (b.dataset.year || null) === year));
+  scrub.max = Math.max(1, maxGen);
+  const yh = year ? `y=${YEAR_NUM[year]}` : "";
+  const h = m === "topic" ? (topic ? `#topic=${topicSlug(topic)}` : "#topics") : allSeeds() ? "#all" : seeds.length ? `#seeds=${seeds.join(",")}` : "";
+  history.replaceState(null, "", h ? h + (yh ? "&" + yh : "") : yh ? "#" + yh : location.pathname + location.search);
+  renderPicker(); focus = null; renderSide();
+  playing = false;
+  if (choosing) { showStep(-1, false); fitBox(boxOf(ROOTS), opts.instant, .9); setPlayBtn(); return; }
+  if (opts.still) {
+    showStep(maxGen, false);
+    document.getElementById("capT").textContent = year ? `${TIER_TEXT[year][0]}: ${core.size} idea${core.size === 1 ? "" : "s"}${picked() ? (m === "seed" ? " in this lineage" : ` in ${topic}`) : ""}` : m === "seed" ? `${seeds.length} starting point${seeds.length === 1 ? "" : "s"}: ${S.size - seeds.length} later ideas` : `${topic}: ${S.size - bridges.size} ideas`;
+    document.getElementById("capN").textContent = ""; document.getElementById("capChips").innerHTML = "";
+    fitBox(boxOf([...S]), opts.instant, .95); setPlayBtn(); return; }
+  showStep(-1, false);
+  // When it will play, frame the first steps straight away: fitting the whole lineage first made the camera swing out then back.
+  if (!opts.add) opts.noplay ? fitBox(boxOf([...S]), opts.instant, .95) : follow(0, opts.instant);
+  if (!opts.noplay) { playing = true; nextAt = performance.now() + (opts.add ? 300 : 900); }
+  setPlayBtn();
+}
+function toggleSeed(id) {
+  if (mode !== "seed") return setScenario("seed", [id]);
+  if (seeds.includes(id)) setScenario("seed", seeds.filter(x => x !== id), { still: true });
+  else setScenario("seed", [...seeds, id], { add: seeds.length > 0 });
+}
+
+// ---------- Stepping and animation ----------
+let step = -1, playing = false, nextAt = 0, pulses = [], focus = null;
+const scrub = document.getElementById("scrub"), speedSel = document.getElementById("speed");
+const TRAVEL = () => reduced ? 0 : 1500 / +speedSel.value, HOLD = () => (reduced ? 1400 : 1300) / +speedSel.value;
+const isOn = id => S.has(id) && (keepOn.has(id) || gen[id] <= step);
+function nodeState(id) {
+  if (!S.size) return "off";
+  return !S.has(id) ? "off" : isOn(id) ? "on" : "ghost";
+}
+function paintNode(id, state) {
+  const n = G[id], col = colour(id);
+  n.g.classList.remove("on", "ghost", "off"); n.g.classList.add(state);
+  n.g.classList.toggle("focus", focus === id);
+  n.g.classList.toggle("bridge", bridges.has(id));
+  n.g.classList.toggle("ctx", ctx.has(id));
+  n.bar.setAttribute("fill", col);
+  n.box.style.fill = state === "on" ? col + "2e" : "";
+  n.box.style.stroke = state === "on" ? col + "b0" : "";
+}
+// With a year chosen, only links that touch that year are drawn: none between two context ideas.
+const edgeIn = k => S.has(k.from) && S.has(k.to) && (!year || core.has(k.from) || core.has(k.to));
+function paintEdge(e, lit) {
+  const inS = edgeIn(e.k);
+  e.path.classList.toggle("lit", lit);
+  e.path.classList.toggle("ghost", inS && !lit);
+  e.path.classList.toggle("off", !inS);
+  (lit ? gLit : gEdges).appendChild(e.path);
+}
+function paintAll() {
+  for (const c of C) paintNode(c.id, nodeState(c.id));
+  for (const e of Object.values(E)) paintEdge(e, edgeIn(e.k) && isOn(e.k.from) && isOn(e.k.to));
+}
+function showStep(k, animate) {
+  pulses.forEach(p => { p.e.path.style.strokeDasharray = p.e.path.style.strokeDashoffset = p.e.path.style.opacity = ""; }); pulses = [];
+  step = Math.max(-1, Math.min(maxGen, k));
+  scrub.value = Math.max(0, step);
+  const fresh = [...S].filter(i => gen[i] === step && !keepOn.has(i));
+  if (animate && TRAVEL() > 0) {
+    // Light everything before this step, then draw each link into this step's concepts, from its start to its end.
+    const prev = step; step = prev - 1; paintAll(); step = prev;
+    const now = performance.now();
+    for (const id of fresh) {
+      const ks = inc[id].filter(edgeIn);
+      if (!ks.length) { paintNode(id, "on"); revealNode(id); continue; }
+      for (const k of ks) {
+        const e = E[k.id], len = e.path.getTotalLength();
+        paintEdge(e, true);
+        if (k.strength === "soft") e.path.style.opacity = 0;  // dashed: fade in rather than draw
+        else { e.path.style.strokeDasharray = `${len} ${len}`; e.path.style.strokeDashoffset = len; }
+        pulses.push({ e, len, to: id, t0: now, dur: TRAVEL(), soft: k.strength === "soft" });
+      }
+    }
+  } else { paintAll(); if (animate) fresh.forEach(revealNode); }
+  caption(fresh);
+  if (step >= 0 && playing && fresh.length) follow();
+  return fresh.length;
+}
+function revealNode(id) { const g = G[id].g; g.classList.remove("reveal"); void g.getBBox(); g.classList.add("reveal"); }
+function follow(upto = step, instant = false) {
+  // Keep the newest ideas readable: frame the last three steps, not the whole map.
+  const narrow = viewSize().w < 700;
+  const ids = [...S].filter(i => gen[i] <= upto && gen[i] >= upto - (narrow ? 1 : 2));
+  const b = boxOf(ids), minW = narrow ? 1.5 * COLW : 4 * COLW;
+  if (b.w < minW) { const m = (minW - b.w) / 2; b.x -= m; b.w += 2 * m; }
+  fitBox(b, instant, .95);
+}
+function tick(now) {
+  if (camT) {
+    const a = .045;
+    cam.x += (camT.x - cam.x) * a; cam.y += (camT.y - cam.y) * a; cam.s += (camT.s - cam.s) * a;
+    if (Math.abs(camT.s - cam.s) < .001 && Math.abs(camT.x - cam.x) < .5 && Math.abs(camT.y - cam.y) < .5) { cam = camT; camT = null; }
+    applyCam();
+  }
+  for (const p of pulses.slice()) {
+    const t = (now - p.t0) / p.dur;
+    if (t < 0) continue;
+    if (t >= 1) {
+      pulses.splice(pulses.indexOf(p), 1);
+      p.e.path.style.strokeDasharray = p.e.path.style.strokeDashoffset = p.e.path.style.opacity = "";
+      if (G[p.to].g.classList.contains("ghost")) { paintNode(p.to, "on"); revealNode(p.to); }
+      continue;
+    }
+    const e = t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+    if (p.soft) p.e.path.style.opacity = e; else p.e.path.style.strokeDashoffset = p.len * (1 - e);
+  }
+  if (playing && now >= nextAt && !pulses.length) {
+    // Steps with nothing new (already shown from another starting point) are skipped straight away.
+    if (step < maxGen) { const n = showStep(step + 1, true); nextAt = now + (n ? TRAVEL() + HOLD() : 0); }
+    else { playing = false; setPlayBtn(); setTimeout(() => fitBox(boxOf([...S]), false, .95), 900 / +speedSel.value); }
+  }
+  requestAnimationFrame(tick);
+}
+function setPlayBtn() { const b = document.getElementById("play"); b.textContent = playing ? "❚❚" : "▶"; b.setAttribute("aria-label", playing ? "Pause" : "Play"); }
+document.getElementById("play").onclick = () => {
+  if (playing) { playing = false; } else { if (step >= maxGen) { keepOn = new Set(); showStep(-1, false); } playing = true; nextAt = 0; }
+  setPlayBtn();
+};
+document.getElementById("restart").onclick = () => { keepOn = new Set(); showStep(-1, false); playing = true; nextAt = performance.now() + 300; setPlayBtn(); follow(0); };
+document.getElementById("prev").onclick = () => { playing = false; setPlayBtn(); showStep(step - 1, false); };
+document.getElementById("next").onclick = () => { playing = false; setPlayBtn(); showStep(step + 1, true); };
+scrub.oninput = () => { playing = false; setPlayBtn(); showStep(+scrub.value, false); };
+
+// ---------- Caption ----------
+function chipFor(id) { return `<button type="button" class="chip" data-node="${id}"><span class="dot" style="background:${colour(id)}"></span>${esc(byId[id].name)}</button>`; }
+function caption(fresh) {
+  const T = document.getElementById("capT"), N = document.getElementById("capN"), H = document.getElementById("capChips");
+  const total = maxGen + 1;
+  N.textContent = step < 0 ? "" : `step ${step + 1} of ${total}`;
+  H.innerHTML = fresh.map(i => chipFor(i)).join("");
+  if (!S.size) { T.textContent = year ? `No ${TIER_TEXT[year][0]} ideas in this ${mode === "seed" ? "lineage" : "topic"}: choose another year, or All` : mode === "seed" ? "Choose a starting point to begin" : "Choose a topic to begin"; N.textContent = ""; return; }
+  if (step < 0) {
+    T.textContent = year && !picked() ? `Press play to watch ${TIER_TEXT[year][0]} grow, from what it needs to where it leads` : mode === "seed" ? (allSeeds() ? "Press play to watch the whole course grow" : `Press play to grow from ${seeds.length === 1 ? "“" + byId[seeds[0]].name + "”" : seeds.length + " starting points"}`) : `Press play to see how ${topic} develops`;
+    return;
+  }
+  if (!fresh.length) { T.textContent = `${seeds.length} starting point${seeds.length === 1 ? "" : "s"}: ${S.size - seeds.length} later ideas`; N.textContent = ""; return; }
+  const yr = TIER_TEXT[byId[fresh[0]]?.tier || "L5"][0];
+  if (year && fresh.every(i => ctx.has(i))) {
+    const first = TORDER.indexOf(byId[fresh[0]].tier) < TORDER.indexOf(year);
+    T.textContent = `${yr}: ${fresh.length} idea${fresh.length === 1 ? "" : "s"} ${first ? `${TIER_TEXT[year][0]} needs first` : `${TIER_TEXT[year][0]} leads to`}`;
+  } else if (year && !picked()) T.textContent = `${yr}: ${fresh.length} new idea${fresh.length === 1 ? "" : "s"}`;
+  else if (mode === "seed") T.textContent = fresh.every(i => seeds.includes(i)) ? (fresh.length === 1 ? `Start: ${byId[fresh[0]].name}` : `${yr}: ${fresh.length} starting ideas`) : `${yr}: ${fresh.length} new idea${fresh.length === 1 ? "" : "s"} unlocked`;
+  else {
+    const own = fresh.filter(i => !bridges.has(i)).length, borrowed = fresh.length - own;
+    T.textContent = `${yr}: ` + [own ? `${own} ${topic} idea${own === 1 ? "" : "s"}` : "", borrowed ? `${borrowed} idea${borrowed === 1 ? "" : "s"} it borrows from other topics` : ""].filter(Boolean).join(", plus ");
+  }
+}
+document.getElementById("capChips").addEventListener("click", e => { const b = e.target.closest("[data-node]"); if (b) showNode(b.dataset.node, true); });
+
+// ---------- Picker ----------
+function renderPicker() {
+  const el = document.getElementById("picker");
+  if (mode === "seed") el.innerHTML = `<span class="lbl">Starting points · tap to add or remove</span>`
+    + ROOTS.map(id => `<button type="button" class="chip" data-seed="${id}" aria-pressed="${seeds.includes(id)}"><span class="dot" style="background:${seedCol(id)}"></span>${esc(byId[id].name)}<span class="n">${reach(id).size}</span></button>`).join("")
+    + seeds.filter(x => !ROOTS.includes(x)).map(id => `<button type="button" class="chip" data-seed="${id}" aria-pressed="true"><span class="dot" style="background:${seedCol(id)}"></span>${esc(byId[id].name)}</button>`).join("")
+    + (allSeeds() ? "" : `<button type="button" class="chip ctl" data-all>Show all</button>`)
+    + (seeds.length ? `<button type="button" class="chip ctl" data-clear>Clear</button>` : "");
+  else el.innerHTML = `<span class="lbl">Topics</span>` + TOPICS.map(t => `<button type="button" class="chip" data-topic="${esc(t)}" aria-pressed="${t === topic}"><span class="dot" style="background:${TOPIC_COL[t]}"></span>${esc(t)}<span class="n">${C.filter(c => c.topic === t).length}</span></button>`).join("");
+}
+function onPick(e) {
+  const b = e.target.closest("[data-seed],[data-topic],[data-all],[data-clear]"); if (!b) return;
+  if (b.dataset.seed) toggleSeed(b.dataset.seed);
+  else if (b.dataset.topic) setScenario("topic", b.dataset.topic);
+  else if (b.dataset.all !== undefined) setScenario("seed", [...ROOTS]);
+  else setScenario("seed", []);
+}
+document.getElementById("picker").addEventListener("click", onPick);
+document.getElementById("choose").addEventListener("click", onPick);
+const YEARS = { L5: [9, 10], L6: [11], L7: [12] };
+const yearSpan = t => { const ys = C.filter(c => c.topic === t).flatMap(c => YEARS[c.tier]); const lo = Math.min(...ys), hi = Math.max(...ys); return lo === hi ? `Year ${lo}` : `Years ${lo}–${hi}`; };
+function renderChoose() {
+  const box = document.getElementById("choose"), seedMode = mode === "seed";
+  box.hidden = S.size > 0 || !!year;
+  if (!box.hidden) {
+    document.getElementById("chooseT").textContent = seedMode ? "Choose a starting point" : "Choose a topic";
+    document.getElementById("chooseP").textContent = seedMode
+      ? "Every idea in this course grows from one of these foundation ideas from Years 9–10. Pick one to watch it develop, step by step, into Year 11 and Year 12 ideas. You can add more starting points later to see where the lineages meet."
+      : "Pick an area of chemistry to see how it develops from Years 9–10 to Year 12, which ideas it borrows from other topics, and which NCEA standard assesses it.";
+    document.getElementById("starts").innerHTML = seedMode
+      ? ROOTS.map(id => `<button type="button" class="start" data-seed="${id}"><span class="dot" style="background:${seedCol(id)};color:${seedCol(id)}"></span><b>${esc(byId[id].name)}</b><small>Leads to ${reach(id).size} later ideas</small></button>`).join("")
+      : TOPICS.map(t => `<button type="button" class="start" data-topic="${esc(t)}"><span class="dot" style="background:${TOPIC_COL[t]};color:${TOPIC_COL[t]}"></span><b>${esc(t)}</b><span class="desc">${esc(TOPIC_DESC[t] || "")}</span><small>${C.filter(c => c.topic === t).length} ideas · ${esc(yearSpan(t))}</small></button>`).join("");
+    box.querySelector(".all").hidden = !seedMode;
+  }
+}
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-mode]"); if (!b) return;
+  b.dataset.mode === "seed" ? setScenario("seed", seeds, { still: seeds.length > 0 || !!year }) : setScenario("topic", topic, { still: !!topic || !!year });
+});
+// Year focus: keeps the current starting points or topic and narrows them to one year (plus its context).
+document.getElementById("years").addEventListener("click", e => {
+  const b = e.target.closest("[data-year]"); if (!b) return;
+  year = b.dataset.year || null; stopExplain();
+  setScenario(mode, mode === "seed" ? seeds : topic, { still: !year && picked() });
+});
+
+// ---------- Side panel ----------
+const yrTag = id => TIER_TEXT[byId[id].tier][0];
+// Links go to the local copy of the revision site (site/, built by build_site.py), which already has the
+// ?step= / ?deck= options; the public copy gets them when site/ is next published.
+const SITE = "./";
+const learnUrl = x => `${SITE}${x.page}${x.params ? "?" + x.params : ""}`;
+const learnLinks = c => (c.content || []).map(x => `<a class="learnbtn" href="${esc(learnUrl(x))}" target="_blank" rel="noopener"><span class="ic">▶</span><b>${esc(x.label.split(":")[0])}</b><small>${esc(x.label.includes(":") ? x.label.split(":").slice(1).join(":").trim() : "Interactive lab")} · opens in a new tab</small></a>`).join("");
+function itemBtn(id, why) {
+  return `<button type="button" class="item" data-node="${id}"><span class="dot" style="background:${colour(id)}"></span><span>${esc(byId[id].name)}${why ? `<span class="why">${why}</span>` : ""}</span><span class="yr">${esc(yrTag(id))}</span></button>`;
+}
+function legend() {
+  let rows;
+  if (colourBy === "lineage" && mode === "seed") rows = (seeds.length ? seeds : ROOTS).map(x => [seedCol(x), byId[x].name]);
+  else if (colourBy === "topic" || colourBy === "lineage") rows = TOPICS.map(t => [TOPIC_COL[t], t]);
+  else if (colourBy === "year") rows = TORDER.map(t => [YEAR_COL[t], TIER_TEXT[t][0]]);
+  else if (colourBy === "material") rows = [["#5cc48a", `Has material (${C.filter(c => c.content?.length).length})`], ["#ff6b5e", `Gap on an exam weak spot (${C.filter(c => !c.content?.length && heat[c.id]).length})`], [NONE, `No material yet (${C.filter(c => !c.content?.length && !heat[c.id]).length})`]];
+  else if (colourBy === "national") rows = [["#ff3b6b", "Flagged 5+ times"], ["#ff8a5a", "Flagged 2–4"], ["#ffd166", "Flagged once"], [NONE, "Not flagged / no data"]];
+  else rows = [...new Set(Object.values(benRes).flat().map(r => r.grade))].map(g => [GRADE_COL[g], g]).concat([[NONE, "No result yet"]]);
+  return `<div class="keys">${rows.map(([c, l]) => `<span><i style="background:${c}"></i>${esc(l)}</span>`).join("")}</div>`
+    + (colourBy === "national" ? `<p class="fine" style="margin-top:.4rem">Year 12 concepts NZQA examiners flagged in the 2024–25 Level 2 reports. A red dot on a box marks a flagged concept in every colour mode.</p>` : "")
+    + (colourBy === "lineage" && mode === "seed" ? `<p class="fine" style="margin-top:.4rem">Each idea takes the colour of the first chosen starting point it grows from.</p>` : "")
+    + (colourBy === "material" ? `<p class="fine" style="margin-top:.4rem">Red boxes are where NZQA examiners say students struggle and we have nothing to learn from yet: the best places to build new material.</p>` : "")
+    + (colourBy === "ben" ? `<p class="fine" style="margin-top:.4rem">Ben's results, mapped to concepts by us (inferred).</p>` : "");
+}
+const unreviewed = D.links.filter(k => k.status === "unreviewed").length;
+const NOTE = `<p class="fine" style="margin-top:1rem">Concepts and quotes come from official sources (NZ Curriculum, NZQA). The ${D.links.length} links are our inference${unreviewed ? `, and ${unreviewed} are not yet reviewed` : ""}. Solid line = needed first; dashed = helps. Click the green ▶ on a box to open its learning material.</p>`;
+// "4 of 9 ideas here link to learning material", for the ideas in view.
+function coverage() {
+  const ids = [...S].filter(i => !bridges.has(i) && !ctx.has(i)), n = ids.filter(i => byId[i].content?.length).length;
+  return `<p class="fine">▶ ${n} of ${ids.length} ideas here link to learning material${n < ids.length ? ` · <a class="go" href="#" data-colour="material">show the gaps</a>` : ""}</p>`;
+}
+// Year focus: the faded ideas either side of the chosen year, and a line saying the view is narrowed.
+function ctxLists() {
+  const yi = TORDER.indexOf(year), byGen = (a, b) => gen[a] - gen[b];
+  const before = [...ctx].filter(i => TORDER.indexOf(byId[i].tier) < yi).sort(byGen);
+  const after = [...ctx].filter(i => TORDER.indexOf(byId[i].tier) > yi).sort(byGen);
+  const ys = TIER_TEXT[year][0];
+  const why = (i, dir) => {
+    const ns = (dir === "up" ? out[i].map(k => k.to) : inc[i].map(k => k.from)).filter(n => core.has(n)).map(n => byId[n].name);
+    return (dir === "up" ? "needed for " : "builds on ") + esc(ns.slice(0, 3).join(", ")) + (ns.length > 3 ? ` +${ns.length - 3} more` : "");
+  };
+  return (before.length ? `<div class="sub">Needed first, from earlier years (${before.length})</div><div class="list">${before.map(i => itemBtn(i, why(i, "up"))).join("")}</div>` : "")
+    + (after.length ? `<div class="sub">Where ${esc(ys)} leads (${after.length})</div><div class="list">${after.map(i => itemBtn(i, why(i, "down"))).join("")}</div>` : "");
+}
+const yearNote = () => year ? `<p class="fine">Showing ${esc(TIER_TEXT[year][0])} only, with the ideas it needs first and leads to faded either side. <a class="go" href="#" data-year="">Show all years</a></p>` : "";
+function renderYear(side) {
+  const ys = TIER_TEXT[year][0], ids = [...core];
+  const std = year === "L7" ? standardsFor(ids) : [];
+  side.innerHTML = `<p class="eyebrow">Year focus</p><h2>${esc(ys)}</h2><p>${esc(YEAR_ABOUT[year])}</p>
+    <div class="big"><b>${core.size}</b><span>ideas this year</span></div>${coverage()}
+    ${std.length ? `<div class="sub">Where it is assessed</div>${std.map(x => `<p class="fine">NCEA ${esc(x)}</p>`).join("")}` : ""}
+    <p class="fine">Pick a starting point or a topic above to narrow it further. <a class="go" href="#" data-year="">Show all years</a></p>
+    ${TOPICS.filter(t => ids.some(i => byId[i].topic === t)).map(t => `<div class="sub">${esc(t)}</div><div class="list">${ids.filter(i => byId[i].topic === t).sort((a, b) => gen[a] - gen[b]).map(i => {
+      const from = inc[i].filter(k => core.has(k.from)).map(k => byId[k.from].name);
+      return itemBtn(i, from.length ? "builds on " + esc(from.join(", ")) : "");
+    }).join("")}</div>`).join("")}
+    ${ctxLists()}
+    <div class="sub">Colour key</div>${legend()}${NOTE}`;
+}
+function renderSide() {
+  const side = document.getElementById("side");
+  if (focus) return renderNode(side);
+  if (year && !picked()) return renderYear(side);
+  if (mode === "seed" && !seeds.length) {
+    side.innerHTML = `<p class="eyebrow">How to use this</p><h2>One lineage at a time</h2>
+      <p>Read it left to right: Years 9–10 foundations, then Ben's Year 11, then Year 12. Choose a starting point and watch the ideas that grow from it light up, step by step. Pulses run along the links from the ideas each new one needs.</p>
+      <p>Add a second starting point to see where two lineages meet. <b>Show all</b> plays the whole course.</p>
+      <p>The year buttons at the top focus on one year, such as <b>Y11</b>: its ideas in full, with the ideas it needs first and the ones it leads to faded either side.</p>
+      <p>Tap any concept for what it means, what it builds on, and where to learn it. <b>Topics</b> shows one area of chemistry at a time, such as Acids & bases.</p>
+      ${NOTE}`;
+  } else if (mode === "seed") {
+    const down = [...S].filter(i => !seeds.includes(i) && !ctx.has(i));
+    const bySteps = [...new Set(down.map(i => gen[i]))].sort((a, b) => a - b);
+    const one = seeds.length === 1;
+    side.innerHTML = `<p class="eyebrow">${one ? "Starting point" : allSeeds() ? "Whole course" : "Starting points"}</p><h2>${one ? esc(byId[seeds[0]].name) : allSeeds() ? "Everything, from all " + seeds.length + " starting points" : seeds.length + " starting points"}</h2>
+      ${yearNote()}
+      ${one ? "" : `<div class="list">${seeds.map(x => itemBtn(x, "")).join("")}</div>`}
+      <div class="big"><b>${down.length}</b><span>${year ? esc(TIER_TEXT[year][0]) : "later"} ideas grow from ${one ? "this" : "these"}</span></div>${coverage()}
+      ${one ? `<div class="actions"><button type="button" data-detail="${seeds[0]}">About this idea</button></div>` : ""}
+      ${bySteps.map((s, n) => `<div class="sub">Step ${n + 2}</div><div class="list">${down.filter(i => gen[i] === s).map(i => {
+        const from = inc[i].filter(k => S.has(k.from)).map(k => byId[k.from].name);
+        const other = inc[i].filter(k => !S.has(k.from)).length;
+        return itemBtn(i, "from " + esc(from.join(", ")) + (other ? ` · also needs ${other} idea${other === 1 ? "" : "s"} from another starting point` : ""));
+      }).join("")}</div>`).join("")}
+      ${year ? ctxLists() : ""}
+      <div class="sub">Colour key</div>${legend()}${NOTE}`;
+  } else if (!topic) {
+    side.innerHTML = `<p class="eyebrow">Topics</p><h2>One area at a time</h2>
+      <p>Each topic is a strand of chemistry that runs through the years. Choose one to see its ideas light up in learning order, from Years 9–10 to Year 12.</p>
+      <p>Faded boxes with dashed outlines are ideas from <b>other</b> topics that this one builds on directly.</p>${NOTE}`;
+  } else {
+    const own = [...S].filter(i => !bridges.has(i) && !ctx.has(i)).sort((a, b) => gen[a] - gen[b]);
+    const std = year && year !== "L7" ? [] : standardsOf(topic);
+    const y11 = own.some(i => byId[i].tier === "L6");
+    side.innerHTML = `<p class="eyebrow">Topic</p><h2>${esc(topic)}</h2><p>${esc(TOPIC_DESC[topic] || "")}</p>${yearNote()}${coverage()}
+      <div class="sub">Where it is assessed</div>
+      ${y11 ? `<p class="fine">Year 11: part of 11SCIa, assessed by the school.</p>` : ""}
+      ${std.length ? std.map(x => `<p class="fine">Year 12: NCEA ${esc(x)}</p>`).join("") : year === "L5" ? `<p class="fine">Years 9–10: not assessed for NCEA.</p>` : year === "L6" ? "" : `<p class="fine">${y11 ? "" : "Not assessed directly before Year 12. "}No Year 12 standard is drawn from this topic.</p>`}
+      ${TORDER.filter(t => own.some(i => byId[i].tier === t)).map(t => `<div class="sub">${esc(TIER_TEXT[t][0])}</div><div class="list">${own.filter(i => byId[i].tier === t).map(i => {
+        const from = inc[i].filter(k => S.has(k.from)).map(k => byId[k.from].name);
+        return itemBtn(i, from.length ? "builds on " + esc(from.join(", ")) : "a starting idea for this topic");
+      }).join("")}</div>`).join("")}
+      ${bridges.size ? `<div class="sub">Borrows from other topics (${bridges.size})</div><div class="list">${[...bridges].sort((a, b) => gen[a] - gen[b]).map(i => itemBtn(i, "from " + esc(byId[i].topic))).join("")}</div>` : ""}
+      ${year ? ctxLists() : ""}
+      <div class="sub">Colour key</div>${legend()}${NOTE}`;
+  }
+}
+function renderNode(side) {
+  const id = focus, c = byId[id];
+  const src = c.sources?.[0], s = src && SRC[src.id];
+  const ins = inc[id], outs = out[id];
+  side.innerHTML = `<button type="button" class="back" data-back>← Back</button>
+    <div class="crumb"><span class="dot" style="background:${colour(id)}"></span>${esc(yrTag(id))} · ${esc(c.topic)}</div>
+    <h2>${esc(c.name)}</h2><div class="sub">Our explanation</div><p>${esc(c.description)}</p>
+    ${heat[id] ? `<span class="tag hot">Flagged ${heat[id].length}× by NZQA examiners</span>` : ""}${benRes[id] ? `<span class="tag ben">Ben: ${esc(benRes[id].at(-1).grade)} (inferred)</span>` : ""}
+    ${AI[id] ? `<div id="aiBox"><button type="button" class="aibtn" data-explain="${id}"><span class="ic">✦</span><b>Explain it to me</b><small>AI tutor · reads it aloud and shows it in the lab</small></button></div>` : ""}
+    ${(c.content || []).length ? `<div class="sub">Learn it here</div>${learnLinks(c)}` : ""}
+    <div class="actions"><button type="button" data-seedgo="${id}">Grow from here</button><button type="button" data-topicgo="${esc(c.topic)}">See the ${esc(c.topic)} topic</button></div>
+    ${ins.length ? `<div class="sub">Builds on</div><div class="list">${ins.map(k => itemBtn(k.from, esc(k.reason) + (k.strength === "soft" ? " (helps)" : ""))).join("")}</div>` : `<div class="sub">Builds on</div><p class="fine">A starting idea: nothing earlier in this map.</p>`}
+    ${outs.length ? `<div class="sub">Unlocks</div><div class="list">${outs.map(k => itemBtn(k.to, esc(k.reason))).join("")}</div>` : ""}
+    ${(c.evidence || []).length ? `<div class="sub">You know it when you can (our wording)</div><ul class="ev">${c.evidence.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+    ${heat[id] ? `<div class="sub">What examiners saw go wrong</div>${heat[id].slice(0, 4).map(n => `<div class="quote">“${esc(n.quote)}”<small>${esc(SRC[n.source]?.title || n.source)}</small></div>`).join("")}` : ""}
+    ${benRes[id] ? `<div class="sub">Ben's evidence</div>${benRes[id].map(r => `<p class="fine">${esc(r.course)} · ${esc(r.assessment)}: <b>${esc(r.grade)}</b>. ${esc(r.mappingNote || "")}</p>`).join("")}` : ""}
+    ${src ? `<div class="sub">Official source (exact quote)</div><div class="quote">“${esc(src.quote)}”<small>${esc(s?.title || src.id)}${src.ref ? " · " + esc(src.ref) : ""}</small></div>` : ""}`;
+  side.scrollTop = 0;
+}
+function showNode(id, keepCam) {
+  focus = id; renderSide(); paintAll();
+  document.body.classList.add("sheet");
+  if (!keepCam && cam.s < .7) { const p = P[id]; const v = viewSize(); const s = Math.max(cam.s, .8); camT = { s, x: p.x + NW / 2 - v.w / s / 2, y: p.y + NH / 2 - v.h / s / 2 }; }
+}
+document.getElementById("side").addEventListener("click", e => {
+  const cl = e.target.closest("[data-colour]");
+  if (cl) { e.preventDefault(); const sel = document.getElementById("colour"); sel.value = cl.dataset.colour; sel.dispatchEvent(new Event("change")); return; }
+  const yl = e.target.closest("[data-year]");
+  if (yl) { e.preventDefault(); return document.querySelector(`#years [data-year="${yl.dataset.year}"]`).click(); }
+  const ex = e.target.closest("[data-explain]"); if (ex) return explain(ex.dataset.explain);
+  if (e.target.closest("[data-aitoggle]")) { aiAudio.paused ? aiAudio.play() : aiAudio.pause(); return; }
+  const t = e.target.closest("[data-node],[data-back],[data-detail],[data-seedgo],[data-topicgo]"); if (!t) return;
+  stopExplain();
+  if (t.dataset.back !== undefined) { focus = null; renderSide(); paintAll(); return; }
+  if (t.dataset.seedgo) return setScenario("seed", [t.dataset.seedgo]);
+  if (t.dataset.topicgo) return setScenario("topic", t.dataset.topicgo);
+  showNode(t.dataset.node || t.dataset.detail);
+});
+// ---------- AI tutor (proof of concept) ----------
+// Pre-generated explanations (map/ai/explanations.json): the voice plays, the sentence being read lights up,
+// and cue times move the linked lab on, so the words and the visual stay together.
+const AI = D.ai || {}, aiAudio = new Audio();
+let aiCur = null, aiStep = 0;
+const visual = document.getElementById("visual"), visualF = document.getElementById("visualF");
+function explain(id) {
+  const x = AI[id]; if (!x) return;
+  stopExplain(); aiCur = id; aiStep = 0;
+  playing = false; setPlayBtn();  // one thing at a time: pause the map while the tutor talks
+  document.getElementById("aiBox").innerHTML = `<div class="ai"><div class="head">✦ AI-generated explanation<button type="button" data-aitoggle>❚❚ Pause</button></div>
+    <p class="txt">${x.sentences.map((t, i) => `<span data-i="${i}">${esc(t.text)}</span>`).join(" ")}</p>
+    <p class="fine">Written by an AI tutor for a Year 11 student, based on the official source below. Voice: ${esc(x.voice)}.</p></div>`;
+  if (x.visual) {
+    const url = SITE + x.visual.page;
+    document.getElementById("visualT").textContent = x.visual.label;
+    document.getElementById("visualA").href = url;
+    visualF.src = url + "?embed&step=1"; visual.hidden = false;
+  }
+  aiAudio.src = x.audio; aiAudio.currentTime = 0;
+  // Give the lab a moment to appear before the voice starts.
+  setTimeout(() => { if (aiCur === id) aiAudio.play().catch(() => {}); }, 900);
+}
+function stopExplain() { aiAudio.pause(); aiCur = null; visual.hidden = true; visualF.removeAttribute("src"); }
+aiAudio.addEventListener("timeupdate", () => {
+  const x = AI[aiCur]; if (!x) return;
+  const t = aiAudio.currentTime; let now = 0;
+  x.sentences.forEach((s, i) => { if (t >= s.at) now = i; });
+  document.querySelectorAll(".ai .txt span").forEach((el, i) => { el.classList.toggle("now", i === now); el.classList.toggle("said", i < now); });
+  const step = Math.max(...x.sentences.slice(0, now + 1).map(s => s.step || 0));
+  if (step && step !== aiStep) { aiStep = step; visualF.contentWindow?.postMessage({ [x.visual.param]: step }, "*"); }
+});
+const aiBtn = () => document.querySelector("[data-aitoggle]");
+aiAudio.addEventListener("play", () => { const b = aiBtn(); if (b) b.textContent = "❚❚ Pause"; });
+aiAudio.addEventListener("pause", () => { const b = aiBtn(); if (b) b.textContent = aiAudio.ended ? "↺ Again" : "▶ Play"; });
+aiAudio.addEventListener("ended", () => { aiAudio.currentTime = 0; });
+document.getElementById("visualX").onclick = stopExplain;
+
+document.getElementById("sheetBtn").onclick = () => document.body.classList.toggle("sheet");
+
+// ---------- Colour, search, keys ----------
+document.getElementById("colour").onchange = e => { colourBy = e.target.value; paintAll(); renderSide(); caption([...S].filter(i => gen[i] === step)); };
+const q = document.getElementById("q"), results = document.getElementById("results");
+q.addEventListener("input", () => {
+  const s = q.value.trim().toLowerCase();
+  if (!s) { results.hidden = true; return; }
+  const hits = C.filter(c => (c.name + " " + c.description + " " + c.topic).toLowerCase().includes(s)).slice(0, 8);
+  const verb = mode === "topic" ? "show its topic" : "grow from";
+  results.innerHTML = hits.length ? hits.map(c => `<button type="button" data-hit="${c.id}">${esc(c.name)} <small>· ${esc(yrTag(c.id))} · ${verb}</small></button>`).join("") : `<button type="button" disabled>No match</button>`;
+  results.hidden = false;
+});
+q.addEventListener("keydown", e => { if (e.key === "Enter") results.querySelector("[data-hit]")?.click(); if (e.key === "Escape") results.hidden = true; });
+results.addEventListener("click", e => {
+  const b = e.target.closest("[data-hit]"); if (!b) return;
+  results.hidden = true; q.value = ""; q.blur();
+  const id = b.dataset.hit;
+  if (mode === "topic") { setScenario("topic", byId[id].topic, { still: true }); showNode(id); } else setScenario("seed", [id]);
+});
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input, select")) return;
+  if (e.key === " ") { e.preventDefault(); document.getElementById("play").click(); }
+  if (e.key === "ArrowRight") document.getElementById("next").click();
+  if (e.key === "ArrowLeft") document.getElementById("prev").click();
+  if (e.key === "Escape" && focus) { focus = null; renderSide(); paintAll(); document.body.classList.remove("sheet"); }
+});
+
+// ---------- Start: #seeds=<id>,<id> (or #seed=<id>), #all, #topics, #topic=<slug>, ?colour=national; else the "choose a starting point" prompt ----------
+function start() {
+  buildNodes(); applyCam();
+  const c = new URLSearchParams(location.search).get("colour");
+  if (c && document.querySelector(`#colour option[value="${CSS.escape(c)}"]`)) { colourBy = c; document.getElementById("colour").value = c; }
+  const noplay = new URLSearchParams(location.search).has("still");
+  const m = location.hash.match(/^#(seeds?|topic)=([\w,-]+)/);
+  const ids = m ? m[2].split(",").filter(i => byId[i]) : [];
+  year = yearOf(location.hash.match(/[#&]y=(\d+)/)?.[1]);
+  const hash = location.hash.replace(/&?y=\d+$/, "");
+  if (hash === "#all") setScenario("seed", [...ROOTS], { instant: true, noplay });
+  else if (hash === "#topics") setScenario("topic", null, { instant: true });
+  else if (m && m[1] === "topic" && topicOf(m[2])) setScenario("topic", topicOf(m[2]), { instant: true, noplay });
+  else setScenario("seed", ids, { instant: true, noplay });
+  const st = new URLSearchParams(location.search).get("step");
+  if (st !== null) showStep(+st, false);
+  requestAnimationFrame(tick);
+}
+let started = false;
+const go = () => { if (!started) { started = true; start(); } };
+document.fonts?.ready.then(go); setTimeout(go, 1200);
+</script>
+</html>
