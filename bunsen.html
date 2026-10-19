@@ -55,20 +55,21 @@ img { max-width: 100%; }
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
-    --accent: #6ea8ff; --accent-ink: #0b1622; --blue-flame: #7fb2ff; --yellow-flame: #f0b04a;
+    --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+    --accent: #7fb2ff; --accent-ink: #0b1622; --blue-flame: #7fb2ff; --yellow-flame: #f0b04a;
     --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a;
-    --atom-c: #6b7783; --atom-c-ink: #ffffff; --atom-o: #e5574c; --atom-h: #e6edf2; --atom-h-ink: #14212b; --atom-edge: #18222b;
+    --atom-c: #6b7783; --atom-c-ink: #ffffff; --atom-o: #e5574c; --atom-h: #e6edf2; --atom-h-ink: #14212b; --atom-edge: #111921;
     --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
     --stage: #080d12; --stage-line: #1f2a34;
     color-scheme: dark;
   }
 }
-:root[data-theme="dark"] {
-  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
-  --accent: #6ea8ff; --accent-ink: #0b1622; --blue-flame: #7fb2ff; --yellow-flame: #f0b04a;
+/* Dark by default, in the same palette as the learning-map lineage view. */
+:root, :root[data-theme="dark"] {
+  --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+  --accent: #7fb2ff; --accent-ink: #0b1622; --blue-flame: #7fb2ff; --yellow-flame: #f0b04a;
   --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a;
-  --atom-c: #6b7783; --atom-c-ink: #ffffff; --atom-o: #e5574c; --atom-h: #e6edf2; --atom-h-ink: #14212b; --atom-edge: #18222b;
+  --atom-c: #6b7783; --atom-c-ink: #ffffff; --atom-o: #e5574c; --atom-h: #e6edf2; --atom-h-ink: #14212b; --atom-edge: #111921;
   --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
   --stage: #080d12; --stage-line: #1f2a34;
   color-scheme: dark;
@@ -171,13 +172,23 @@ sub { font-size: .7em; line-height: 0; }
 @media (prefers-reduced-motion: reduce) {
   #mols.pop { animation: none; }
 }
+/* ?embed: just the flame and the molecules, for showing inside the learning map */
+html.embed .wrap { padding: .75rem; max-width: none; }
+html.embed header, html.embed .home-link, html.embed .controls, html.embed .quiz, html.embed .wrap > section.card, html.embed .credit, html.embed footer { display: none !important; }
+html.embed .lab { grid-template-columns: auto minmax(0, 1fr); margin: 0; align-items: start; }
+/* Fit the whole burner in the window: size the canvas by height and keep its shape. */
+html.embed .bench { justify-self: start; }
+html.embed #lab { width: auto; height: min(calc(100vh - 1.5rem), 46rem); max-width: 52vw; }
+html.embed .insight, html.embed #cap-text, html.embed .key, html.embed .legend { display: none; }
+html.embed .caption { min-height: 0 !important; }
+h1 i { color: #ff6b5e; font-style: normal; }  /* the coral full stop from the lineage view */
 </style>
 
 <div class="wrap">
   <a class="home-link" href="index.html">← Chemistry Revision</a>
   <header>
     <p class="eyebrow">Chemistry · Combustion</p>
-    <h1>Bunsen Burner Lab</h1>
+    <h1>Bunsen Burner Lab<i>.</i></h1>
     <p class="lede">Why does closing the air hole turn the flame yellow? Press play for a narrated explainer (about 1½ minutes, turn the sound up), then use the air-hole slider yourself.</p>
   </header>
 
@@ -709,7 +720,14 @@ function updateScore() {
 }
 
 renderQuiz();
-goScene(0);
+// ?step=3 opens at that scene (used by links from the learning map).
+const askedStep = parseInt(new URLSearchParams(location.search).get("step"), 10);
+// Embedded in the learning map: the map's AI explanation moves the lab on with {bunsenStep: n} messages.
+if (new URLSearchParams(location.search).has("embed")) {
+  document.documentElement.classList.add("embed");
+  addEventListener("message", e => { const n = +e.data?.bunsenStep; if (n >= 1 && n <= SCENES.length) goScene(n - 1); });
+}
+goScene(askedStep >= 1 && askedStep <= SCENES.length ? askedStep - 1 : 0);
 updatePlay();
 updateVoice();
 requestAnimationFrame(frame);

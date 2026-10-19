@@ -45,16 +45,17 @@ img { max-width: 100%; }
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
-    --accent: #6ea8ff; --accent-ink: #0b1622; --flame: #f0a54a; --flame-soft: #3a2a17;
+    --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+    --accent: #7fb2ff; --accent-ink: #0b1622; --flame: #f0a54a; --flame-soft: #3a2a17;
     --good: #5cc48a; --good-soft: #17322a; --card-red: #b3332c; --card-red-ink: #ffffff;
     --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
     color-scheme: dark;
   }
 }
-:root[data-theme="dark"] {
-  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
-  --accent: #6ea8ff; --accent-ink: #0b1622; --flame: #f0a54a; --flame-soft: #3a2a17;
+/* Dark by default, in the same palette as the learning-map lineage view. */
+:root, :root[data-theme="dark"] {
+  --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+  --accent: #7fb2ff; --accent-ink: #0b1622; --flame: #f0a54a; --flame-soft: #3a2a17;
   --good: #5cc48a; --good-soft: #17322a; --card-red: #b3332c; --card-red-ink: #ffffff;
   --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
   color-scheme: dark;
@@ -189,12 +190,13 @@ sub { font-size: .6em; line-height: 0; }
 @media (prefers-reduced-motion: reduce) {
   .card, .bar > span { transition: none; }
 }
+h1 i { color: #ff6b5e; font-style: normal; }  /* the coral full stop from the lineage view */
 </style>
 
 <div class="wrap">
   <a class="home-link" href="index.html">← Chemistry Revision</a>
   <header>
-    <h1>Chemistry Flashcards</h1>
+    <h1>Chemistry Flashcards<i>.</i></h1>
     <p>24 cards from the two red sheets. Tap a card to flip it.</p>
   </header>
 
@@ -292,8 +294,10 @@ function save() {
 }
 
 const saved = load();
+// ?deck=Combustion opens that deck (used by links from the learning map).
+const askedDeck = new URLSearchParams(location.search).get("deck");
 const S = {
-  topic: TOPICS.includes(saved.topic) || saved.topic === "Tricky" ? saved.topic : "All",
+  topic: TOPICS.includes(askedDeck) ? askedDeck : TOPICS.includes(saved.topic) || saved.topic === "Tricky" ? saved.topic : "All",
   dir: ["q", "a", "mix"].includes(saved.dir) ? saved.dir : "q",
   tricky: new Set((saved.tricky || []).filter(id => byId[id])),
   queue: [], total: 0, got: 0, missed: new Set(), sides: {}, flipped: false,

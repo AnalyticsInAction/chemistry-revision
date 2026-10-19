@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+/* Bigger tap targets on phones and tablets (about 44px, per platform guidelines). */
+@media (pointer: coarse) {
+  .chip, .tab, .step, .seg button, .tag, .home-link, .opt, .btn, .listen { min-height: 44px; }
+  .chip, .tag, .home-link { display: inline-flex; align-items: center; }
+  .step { min-height: 40px; }
+}
+</style>
+<title>Structure &amp; Properties</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: four scenes on a dark bench (heating four solids, inside a molecular substance, conductivity tests, giant networks) beside an explanation panel; then quiz and key words. Same family as the other labs. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --accent-ink: #ffffff;
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --hl: #e8eff9;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  --stage: #0c1218;
+  --stage-ink: #dce5ec;
+  --stage-muted: #9fb1bf;
+  --stage-line: #24313c;
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+    --accent: #7fb2ff; --accent-ink: #0b1622;
+    --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --stage: #080d12; --stage-line: #1f2a34;
+    color-scheme: dark;
+  }
+}
+/* Dark by default, in the same palette as the learning-map lineage view. */
+:root, :root[data-theme="dark"] {
+  --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+  --accent: #7fb2ff; --accent-ink: #0b1622;
+  --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --stage: #080d12; --stage-line: #1f2a34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: grid; gap: 1.5rem; }
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -.01em; margin: .25rem 0 0; text-wrap: balance; }
+header p.lede { margin: .5rem 0 0; color: var(--muted); max-width: 62ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+sub, sup { font-size: .7em; line-height: 0; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tab {
+  font: 700 .92rem var(--f-body); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: .45rem .9rem; border-radius: 999px; cursor: pointer; display: inline-flex; gap: .45rem; align-items: baseline;
+}
+.tab .n { font: 500 .75rem var(--f-mono); color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tab[aria-selected="true"] .n { color: inherit; opacity: .8; }
+
+.lab { display: grid; gap: 1.25rem; align-items: start; }
+@media (min-width: 56rem) { .lab { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+.bench { background: var(--stage); color: var(--stage-ink); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: grid; }
+#stage { display: block; width: 100%; aspect-ratio: 420 / 320; max-width: 100%; }
+.bench-controls { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding: 1rem; border-top: 1px solid var(--stage-line); min-height: 4.5rem; }
+.btn { font: 700 .95rem var(--f-body); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; border: 0; background: #6ea8ff; color: #0b1622; }
+.btn.ghost { background: transparent; color: var(--stage-ink); border: 1.5px solid #33424f; }
+.btn[aria-pressed="true"] { background: #ffd24a; color: #2a2208; }
+.btn:disabled { opacity: .45; cursor: default; }
+.bench .btn:focus-visible, .seg button:focus-visible { outline-color: #6ea8ff; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1.5px solid #33424f; border-radius: 8px; overflow: hidden; }
+.seg button { font: 700 .88rem var(--f-body); background: transparent; color: var(--stage-muted); border: 0; padding: .5rem .7rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #24313c; color: var(--stage-ink); }
+.seg button:disabled { opacity: .35; cursor: default; }
+.heat { display: flex; align-items: center; gap: .6rem; flex: 1 1 15rem; font-size: .88rem; color: var(--stage-muted); }
+.heat input { flex: 1; accent-color: #ff9f5a; min-width: 8rem; }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .82rem; color: var(--stage-muted); padding: 0 1rem 1rem; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.legend i { width: .8rem; height: .8rem; border-radius: 50%; display: inline-block; }
+.legend i.line { width: 1.4rem; height: 0; border-radius: 0; border-top: 2px solid #c3cfd8; }
+.legend i.dots { width: 1.4rem; height: 0; border-radius: 0; border-top: 2px dotted #7fb2ff; }
+
+.panel { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .7rem; }
+.chip-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.caption { min-height: 12rem; align-content: start; }
+.caption h3 { font-family: var(--f-display); font-weight: 800; font-size: 1.25rem; margin: 0; text-wrap: balance; }
+.caption p { margin: 0; max-width: 60ch; }
+.caption .try { font-size: .9rem; color: var(--muted); }
+.voice-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .2rem; }
+.listen { font: 700 .9rem var(--f-body); padding: .5rem .9rem; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.listen.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+.listen:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.props { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.props th { text-align: left; font: 500 .7rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 .5rem .4rem 0; }
+.props td { padding: .45rem .5rem .45rem 0; border-top: 1px solid var(--line); vertical-align: top; }
+.props td:first-child { font-weight: 700; white-space: nowrap; padding-left: .4rem; }
+.props tr.on td { background: var(--hl); }
+.props td.yes { color: var(--good); font-weight: 700; }
+.props td.no { color: var(--bad); font-weight: 700; }
+.props td.na, .props td.untested { color: var(--muted); }
+.props td.now { box-shadow: inset 0 0 0 2px #ffd24a; border-radius: 4px; }
+.table-wrap { overflow-x: auto; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+
+.quiz { display: grid; gap: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.score { font: 500 .85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.qs { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; align-content: start; }
+.q p.ask { margin: 0; font-weight: 700; }
+.opts { display: grid; gap: .4rem; }
+.opt { text-align: left; font: 400 .95rem var(--f-body); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: .5rem .7rem; cursor: pointer; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); font-weight: 700; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { margin: 0; font-size: .92rem; color: var(--muted); }
+.why b { color: var(--ink); }
+
+.cards-list { display: grid; gap: .5rem; }
+.cards-list div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: .75rem; font-size: .92rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.cards-list div:first-child { border-top: 0; padding-top: 0; }
+.cards-list .front { font-weight: 700; }
+a { color: var(--accent); }
+@media (max-width: 30rem) { .cards-list div { grid-template-columns: 1fr; gap: .1rem; } }
+h1 i { color: #ff6b5e; font-style: normal; }  /* the coral full stop from the lineage view */
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <p class="eyebrow">Chemistry · Properties &amp; uses</p>
+    <h1>Structure &amp; Properties<i>.</i></h1>
+    <p class="lede">Why does ice melt in your hand while salt needs a furnace? Why does copper carry a current but sugar never does? It all comes down to what the particles are, and how strongly they hold on to each other.</p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <section class="lab">
+    <div class="bench">
+      <canvas id="stage" role="img" aria-label="Animated particle models of different solids"></canvas>
+      <div class="bench-controls" id="controls"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="card caption" aria-live="polite">
+        <span class="chip-label" id="cap-eyebrow"></span>
+        <h3 id="cap-title"></h3>
+        <p id="cap-text"></p>
+        <p class="try" id="cap-try"></p>
+        <div class="voice-row">
+          <button class="listen" id="listen">🔊 Hear Max explain this</button>
+          <button class="listen ghost" id="auto" aria-pressed="true">Auto-narrate: on</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="chip-label" id="info-label"></span>
+        <div id="info"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quiz">
+    <div class="quiz-head"><h2>Check you've got it</h2><span class="score" id="score"></span></div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <section class="card">
+    <h2>Key words</h2>
+    <div class="cards-list">
+      <div><span class="front">Melting point</span><span>The temperature at which a solid turns to a liquid. The stronger the attractions between the particles, the higher it is</span></div>
+      <div><span class="front">Molecular substance</span><span>Made of separate molecules: strong covalent bonds inside each molecule, only weak attractions between molecules. Low melting point, doesn't conduct. Example: water</span></div>
+      <div><span class="front">Ionic solid</span><span>A 3-D lattice of positive and negative ions. High melting point, brittle, conducts only when molten or dissolved. Example: salt</span></div>
+      <div><span class="front">Metallic solid</span><span>Positive metal ions in a sea of delocalised electrons. Conducts as a solid and when molten. Example: copper</span></div>
+      <div><span class="front">Covalent network solid</span><span>Atoms joined by covalent bonds in a giant network. Very high melting point. Examples: diamond, silica (3-D); graphite (2-D layers)</span></div>
+      <div><span class="front">Conducting electricity</span><span>Needs charged particles that are free to move: delocalised electrons, or ions in a liquid or solution</span></div>
+    </div>
+    <p class="note">Where this comes from: the particles themselves are in <a href="atoms.html">Inside an Atom</a>; the electron sea is in <a href="metals.html">Inside a Metal</a>; ionic compounds are in the <a href="precipitate.html">Precipitate Lab</a>.</p>
+  </section>
+  <p class="credit">Narration voice: Max, generated with ElevenLabs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const W = 420, H = 320;
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const font = (w, px, f = '"Atkinson Hyperlegible", system-ui, sans-serif') => `${w} ${px}px ${f}`;
+const MONO = '"IBM Plex Mono", monospace', DISPLAY = '"Schibsted Grotesk", system-ui, sans-serif';
+const COL = { o: "#e5574c", h: "#e6edf2", na: "#b48cff", cl: "#5cc46a", cu: "#c98a5a", c: "#6b7783", e: "#ffd24a", sugar: "#e9dcc0", bond: "#c3cfd8", weak: "#7fb2ff" };
+
+/* ---------- Substances ---------- */
+const SUB = {
+  ice:      { name: "Ice", made: "water molecules", held: "weak attractions between molecules", mp: 0 },
+  salt:     { name: "Salt", made: "Na⁺ and Cl⁻ ions", held: "strong attraction between + and − ions", mp: 801 },
+  copper:   { name: "Copper", made: "metal ions in a sea of electrons", held: "metallic bonding", mp: 1085 },
+  diamond:  { name: "Diamond", made: "carbon atoms", held: "strong covalent bonds in a 3-D network", mp: 3550 },
+  sugar:    { name: "Sugar", made: "sugar molecules", held: "weak attractions between molecules", mp: 186 },
+  graphite: { name: "Graphite", made: "carbon atoms in layers", held: "covalent bonds in layers; weak attractions between layers", mp: 3650 },
+};
+// Conductivity tests: which states make sense for each substance.
+const TEST_SUBS = ["sugar", "salt", "copper", "graphite", "diamond"];
+const STATES = { solid: "Solid", molten: "Molten", water: "In water" };
+const VALID = { sugar: ["solid", "water"], salt: ["solid", "molten", "water"], copper: ["solid", "molten"], graphite: ["solid"], diamond: ["solid"] };
+const NOT_VALID = { "sugar-molten": "Sugar breaks down before it melts cleanly", "copper-water": "Copper doesn't dissolve in water",
+  "graphite-molten": "Graphite won't melt below 3600 °C", "graphite-water": "Graphite doesn't dissolve in water",
+  "diamond-molten": "Diamond won't melt below 3500 °C", "diamond-water": "Diamond doesn't dissolve in water" };
+const conducts = (s, st) => s === "copper" || s === "graphite" || (s === "salt" && st !== "solid");
+const WHY = {
+  "sugar-solid": "No: sugar is made of molecules. There are no charged particles to carry a current.",
+  "sugar-water": "No: the sugar molecules spread through the water, but they still have no charge.",
+  "salt-solid": "No: salt is made of ions, but in the solid they're locked in the lattice and can't move.",
+  "salt-molten": "Yes: melting frees the ions. Positive ions drift one way, negative ions the other.",
+  "salt-water": "Yes: dissolving frees the ions too, so the solution carries a current.",
+  "copper-solid": "Yes: the delocalised electrons are free to flow through the metal.",
+  "copper-molten": "Yes: the electrons are still free to move in the liquid metal.",
+  "graphite-solid": "Yes: each carbon has one spare electron, free to move along the layers.",
+  "diamond-solid": "No: every outer electron is held in a covalent bond. Nothing is free to move.",
+};
+
+/* ---------- State ---------- */
+const S = { scene: 0, heat: 0, t2: -20, sub: "salt", state: "solid", on: false, net: "graphite", push: 0, pushTarget: 0, shake: 0, boiled: false };
+const tested = {};
+const tempOf = s => Math.round(-20 + 3980 * (s / 100) ** 2.2);  // scene 1 slider: fine control at low temperatures
+const tempText = t => `${t < 200 ? t : Math.round(t / 10) * 10} °C`;
+
+/* ---------- Particle panels ---------- */
+// A panel is a box of particles: each sits at a lattice "home" while solid, and wanders freely once melted.
+function makePanel(type, area, cols, rows) {
+  const units = [], sx = area.w / cols, sy = area.h / rows;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const hx = area.x + sx * (c + .5) + (type === "graphite" && r % 2 ? sx * .5 : 0), hy = area.y + sy * (r + .5);
+    units.push({ r, c, hx, hy, fx: hx, fy: hy, vx: rand(-20, 20), vy: rand(-20, 20), ph: rand(0, 6.3),
+      ang: (r + c) % 2 ? 0.5 : -0.4, spin: rand(-1.2, 1.2), sign: type === "salt" ? ((r + c) % 2 ? -1 : 1) : 0 });
+  }
+  const electrons = type === "copper" || type === "graphite"
+    ? Array.from({ length: type === "copper" ? 16 : 12 }, () => ({ x: rand(area.x, area.x + area.w), y: rand(area.y, area.y + area.h), vx: rand(-40, 40), vy: rand(-40, 40) })) : [];
+  return { type, area, cols, rows, units, electrons, m: 0, g: 0, spread: 0, sx, sy };
+}
+// phase: 0 solid, 1 liquid, 2 gas. spread = dissolved in water. drift moves charges towards the electrodes.
+function stepPanel(p, dt, phase, spread = false, drift = 0) {
+  const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 1.6);
+  p.m += ((phase >= 1 || spread ? 1 : 0) - p.m) * k;
+  p.g += ((phase === 2 ? 1 : 0) - p.g) * k;
+  p.spread += ((spread ? 1 : 0) - p.spread) * k;
+  const a = p.area, yTop = lerp(lerp(a.y + a.h * .42, a.y + 2, p.g), a.y + a.h * .06, p.spread);
+  const vmax = lerp(16, 80, p.g) * (1 + p.spread * .4) * (reduceMotion ? .3 : 1);
+  for (const u of p.units) {
+    if (p.m < .02 && phase === 0 && !spread) { u.fx = u.hx; u.fy = u.hy; continue; }
+    u.vx += rand(-1, 1) * 220 * dt; u.vy += rand(-1, 1) * 220 * dt;
+    if (drift && u.sign && p.m > .5) u.vx -= u.sign * drift * dt;   // + ions to the − electrode (left), − ions to the + electrode
+    const sp = Math.hypot(u.vx, u.vy); if (sp > vmax) { u.vx *= vmax / sp; u.vy *= vmax / sp; }
+    u.fx += u.vx * dt; u.fy += u.vy * dt;
+    if (u.fx < a.x + 6) { u.fx = a.x + 6; u.vx = Math.abs(u.vx); }
+    if (u.fx > a.x + a.w - 6) { u.fx = a.x + a.w - 6; u.vx = -Math.abs(u.vx); }
+    if (u.fy < yTop) { u.fy = yTop; u.vy = Math.abs(u.vy); }
+    if (u.fy > a.y + a.h - 6) { u.fy = a.y + a.h - 6; u.vy = -Math.abs(u.vy); }
+    u.ang += u.spin * dt * p.m;
+  }
+  const eTop = p.m > .5 ? yTop : a.y;
+  for (const e of p.electrons) {
+    e.vx += rand(-1, 1) * 400 * dt + drift * 1.4 * dt; e.vy += rand(-1, 1) * 400 * dt;
+    const sp = Math.hypot(e.vx, e.vy), max = 70; if (sp > max) { e.vx *= max / sp; e.vy *= max / sp; }
+    e.x += e.vx * dt; e.y += e.vy * dt;
+    if (drift) { if (e.x > a.x + a.w) e.x = a.x; } else { if (e.x < a.x) { e.x = a.x; e.vx = Math.abs(e.vx); } if (e.x > a.x + a.w) { e.x = a.x + a.w; e.vx = -Math.abs(e.vx); } }
+    if (e.y < eTop) { e.y = eTop; e.vy = Math.abs(e.vy); }
+    if (e.y > a.y + a.h) { e.y = a.y + a.h; e.vy = -Math.abs(e.vy); }
+  }
+}
+function posOf(p, u, now, amp) {
+  const v = reduceMotion ? 0 : amp;
+  return [lerp(u.hx + Math.sin(now * 9 + u.ph) * v, u.fx, p.m), lerp(u.hy + Math.cos(now * 8 + u.ph * 1.3) * v, u.fy, p.m)];
+}
+
+/* ---------- Drawing particles ---------- */
+const canvas = $("stage"), ctx = canvas.getContext("2d");
+let dpr = 1, scale = 1;
+function resize() {
+  const w = canvas.clientWidth || W;
+  dpr = Math.min(2, window.devicePixelRatio || 1); scale = w / W;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(canvas); resize();
+function dot(x, y, r, fill, stroke = "#0c1218") { ctx.fillStyle = fill; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); } }
+function line(x1, y1, x2, y2, col, w = 1.5, dash = null, alpha = 1) {
+  if (alpha < .02) return;
+  ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = w; ctx.setLineDash(dash || []);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+}
+// Water: O in the middle, two H at 104.5° apart, joined by strong covalent bonds.
+function water(x, y, s, ang) {
+  const hs = [ang - .91, ang + .91].map(t => [x + Math.cos(t - Math.PI / 2) * 7 * s, y + Math.sin(t - Math.PI / 2) * 7 * s]);
+  hs.forEach(([hx, hy]) => line(x, y, hx, hy, COL.bond, 1.6 * s));
+  dot(x, y, 4.6 * s, COL.o);
+  hs.forEach(([hx, hy]) => dot(hx, hy, 2.8 * s, COL.h));
+}
+function ion(x, y, r, fill, sign) {
+  dot(x, y, r, fill);
+  ctx.fillStyle = "#0b1622"; ctx.font = font(800, r * 1.5); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(sign, x, y + .5); ctx.textBaseline = "alphabetic";
+}
+function sugarMol(x, y, ang) {
+  ctx.strokeStyle = COL.sugar; ctx.lineWidth = 1.6; ctx.beginPath();
+  for (let i = 0; i <= 6; i++) { const t = ang + i * Math.PI / 3; const px = x + Math.cos(t) * 6, py = y + Math.sin(t) * 6; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+  ctx.stroke();
+}
+function drawPanel(p, now, amp) {
+  const P = p.units.map(u => posOf(p, u, now, amp));
+  const at = (r, c) => { const i = r * p.cols + c; return r >= 0 && r < p.rows && c >= 0 && c < p.cols ? P[i] : null; };
+  // Bonds and attractions between lattice neighbours fade as the solid melts.
+  p.units.forEach((u, i) => {
+    const me = P[i];
+    for (const [dr, dc] of [[0, 1], [1, 0]]) {
+      const o = at(u.r + dr, u.c + dc); if (!o) continue;
+      if (p.type === "ice" || p.type === "sugar") line(me[0], me[1], o[0], o[1], COL.weak, 1.2, [2, 3], .55 * (1 - p.m));
+      if (p.type === "diamond") line(me[0], me[1], o[0], o[1], COL.bond, 2, null, 1 - p.m);
+      if (p.type === "graphite") dr ? line(me[0], me[1], o[0], o[1], COL.weak, 1.2, [2, 3], .5) : line(me[0], me[1], o[0], o[1], COL.bond, 2);
+    }
+  });
+  if (p.type === "copper" || p.type === "graphite") p.electrons.forEach(e => dot(e.x, e.y, 2.2, COL.e, null));
+  p.units.forEach((u, i) => {
+    const [x, y] = P[i];
+    if (p.type === "ice") water(x, y, p.s || 1, u.ang);
+    else if (p.type === "salt") ion(x, y, u.sign > 0 ? 5.2 : 6.6, u.sign > 0 ? COL.na : COL.cl, u.sign > 0 ? "+" : "−");
+    else if (p.type === "copper") ion(x, y, 6, "#a9b6c2", "+");
+    else if (p.type === "sugar") sugarMol(x, y, u.ang);
+    else dot(x, y, 4.6, COL.c, "#9fb1bf");
+  });
+  if (p.spread > .02) {  // water molecules around dissolved particles, drawn faint
+    ctx.globalAlpha = .25 * p.spread;
+    for (let i = 0; i < 40; i++) { const a = p.area; dot(a.x + (i * 53.7 % a.w), a.y + 8 + (i * 31.3 % (a.h - 10)), 1.6, "#7fb2ff", null); }
+    ctx.globalAlpha = 1;
+  }
+}
+function wrapText(text, x, y, maxW, lh) {
+  const words = text.split(" "); let lineTxt = "";
+  for (const w of words) { const t = lineTxt ? lineTxt + " " + w : w; if (ctx.measureText(t).width > maxW && lineTxt) { ctx.fillText(lineTxt, x, y); y += lh; lineTxt = w; } else lineTxt = t; }
+  if (lineTxt) ctx.fillText(lineTxt, x, y);
+  return y + lh;
+}
+
+/* ---------- Scenes ---------- */
+const SCENES = [
+  { tab: "Heat them up", eyebrow: "Attractions and melting points", title: "Stronger attractions, higher melting point",
+    text: "Four solids, four very different melting points: ice melts at <b>0 °C</b>, salt at about <b>800 °C</b>, copper at over <b>1000 °C</b> and diamond above <b>3500 °C</b>. The difference is how strongly the particles <b>attract each other</b>. The stronger the attractions, the more heat energy it takes to pull the particles apart, so the higher the melting point.",
+    tryText: "Try: slide the temperature up slowly and watch which one gives way first." },
+  { tab: "Strong inside, weak between", eyebrow: "Molecular substances", title: "Strong bonds inside, weak attractions between",
+    text: "Water is made of <b>molecules</b>. Inside each molecule, the atoms are held by <b>strong covalent bonds</b>. Between one molecule and the next there are only <b>weak attractions</b>, and those are easy to overcome: ice melts at 0 °C and water boils at 100 °C. Molecular substances have <b>low melting points</b> and don't conduct electricity, because there are no charged particles free to move.",
+    tryText: "Try: heat the ice until it boils, then look closely at the molecules." },
+  { tab: "Does it conduct?", eyebrow: "Conductivity", title: "Charged particles that are free to move",
+    text: "To conduct electricity, a substance needs <b>charged particles that are free to move</b>. Metals have <b>delocalised electrons</b>, so they conduct when solid or molten. Salt is made of <b>ions</b>, but in the solid they're locked in place, so it only conducts when <b>molten or dissolved</b>. Sugar is made of molecules with no charge at all, so it never conducts.",
+    tryText: "Try: test each substance in each state and fill in the table." },
+  { tab: "Giant networks", eyebrow: "Covalent network solids", title: "One giant molecule, held together everywhere",
+    text: "In <b>diamond</b>, every carbon atom is joined to four others by strong covalent bonds, all the way through the crystal. To scratch or melt it you'd have to break those bonds, so diamond is <b>extremely hard</b> with a <b>very high melting point</b>. <b>Graphite</b> is also pure carbon, but in flat layers with only weak attractions between them. The layers <b>slide</b>, so graphite is soft, and spare electrons along the layers let it <b>conduct</b>.",
+    tryText: "Try: push on the graphite, then switch to diamond and push again." },
+];
+const BOILED = { eyebrow: "Look closely", title: "The molecules are still whole",
+  text: "Boiling didn't break the strong covalent bonds <b>inside</b> the water molecules: every one still has its two hydrogen atoms. It only overcame the weak attractions <b>between</b> the molecules, so they could fly apart as a gas. That's why it takes so little heat: 100 °C, compared with over 800 °C for salt.",
+  tryText: "Try: cool it back down and watch the molecules pull together again." };
+
+let panels = [], testPanel = null, net = null;
+function buildScene() {
+  if (S.scene === 0) {
+    const box = (x, y) => ({ x: x + 10, y: y + 26, w: 176, h: 88 });
+    panels = [["ice", 8, 34, 5, 3], ["salt", 216, 34, 7, 4], ["copper", 8, 180, 7, 4], ["diamond", 216, 180, 7, 4]]
+      .map(([t, x, y, c, r]) => Object.assign(makePanel(t, box(x, y), c, r), { frame: { x, y, w: 196, h: 126 } }));
+  } else if (S.scene === 1) {
+    panels = [Object.assign(makePanel("ice", { x: 26, y: 56, w: 250, h: 236 }, 5, 4), { s: 1.7 })];
+  } else if (S.scene === 2) {
+    const t = S.sub;
+    testPanel = makePanel(t, { x: 40, y: 122, w: 210, h: 170 }, t === "graphite" ? 8 : 7, t === "graphite" ? 4 : 5);
+  } else {
+    net = makePanel(S.net, { x: 24, y: 70, w: 230, h: 220 }, 9, S.net === "graphite" ? 4 : 5);
+    net.electrons.forEach(e => { e.row = Math.floor(rand(0, 4)); e.x = rand(24, 254); });
+    S.push = 0; S.pushTarget = 0; S.shake = 0;
+  }
+}
+
+function renderTabs() {
+  $("tabs").innerHTML = SCENES.map((s, i) => `<button class="tab" role="tab" id="tab-${i}" aria-selected="${i === S.scene}"><span class="n">${i + 1}</span>${s.tab}</button>`).join("");
+  SCENES.forEach((_, i) => $("tab-" + i).onclick = () => setScene(i));
+}
+function setScene(i) {
+  S.scene = i; S.on = false; S.boiled = false;
+  if (i === 1) S.t2 = -20;
+  buildScene(); renderTabs(); renderControls(); renderCaption(); renderInfo();
+}
+
+function renderControls() {
+  const c = $("controls");
+  if (S.scene === 0) {
+    c.innerHTML = `<label class="heat">🔥 Heat<input type="range" id="heat" min="0" max="100" value="${S.heat}" aria-label="Temperature"></label>
+      <button class="btn ghost" id="cool">Cool down</button>`;
+    $("heat").oninput = e => { S.heat = +e.target.value; renderInfo(); };
+    $("cool").onclick = () => { S.heat = 0; $("heat").value = 0; renderInfo(); };
+  } else if (S.scene === 1) {
+    c.innerHTML = `<label class="heat">🔥 Heat<input type="range" id="heat2" min="-20" max="140" value="${S.t2}" aria-label="Temperature"></label>
+      <button class="btn ghost" id="cool">Cool down</button>`;
+    $("heat2").oninput = e => { S.t2 = +e.target.value; checkBoil(); };
+    $("cool").onclick = () => { S.t2 = -20; $("heat2").value = -20; checkBoil(); };
+  } else if (S.scene === 2) {
+    c.innerHTML = `<div class="seg" role="group" aria-label="Substance">${TEST_SUBS.map(s => `<button data-sub="${s}" aria-pressed="${s === S.sub}">${SUB[s].name}</button>`).join("")}</div>
+      <div class="seg" role="group" aria-label="State">${Object.entries(STATES).map(([k, v]) => { const ok = VALID[S.sub].includes(k);
+        return `<button data-st="${k}" aria-pressed="${k === S.state}" ${ok ? "" : `disabled title="${NOT_VALID[S.sub + "-" + k]}"`}>${v}</button>`; }).join("")}</div>
+      <button class="btn" id="connect" aria-pressed="${S.on}">${S.on ? "Disconnect" : "Connect the battery"}</button>`;
+    c.querySelectorAll("[data-sub]").forEach(b => b.onclick = () => { S.sub = b.dataset.sub; if (!VALID[S.sub].includes(S.state)) S.state = "solid"; S.on = false; buildScene(); renderControls(); renderInfo(); });
+    c.querySelectorAll("[data-st]").forEach(b => b.onclick = () => { S.state = b.dataset.st; S.on = false; buildScene(); renderControls(); renderInfo(); });
+    $("connect").onclick = () => { S.on = !S.on; if (S.on) tested[S.sub + "-" + S.state] = true; renderControls(); renderInfo(); };
+  } else {
+    c.innerHTML = `<div class="seg" role="group" aria-label="Substance">${["graphite", "diamond"].map(s => `<button data-net="${s}" aria-pressed="${s === S.net}">${SUB[s].name}</button>`).join("")}</div>
+      <button class="btn" id="push" ${S.pushTarget ? "disabled" : ""}>👉 Push the top layers</button>
+      <button class="btn ghost" id="reset">Reset</button>`;
+    c.querySelectorAll("[data-net]").forEach(b => b.onclick = () => { S.net = b.dataset.net; buildScene(); renderControls(); renderInfo(); });
+    $("push").onclick = () => { if (S.net === "graphite") S.pushTarget = 1; else { S.shake = 1; S.pushTarget = 1; } renderControls(); };
+    $("reset").onclick = () => { buildScene(); renderControls(); };
+  }
+  const L = {
+    0: `<span><i style="background:${COL.o}"></i>water molecule</span><span><i style="background:${COL.na}"></i>Na⁺</span><span><i style="background:${COL.cl}"></i>Cl⁻</span><span><i style="background:#a9b6c2"></i>copper ion</span><span><i style="background:${COL.e}"></i>electron</span><span><i style="background:${COL.c}"></i>carbon atom</span>`,
+    1: `<span><i style="background:${COL.o}"></i>oxygen</span><span><i style="background:${COL.h}"></i>hydrogen</span><span><i class="line"></i>strong covalent bond (inside)</span><span><i class="dots"></i>weak attraction (between)</span>`,
+    2: `<span><i style="background:${COL.na}"></i>positive ion</span><span><i style="background:${COL.cl}"></i>negative ion</span><span><i style="background:${COL.e}"></i>free electron</span><span><i style="background:${COL.sugar}"></i>sugar molecule</span><span><i style="background:${COL.c}"></i>carbon atom</span>`,
+    3: `<span><i style="background:${COL.c}"></i>carbon atom</span><span><i class="line"></i>covalent bond</span><span><i class="dots"></i>weak attraction between layers</span><span><i style="background:${COL.e}"></i>free electron</span>`,
+  };
+  $("legend").innerHTML = L[S.scene];
+}
+function checkBoil() {
+  const b = S.t2 >= 100;
+  if (b !== S.boiled) { S.boiled = b; renderCaption(); }
+}
+function renderCaption() {
+  const s = S.scene === 1 && S.boiled ? BOILED : SCENES[S.scene];
+  $("cap-eyebrow").textContent = s.eyebrow;
+  $("cap-title").textContent = s.title;
+  $("cap-text").innerHTML = s.text;
+  $("cap-try").textContent = s.tryText;
+  const key = S.scene === 1 && S.boiled ? "prop-boil" : "prop-" + (S.scene + 1);
+  if (key !== voice.key) {
+    const backFromBoil = voice.key === "prop-boil" && key === "prop-2";
+    voice.key = key;
+    if (voice.armed && voice.auto && !backFromBoil) speak(); else stopSpeaking();
+  }
+}
+
+/* ---------- Info card: changes with the scene ---------- */
+function renderInfo() {
+  const L = $("info-label"), I = $("info");
+  if (S.scene === 0) {
+    const T = tempOf(S.heat);
+    L.textContent = "What holds each one together";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Solid</th><th>Made of</th><th>Held by</th><th>Melts at</th></tr></thead><tbody>
+      ${["ice", "salt", "copper", "diamond"].map(k => `<tr class="${T >= SUB[k].mp ? "on" : ""}"><td>${SUB[k].name}</td><td>${SUB[k].made}</td><td>${SUB[k].held}</td><td>${k === "diamond" ? "above 3500 °C" : SUB[k].mp + " °C"}</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="note">Highlighted rows have melted at ${tempText(T)}. (In air, diamond would burn long before it melted; its melting point is measured under pressure.)</p>`;
+  } else if (S.scene === 1) {
+    L.textContent = "Two kinds of holding on";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th></th><th>Strength</th><th>Broken by melting or boiling?</th></tr></thead><tbody>
+      <tr><td>Covalent bonds inside a molecule</td><td>strong</td><td>No</td></tr>
+      <tr><td>Attractions between molecules</td><td>weak</td><td>Yes</td></tr></tbody></table></div>
+      <div class="table-wrap"><table class="props"><thead><tr><th>Molecular substance</th><th>Melts at</th></tr></thead><tbody>
+      <tr><td>Oxygen, O₂</td><td>−218 °C</td></tr><tr><td>Water, H₂O</td><td>0 °C</td></tr><tr><td>Candle wax</td><td>about 60 °C</td></tr><tr><td>Iodine, I₂</td><td>114 °C</td></tr></tbody></table></div>
+      <p class="note"><b>Polymers</b> such as polythene are giant chain molecules: strong bonds along each chain, weaker attractions between chains. They soften when warmed and don't conduct.</p>`;
+  } else if (S.scene === 2) {
+    const key = S.sub + "-" + S.state;
+    L.textContent = "Your results";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Substance</th>${Object.values(STATES).map(v => `<th>${v}</th>`).join("")}</tr></thead><tbody>
+      ${TEST_SUBS.map(s => `<tr><td>${SUB[s].name}</td>${Object.keys(STATES).map(st => {
+        const k = s + "-" + st, now = k === key ? " now" : "";
+        if (!VALID[s].includes(st)) return `<td class="na${now}">–</td>`;
+        if (!tested[k]) return `<td class="untested${now}">?</td>`;
+        return conducts(s, st) ? `<td class="yes${now}">conducts</td>` : `<td class="no${now}">doesn't</td>`;
+      }).join("")}</tr>`).join("")}
+      </tbody></table></div>
+      <p class="note">${tested[key] ? WHY[key] : "Connect the battery to test this one."}</p>`;
+  } else {
+    L.textContent = "Three covalent networks";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th></th><th>Structure</th><th>Hardness</th><th>Melts at</th><th>Conducts?</th></tr></thead><tbody>
+      <tr class="${S.net === "diamond" ? "on" : ""}"><td>Diamond, C</td><td>3-D: each C bonded to 4</td><td>hardest natural substance</td><td>above 3500 °C</td><td>No</td></tr>
+      <tr class="${S.net === "graphite" ? "on" : ""}"><td>Graphite, C</td><td>2-D layers: each C bonded to 3</td><td>soft, slippery</td><td>above 3600 °C</td><td>Yes</td></tr>
+      <tr><td>Silica, SiO₂</td><td>3-D network of Si and O</td><td>hard (sand, quartz)</td><td>about 1700 °C</td><td>No</td></tr></tbody></table></div>
+      <p class="note">Graphite's layers are soft, but each layer is still a giant network of strong bonds, so graphite also has a very high melting point. Pencil "lead" is graphite: the layers slide off onto the paper.</p>`;
+  }
+}
+
+/* ---------- Narration (Max, ElevenLabs) ----------
+   Each scene has a clip, and so does the moment the water boils. A clip plays when the learner opens
+   that scene (if auto-narrate is on), or whenever he presses the listen button. */
+const voice = { key: "prop-1", armed: false, auto: true, clips: {} };
+try { voice.auto = localStorage.getItem("prop-voice") !== "off"; } catch {}
+const clipFor = k => voice.clips[k] || (voice.clips[k] = (() => {
+  const a = new Audio(`audio/${k}.mp3`); a.preload = "auto";
+  ["play", "pause", "ended", "error"].forEach(ev => a.addEventListener(ev, updateListen));
+  return a;
+})());
+function stopSpeaking() { Object.values(voice.clips).forEach(a => a.pause()); updateListen(); }
+function speak() {
+  stopSpeaking();
+  const a = clipFor(voice.key);
+  try { a.currentTime = 0; } catch {}
+  const p = a.play();
+  if (p && p.catch) p.catch(updateListen);
+}
+const isSpeaking = () => { const a = voice.clips[voice.key]; return !!(a && !a.paused && !a.ended); };
+function updateListen() {
+  const b = $("listen"); if (!b) return;
+  b.textContent = isSpeaking() ? "■ Stop" : "🔊 Hear Max explain this";
+  $("auto").textContent = "Auto-narrate: " + (voice.auto ? "on" : "off");
+  $("auto").setAttribute("aria-pressed", String(voice.auto));
+}
+$("listen").onclick = () => { voice.armed = true; isSpeaking() ? stopSpeaking() : speak(); };
+$("auto").onclick = () => {
+  voice.auto = !voice.auto;
+  try { localStorage.setItem("prop-voice", voice.auto ? "on" : "off"); } catch {}
+  if (!voice.auto) stopSpeaking();
+  updateListen();
+};
+// Audio can only start after the learner has tapped something, so the first tap anywhere arms auto-narration.
+document.addEventListener("pointerdown", () => { voice.armed = true; }, { once: true, capture: true });
+
+/* ---------- Simulation ---------- */
+function step(dt) {
+  if (S.scene === 0) {
+    const T = tempOf(S.heat);
+    panels.forEach(p => stepPanel(p, dt, T >= SUB[p.type].mp ? 1 : 0));
+  } else if (S.scene === 1) {
+    stepPanel(panels[0], dt, S.t2 >= 100 ? 2 : S.t2 >= 0 ? 1 : 0);
+  } else if (S.scene === 2) {
+    const flow = S.on && conducts(S.sub, S.state) ? 26 : 0;
+    stepPanel(testPanel, dt, S.state === "molten" ? 1 : 0, S.state === "water", flow);
+  } else {
+    const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 1.4);
+    if (S.net === "graphite") S.push += (S.pushTarget - S.push) * k;
+    S.shake = Math.max(0, S.shake - dt * 1.2);
+    for (const e of net.electrons) { e.x += (reduceMotion ? 8 : 30) * dt * (e.row % 2 ? 1 : -1); if (e.x > 254) e.x = 24; if (e.x < 24) e.x = 254; }
+  }
+}
+
+function drawHeatScene(now) {
+  const T = tempOf(S.heat);
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO);
+  ctx.fillText("FOUR SOLIDS, ZOOMED IN, HEATED TOGETHER", 10, 21);
+  ctx.textAlign = "right"; ctx.fillStyle = T > 1000 ? "#ffb070" : T > 100 ? "#ffd24a" : "#dce5ec"; ctx.font = font(800, 16, DISPLAY);
+  ctx.fillText(tempText(T), 412, 22);
+  for (const p of panels) {
+    const f = p.frame, sub = SUB[p.type], melted = T >= sub.mp;
+    ctx.strokeStyle = melted ? "#5a4630" : "#24313c"; ctx.lineWidth = 1; ctx.strokeRect(f.x + .5, f.y + .5, f.w - 1, f.h - 1);
+    ctx.textAlign = "left"; ctx.fillStyle = "#dce5ec"; ctx.font = font(700, 12); ctx.fillText(sub.name, f.x + 8, f.y + 16);
+    ctx.textAlign = "right"; ctx.fillStyle = melted ? "#ffb070" : "#7f93a3"; ctx.font = font(500, 9.5, MONO);
+    ctx.fillText(melted ? "MELTED" : `MELTS ${p.type === "diamond" ? ">3500" : sub.mp} °C`, f.x + f.w - 8, f.y + 16);
+    const heat = clamp01((T + 273) / (sub.mp + 273));
+    drawPanel(p, now, .3 + 2.4 * heat);
+  }
+}
+function drawWaterScene(now) {
+  const p = panels[0], T = S.t2, st = T >= 100 ? "gas (steam)" : T >= 0 ? "liquid water" : "solid ice";
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO);
+  ctx.fillText("WATER MOLECULES, ZOOMED IN", 26, 30);
+  drawPanel(p, now, .4 + 1.6 * clamp01((T + 273) / 373));
+  const rx = 296;
+  ctx.fillStyle = "#dce5ec"; ctx.font = font(800, 28, DISPLAY); ctx.fillText(`${T} °C`, rx, 74);
+  ctx.fillStyle = T >= 100 ? "#ffb070" : T >= 0 ? "#7fb2ff" : "#c3cfd8"; ctx.font = font(700, 13); ctx.fillText(st, rx, 96);
+  ctx.fillStyle = "#9fb1bf"; ctx.font = font(400, 11.5);
+  let y = 128;
+  y = wrapText("Melts at 0 °C", rx, y, 116, 16); y = wrapText("Boils at 100 °C", rx, y, 116, 16);
+  ctx.fillStyle = "#c3cfd8"; ctx.font = font(700, 11.5); y += 10;
+  y = wrapText(T >= 100 ? "Molecules far apart, but each one still whole." : T >= 0 ? "Attractions overcome: molecules slide past each other." : "Weak attractions hold the molecules in place.", rx, y, 116, 16);
+  ctx.fillStyle = "#8fe0a8"; ctx.font = font(700, 11.5); y += 10;
+  wrapText("Covalent bonds inside: never broken.", rx, y, 116, 16);
+}
+function drawTestScene(now) {
+  const p = testPanel, a = p.area, key = S.sub + "-" + S.state, ok = S.on && conducts(S.sub, S.state);
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO);
+  ctx.fillText(`${SUB[S.sub].name.toUpperCase()}, ${STATES[S.state].toUpperCase()}, ZOOMED IN`, 14, 22);
+  // Beaker or sample holder
+  ctx.strokeStyle = "#33424f"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(a.x - 6, a.y - 18); ctx.lineTo(a.x - 6, a.y + a.h + 6); ctx.lineTo(a.x + a.w + 6, a.y + a.h + 6); ctx.lineTo(a.x + a.w + 6, a.y - 18); ctx.stroke();
+  if (S.state !== "solid") { ctx.fillStyle = S.state === "water" ? "rgba(127,178,255,.07)" : "rgba(255,159,90,.08)"; ctx.fillRect(a.x - 5, a.y + a.h * (S.state === "water" ? .02 : .38), a.w + 10, a.h * (S.state === "water" ? .98 : .62) + 5); }
+  drawPanel(p, now, .8);
+  // Circuit: − electrode on the left, + on the right, battery and bulb above
+  const L = a.x + 16, R = a.x + a.w - 16, top = 56, live = S.on ? "#c9a24a" : "#5b6874";
+  line(L, a.y - 30, L, a.y + a.h - 8, "#8a98a3", 5); line(R, a.y - 30, R, a.y + a.h - 8, "#8a98a3", 5);
+  ctx.strokeStyle = live; ctx.lineWidth = 2.5; ctx.beginPath();
+  ctx.moveTo(L, a.y - 30); ctx.lineTo(L, top); ctx.lineTo(112, top);
+  ctx.moveTo(126, top); ctx.lineTo(S.on ? 160 : 156, S.on ? top : top - 10);
+  ctx.moveTo(170, top); ctx.lineTo(R, top); ctx.lineTo(R, a.y - 30); ctx.stroke();
+  line(112, top - 9, 112, top + 9, "#dce5ec", 3); line(120, top - 15, 120, top + 15, "#dce5ec", 3); line(120, top, 126, top, live, 2.5);
+  ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 12); ctx.textAlign = "center";
+  ctx.fillText("−", L, a.y - 36); ctx.fillText("+", R, a.y - 36);
+  ctx.font = font(600, 10); ctx.fillText("battery", 116, top + 28); ctx.fillText(S.on ? "switch closed" : "switch open", 160, top - 18);
+  const bx = 210, by = top;
+  if (ok) { const g = ctx.createRadialGradient(bx, by, 2, bx, by, 32); g.addColorStop(0, "rgba(255,220,120,.85)"); g.addColorStop(1, "rgba(255,200,80,0)"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, 32, 0, 7); ctx.fill(); }
+  ctx.fillStyle = ok ? "#ffe9a8" : "#24313c"; ctx.strokeStyle = "#9fb1bf"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(bx, by, 10, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#9fb1bf"; ctx.fillText("bulb", bx, by + 26);
+  // Result
+  const rx = 284; ctx.textAlign = "left";
+  if (!S.on) { ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 12); wrapText("Connect the battery to test it.", rx, 140, 128, 17); return; }
+  ctx.fillStyle = ok ? "#8fe0a8" : "#ff8a7a"; ctx.font = font(800, 20, DISPLAY);
+  ctx.fillText(ok ? "Conducts" : "Doesn't conduct", rx, 132);
+  ctx.fillStyle = "#c3cfd8"; ctx.font = font(400, 11.5);
+  wrapText(WHY[key].replace(/^(Yes|No): (.)/, (_, __, c) => c.toUpperCase()), rx, 156, 128, 16);
+}
+function drawNetScene(now) {
+  const p = net, g = S.net === "graphite", sp = 230 / 9;
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO);
+  ctx.fillText(g ? "GRAPHITE, SIDE VIEW OF THE LAYERS" : "DIAMOND, FLATTENED VIEW OF THE NETWORK", 24, 30);
+  const shake = reduceMotion ? 0 : Math.sin(now * 38) * S.shake * 2.2;
+  const pos = u => [u.hx + (g && u.r < 2 ? S.push * sp * 1.5 : 0) + shake, u.hy];
+  const at = (r, c) => p.units[r * p.cols + c];
+  for (const u of p.units) {
+    const [x, y] = pos(u);
+    const right = u.c + 1 < p.cols ? at(u.r, u.c + 1) : null, below = u.r + 1 < p.rows ? at(u.r + 1, u.c) : null;
+    if (right) { const [x2, y2] = pos(right); line(x, y, x2, y2, COL.bond, 2); }
+    if (below) { const [x2, y2] = pos(below); g ? line(x, y, x2, y2, COL.weak, 1.2, [2, 3], .5) : line(x, y, x2, y2, COL.bond, 2); }
+  }
+  if (g) for (const e of p.electrons) { const row = e.row % p.rows, y = p.area.y + p.sy * (row + .5) + 7, xo = row < 2 ? S.push * sp * 1.5 : 0; dot(e.x + xo, y, 2.2, COL.e, null); }
+  for (const u of p.units) { const [x, y] = pos(u); dot(x, y, 4.8, COL.c, "#9fb1bf"); }
+  if (S.pushTarget) {
+    ctx.fillStyle = "#ffd24a"; ctx.beginPath(); ctx.moveTo(6, 98); ctx.lineTo(20, 106); ctx.lineTo(6, 114); ctx.fill();
+    ctx.fillStyle = g ? "#8fe0a8" : "#ffd24a"; ctx.font = font(700, 12); ctx.textAlign = "center";
+    ctx.fillText(g ? "layers slid over each other" : "didn't budge: bonds in every direction", 140, 306);
+  }
+  const rx = 300; ctx.textAlign = "left";
+  ctx.fillStyle = "#dce5ec"; ctx.font = font(800, 22, DISPLAY); ctx.fillText(g ? "Graphite" : "Diamond", rx, 84);
+  ctx.fillStyle = "#9fb1bf"; ctx.font = font(400, 11.5);
+  let y = 106;
+  for (const t of g ? ["Each carbon bonded to 3 others in its layer.", "Weak attractions between layers.", "Soft: layers slide.", "Conducts: free electrons."] : ["Each carbon bonded to 4 others.", "Strong bonds in all directions.", "Very hard.", "Doesn't conduct: no free electrons."])
+    y = wrapText(t, rx, y, 112, 15) + 4;
+}
+
+function draw(now) {
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  ctx.fillStyle = "#0c1218"; ctx.fillRect(0, 0, W, H);
+  [drawHeatScene, drawWaterScene, drawTestScene, drawNetScene][S.scene](now);
+}
+let last = performance.now();
+function frame(ms) {
+  const dt = Math.min(.05, (ms - last) / 1000); last = ms;
+  step(dt); draw(ms / 1000);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  { q: "Ice melts at 0 °C but salt needs about 800 °C. Why?", opts: ["Salt particles are heavier", "The attractions between water molecules are weak; the attractions between salt's ions are strong", "Ice contains air"], a: 1,
+    why: "Melting point depends on how strongly the particles attract. <b>Weak</b> attractions between molecules give a low melting point; the <b>strong</b> attraction between + and − ions gives a high one." },
+  { q: "When water boils, what is overcome?", opts: ["The weak attractions between water molecules", "The covalent bonds between O and H", "Both"], a: 0,
+    why: "Steam is still H₂O. Only the weak attractions <b>between</b> molecules are overcome; the bonds <b>inside</b> each molecule stay." },
+  { q: "Why does molten salt conduct electricity, when solid salt doesn't?", opts: ["Melting makes free electrons", "In the liquid the ions are free to move", "Heat carries the current"], a: 1,
+    why: "Solid salt has ions, but they're locked in the lattice. Melting (or dissolving) lets the <b>ions move</b>, and moving charges are a current." },
+  { q: "Graphite and diamond are both pure carbon. Why does only graphite conduct?", opts: ["Graphite has spare electrons free to move along its layers", "Diamond is too hard for electrons", "Graphite contains metal"], a: 0,
+    why: "Each carbon in graphite bonds to only 3 others, leaving <b>one free electron</b>. In diamond all 4 outer electrons are in bonds." },
+  { q: "Which has the highest melting point?", opts: ["Carbon dioxide, CO₂ (molecules)", "Sodium chloride, NaCl (ions)", "Silica, SiO₂ (covalent network)"], a: 2,
+    why: "Silica melts at about 1700 °C: every atom is held by strong covalent bonds in a giant network. Salt melts at 801 °C; CO₂ is a gas at room temperature." },
+  { q: "Which material is best for electrical wiring?", opts: ["Diamond: it's very strong", "Copper: it conducts and can be drawn into wire", "Salt: it conducts when dissolved"], a: 1,
+    why: "Copper's delocalised electrons let it <b>conduct as a solid</b>, and metals are malleable, so it can be drawn into thin wire. Choosing a material means matching its properties to the job." },
+];
+const answered = {};
+function renderQuiz() {
+  $("qs").innerHTML = QUIZ.map((item, qi) => `
+    <div class="q">
+      <p class="ask">${qi + 1}. ${item.q}</p>
+      <div class="opts">${item.opts.map((o, oi) => `<button class="opt" id="q${qi}o${oi}" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div>
+      <p class="why" id="why-${qi}" hidden></p>
+    </div>`).join("");
+  $("qs").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.q, +b.dataset.o));
+  updateScore();
+}
+function answer(qi, oi) {
+  if (qi in answered) return;
+  answered[qi] = oi;
+  const item = QUIZ[qi];
+  item.opts.forEach((_, i) => { const b = $(`q${qi}o${i}`); b.disabled = true; if (i === item.a) b.classList.add("right"); else if (i === oi) b.classList.add("wrong"); });
+  const why = $("why-" + qi);
+  why.innerHTML = (oi === item.a ? "<b>Correct.</b> " : "<b>Not quite.</b> ") + item.why;
+  why.hidden = false; updateScore();
+}
+function updateScore() {
+  const n = Object.keys(answered).length;
+  const right = Object.entries(answered).filter(([q, o]) => QUIZ[q].a === o).length;
+  $("score").textContent = n ? `${right} of ${n} right` : `${QUIZ.length} questions`;
+}
+
+renderQuiz();
+// ?step=3 opens at that tab; ?step=3&sub=salt&state=molten picks a test; ?step=4&sub=diamond picks the network (used by links from the learning map).
+const askedParams = new URLSearchParams(location.search), askedStep = parseInt(askedParams.get("step"), 10);
+const askedSub = askedParams.get("sub"), askedState = askedParams.get("state");
+if (TEST_SUBS.includes(askedSub)) { S.sub = askedSub; if (VALID[askedSub].includes(askedState)) S.state = askedState; }
+if (askedSub === "diamond" || askedSub === "graphite") S.net = askedSub;
+setScene(askedStep >= 1 && askedStep <= SCENES.length ? askedStep - 1 : 0);
+updateListen();
+requestAnimationFrame(frame);
+</script>

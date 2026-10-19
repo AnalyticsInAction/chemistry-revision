@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+/* Bigger tap targets on phones and tablets (about 44px, per platform guidelines). */
+@media (pointer: coarse) {
+  .chip, .tab, .step, .seg button, .tag, .home-link, .opt, .btn, .listen { min-height: 44px; }
+  .chip, .tag, .home-link { display: inline-flex; align-items: center; }
+  .step { min-height: 40px; }
+}
+</style>
+<title>Reaction Rates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: five scenes on a dark bench (collisions, temperature, concentration, surface area, catalyst) beside an explanation panel; then quiz and key words. Same family as the other labs. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --accent-ink: #ffffff;
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --hl: #e8eff9;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  --stage: #0c1218;
+  --stage-ink: #dce5ec;
+  --stage-muted: #9fb1bf;
+  --stage-line: #24313c;
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+    --accent: #7fb2ff; --accent-ink: #0b1622;
+    --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --stage: #080d12; --stage-line: #1f2a34;
+    color-scheme: dark;
+  }
+}
+/* Dark by default, in the same palette as the learning-map lineage view. */
+:root, :root[data-theme="dark"] {
+  --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+  --accent: #7fb2ff; --accent-ink: #0b1622;
+  --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --stage: #080d12; --stage-line: #1f2a34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: grid; gap: 1.5rem; }
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -.01em; margin: .25rem 0 0; text-wrap: balance; }
+header p.lede { margin: .5rem 0 0; color: var(--muted); max-width: 62ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+sub, sup { font-size: .7em; line-height: 0; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tab {
+  font: 700 .92rem var(--f-body); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: .45rem .9rem; border-radius: 999px; cursor: pointer; display: inline-flex; gap: .45rem; align-items: baseline;
+}
+.tab .n { font: 500 .75rem var(--f-mono); color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tab[aria-selected="true"] .n { color: inherit; opacity: .8; }
+
+.lab { display: grid; gap: 1.25rem; align-items: start; }
+@media (min-width: 56rem) { .lab { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+.bench { background: var(--stage); color: var(--stage-ink); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: grid; }
+#stage { display: block; width: 100%; aspect-ratio: 420 / 320; max-width: 100%; }
+.bench-controls { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding: 1rem; border-top: 1px solid var(--stage-line); min-height: 4.5rem; }
+.btn { font: 700 .95rem var(--f-body); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; border: 0; background: #6ea8ff; color: #0b1622; }
+.btn.ghost { background: transparent; color: var(--stage-ink); border: 1.5px solid #33424f; }
+.btn[aria-pressed="true"] { background: #ffd24a; color: #2a2208; }
+.btn:disabled { opacity: .45; cursor: default; }
+.bench .btn:focus-visible, .seg button:focus-visible { outline-color: #6ea8ff; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1.5px solid #33424f; border-radius: 8px; overflow: hidden; }
+.seg button { font: 700 .88rem var(--f-body); background: transparent; color: var(--stage-muted); border: 0; padding: .5rem .7rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #24313c; color: var(--stage-ink); }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .82rem; color: var(--stage-muted); padding: 0 1rem 1rem; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.legend i { width: .8rem; height: .8rem; border-radius: 50%; display: inline-block; }
+.legend i.sq { border-radius: 2px; }
+
+.panel { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .7rem; }
+.chip-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.caption { min-height: 12rem; align-content: start; }
+.caption h3 { font-family: var(--f-display); font-weight: 800; font-size: 1.25rem; margin: 0; text-wrap: balance; }
+.caption p { margin: 0; max-width: 60ch; }
+.caption .try { font-size: .9rem; color: var(--muted); }
+.voice-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .2rem; }
+.listen { font: 700 .9rem var(--f-body); padding: .5rem .9rem; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.listen.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+.listen:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.props { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.props th { text-align: left; font: 500 .7rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 .5rem .4rem 0; }
+.props td { padding: .45rem .5rem .45rem 0; border-top: 1px solid var(--line); vertical-align: top; }
+.props td:first-child { font-weight: 700; white-space: nowrap; padding-left: .4rem; }
+.props tr.on td { background: var(--hl); }
+.table-wrap { overflow-x: auto; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+
+.quiz { display: grid; gap: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.score { font: 500 .85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.qs { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; align-content: start; }
+.q p.ask { margin: 0; font-weight: 700; }
+.opts { display: grid; gap: .4rem; }
+.opt { text-align: left; font: 400 .95rem var(--f-body); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: .5rem .7rem; cursor: pointer; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); font-weight: 700; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { margin: 0; font-size: .92rem; color: var(--muted); }
+.why b { color: var(--ink); }
+
+.cards-list { display: grid; gap: .5rem; }
+.cards-list div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: .75rem; font-size: .92rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.cards-list div:first-child { border-top: 0; padding-top: 0; }
+.cards-list .front { font-weight: 700; }
+a { color: var(--accent); }
+@media (max-width: 30rem) { .cards-list div { grid-template-columns: 1fr; gap: .1rem; } }
+h1 i { color: #ff6b5e; font-style: normal; }  /* the coral full stop from the lineage view */
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <p class="eyebrow">Chemistry · Rates of reaction</p>
+    <h1>Reaction Rates<i>.</i></h1>
+    <p class="lede">Some reactions are over in a flash; others take years. Particles have to collide, and collide hard enough, before they can react. Change how often and how hard they collide, and you change how fast the reaction goes.</p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <section class="lab">
+    <div class="bench">
+      <canvas id="stage" role="img" aria-label="Animated particles colliding and reacting, with a graph of product made over time"></canvas>
+      <div class="bench-controls" id="controls"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="card caption" aria-live="polite">
+        <span class="chip-label" id="cap-eyebrow"></span>
+        <h3 id="cap-title"></h3>
+        <p id="cap-text"></p>
+        <p class="try" id="cap-try"></p>
+        <div class="voice-row">
+          <button class="listen" id="listen">🔊 Hear Max explain this</button>
+          <button class="listen ghost" id="auto" aria-pressed="true">Auto-narrate: on</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="chip-label" id="info-label"></span>
+        <div id="info"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quiz">
+    <div class="quiz-head"><h2>Check you've got it</h2><span class="score" id="score"></span></div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <section class="card">
+    <h2>Key words</h2>
+    <div class="cards-list">
+      <div><span class="front">Rate of reaction</span><span>How fast reactants are used up, or products are made, e.g. how much gas is given off each second</span></div>
+      <div><span class="front">Collision theory</span><span>Particles must collide to react, and the collision must have enough energy. More successful collisions each second means a faster reaction</span></div>
+      <div><span class="front">Activation energy</span><span>The smallest amount of energy a collision needs for the particles to react. Gentler collisions just bounce apart</span></div>
+      <div><span class="front">Concentration</span><span>How many particles are packed into a given volume. Higher concentration, more frequent collisions</span></div>
+      <div><span class="front">Surface area</span><span>How much of a solid is exposed. Only surface particles can be hit, so a powder reacts faster than a lump</span></div>
+      <div><span class="front">Catalyst</span><span>A substance that speeds up a reaction by giving it a route that needs less energy. It is not used up</span></div>
+    </div>
+    <p class="note">See it for real: the <a href="bunsen.html">Bunsen Burner Lab</a> (heat and oxygen), the <a href="reactions.html">Metal Reactions Lab</a> (acids fizzing with metals), and <a href="properties.html">Structure &amp; Properties</a> (how particles move as they're heated).</p>
+  </section>
+  <p class="credit">Narration voice: Max, generated with ElevenLabs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const W = 420, H = 320;
+const BOX = { x: 12, y: 30, w: 240, h: 274 };
+const R = 6, TMAX = 40;
+const rand = (a, b) => a + Math.random() * (b - a);
+const font = (w, px, f = '"Atkinson Hyperlegible", system-ui, sans-serif') => `${w} ${px}px ${f}`;
+const MONO = '"IBM Plex Mono", monospace', DISPLAY = '"Schibsted Grotesk", system-ui, sans-serif';
+const COL = { a: "#7fb2ff", b: "#ff9f5a", solid: "#a9b6c2", acid: "#7fb2ff", gas: "#8fe0a8", cat: "#b48cff", ok: "#ffd24a", miss: "#5b6874" };
+
+/* ---------- Options for each scene ---------- */
+const TEMPS = { cold: { name: "Cold", speed: .62 }, room: { name: "Room temperature", speed: 1 }, hot: { name: "Hot", speed: 1.45 } };
+const CONCS = { dilute: { name: "Dilute", n: 8 }, conc: { name: "Concentrated", n: 18 } };
+const FORMS = { lump: "One lump", powder: "Powder" };
+const BASE_SPEED = 30, THRESHOLD = 64, CAT_FACTOR = .55, SOLID_THRESHOLD = 42;
+
+/* ---------- State ---------- */
+const S = { scene: 0, temp: "room", conc: "dilute", form: "lump", cat: false };
+let mob = [], products = [], solids = [], bubbles = [], flashes = [], bars = [];
+let run = null, prev = null;
+
+const sceneSpeed = () => S.scene === 1 ? TEMPS[S.temp].speed : 1;
+const threshold = () => THRESHOLD * (S.scene === 4 && S.cat ? CAT_FACTOR : 1);
+function runLabel() {
+  return [null, TEMPS[S.temp].name, CONCS[S.conc].name, FORMS[S.form], S.cat ? "With catalyst" : "No catalyst"][S.scene] || "This run";
+}
+// Speeds follow a spread (some slow, some fast), like real particles at one temperature.
+function randomVel(scale) {
+  const sp = BASE_SPEED * scale * Math.sqrt(-2 * Math.log(Math.max(1e-6, Math.random()))), a = rand(0, Math.PI * 2);
+  return [Math.cos(a) * sp, Math.sin(a) * sp];
+}
+function freeSpot(taken) {
+  for (let i = 0; i < 200; i++) {
+    const x = rand(BOX.x + R + 2, BOX.x + BOX.w - R - 2), y = rand(BOX.y + R + 2, BOX.y + BOX.h - R - 2);
+    if (taken.every(p => Math.hypot(p.x - x, p.y - y) > 2 * R + 3)) return [x, y];
+  }
+  return [rand(BOX.x + R, BOX.x + BOX.w - R), rand(BOX.y + R, BOX.y + BOX.h - R)];
+}
+const catalysts = [[60, 120], [190, 90], [110, 230], [205, 250]].map(([x, y]) => ({ x: BOX.x + x - 12, y: BOX.y + y - 12 }));
+
+// A fresh run. keepPrev keeps the last run's graph as a faint "before" line to compare with.
+function newRun(keepPrev) {
+  prev = keepPrev && run && run.trace.length > 4 ? { trace: run.trace, label: run.label, max: run.max } : null;
+  mob = []; products = []; solids = []; bubbles = []; flashes = []; bars = [];
+  if (S.scene === 3) {
+    // Same 36 solid particles either way: one 6 × 6 lump, or nine 2 × 2 grains of powder.
+    const d = 2 * R;
+    if (S.form === "lump") {
+      const x0 = BOX.x + BOX.w / 2 - 3 * d + R, y0 = BOX.y + BOX.h / 2 - 3 * d + R + 20;
+      for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) solids.push({ g: 0, i, j, x: x0 + i * d, y: y0 + j * d });
+    } else {
+      let g = 0;
+      for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++, g++) {
+        const cx = BOX.x + 46 + a * 74, cy = BOX.y + 70 + b * 78;
+        for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) solids.push({ g, i, j, x: cx + i * d, y: cy + j * d });
+      }
+    }
+    for (let k = 0; k < 16; k++) mob.push(acid(solids.concat(mob)));
+  } else {
+    const n = S.scene === 2 ? CONCS[S.conc].n : 12, sc = sceneSpeed();
+    const taken = S.scene === 4 && S.cat ? catalysts.map(c => ({ x: c.x + 12, y: c.y + 12 })) : [];
+    for (let k = 0; k < 2 * n; k++) {
+      const [x, y] = freeSpot(taken.concat(mob)), [vx, vy] = randomVel(sc);
+      mob.push({ k: k % 2 ? "b" : "a", x, y, vx, vy, sc });
+    }
+  }
+  const total = S.scene === 3 ? solids.length : mob.length / 2;
+  run = { t: 0, trace: [[0, 0]], label: runLabel(), made: 0, total, max: total, collisions: 0, done: false };
+}
+function acid(taken) {
+  const [x, y] = freeSpot(taken), [vx, vy] = randomVel(1.1);
+  return { k: "acid", x, y, vx, vy, sc: 1.1 };
+}
+const exposed = s => {
+  const has = (i, j) => solids.some(o => o.g === s.g && o.i === i && o.j === j);
+  return !has(s.i - 1, s.j) || !has(s.i + 1, s.j) || !has(s.i, s.j - 1) || !has(s.i, s.j + 1);
+};
+
+/* ---------- Scenes ---------- */
+const SCENES = [
+  { tab: "Collisions", eyebrow: "Collision theory", title: "Particles must collide, and hard enough",
+    text: "Particles react when they <b>collide</b>. But not every collision works: if two particles bump together too gently, they just <b>bounce apart</b>. Only collisions with <b>enough energy</b> break bonds and make a product. The <b>rate</b> of a reaction is how fast product forms, so anything that gives more collisions, or harder collisions, speeds it up.",
+    tryText: "Try: watch the collision bars. Gold ones cleared the line and reacted; grey ones bounced." },
+  { tab: "Temperature", eyebrow: "Factor 1: temperature", title: "Hotter particles move faster",
+    text: "Heating makes particles <b>move faster</b>. Faster particles collide <b>more often</b>, and, more importantly, <b>more of those collisions have enough energy</b> to react. So a higher temperature means a faster reaction. That's why food lasts longer in the fridge: the reactions that spoil it slow right down.",
+    tryText: "Try: run it cold, then hot, and compare the two lines on the graph." },
+  { tab: "Concentration", eyebrow: "Factor 2: concentration", title: "More particles, more collisions",
+    text: "A <b>concentrated</b> solution has more reactant particles packed into the same volume. With more particles close together, collisions happen <b>more often</b>, so there are more successful collisions every second and the reaction goes <b>faster</b>. A dilute solution has fewer particles, fewer collisions and a slower reaction.",
+    tryText: "Try: run it dilute, then concentrated. Compare how steep the start of each line is." },
+  { tab: "Surface area", eyebrow: "Factor 3: surface area", title: "Only the surface can be hit",
+    text: "A solid can only react where its particles are <b>on the surface</b>. Particles inside a lump are hidden, so the acid can't reach them yet. Grind the <b>same amount</b> of solid into a <b>powder</b> and far more particles are exposed, ready to be hit. More collisions each second means a <b>faster reaction</b>.",
+    tryText: "Try: run the lump, then the powder. Both have 36 particles; count how many are on the surface." },
+  { tab: "Catalyst", eyebrow: "Factor 4: a catalyst", title: "An easier route, and not used up",
+    text: "A <b>catalyst</b> speeds up a reaction <b>without being used up</b>. It gives the reaction an easier route that <b>needs less energy</b>, so more collisions have enough energy to react. At the end the catalyst is still there, unchanged. Enzymes in your body are catalysts, and so are the metals in a car's exhaust system.",
+    tryText: "Try: run it without a catalyst, then add one. Watch the line on the collision bars drop." },
+];
+
+function renderTabs() {
+  $("tabs").innerHTML = SCENES.map((s, i) => `<button class="tab" role="tab" id="tab-${i}" aria-selected="${i === S.scene}"><span class="n">${i + 1}</span>${s.tab}</button>`).join("");
+  SCENES.forEach((_, i) => $("tab-" + i).onclick = () => setScene(i));
+}
+function setScene(i) {
+  S.scene = i; newRun(false);
+  renderTabs(); renderControls(); renderCaption(); renderInfo();
+}
+function change(fn) { fn(); newRun(true); renderControls(); renderInfo(); }
+
+function renderControls() {
+  const c = $("controls");
+  const seg = (label, opts, cur, attr) => `<div class="seg" role="group" aria-label="${label}">${Object.entries(opts).map(([k, v]) => `<button data-${attr}="${k}" aria-pressed="${k === cur}">${v.name || v}</button>`).join("")}</div>`;
+  const again = `<button class="btn ghost" id="again">↺ Run again</button>`;
+  if (S.scene === 0) c.innerHTML = `<button class="btn" id="again">↺ Start again</button>`;
+  else if (S.scene === 1) c.innerHTML = seg("Temperature", TEMPS, S.temp, "temp") + again;
+  else if (S.scene === 2) c.innerHTML = seg("Concentration", CONCS, S.conc, "conc") + again;
+  else if (S.scene === 3) c.innerHTML = seg("Solid", FORMS, S.form, "form") + again;
+  else c.innerHTML = `<button class="btn" id="cat" aria-pressed="${S.cat}">${S.cat ? "Remove the catalyst" : "Add a catalyst"}</button>` + again;
+  c.querySelectorAll("[data-temp]").forEach(b => b.onclick = () => change(() => S.temp = b.dataset.temp));
+  c.querySelectorAll("[data-conc]").forEach(b => b.onclick = () => change(() => S.conc = b.dataset.conc));
+  c.querySelectorAll("[data-form]").forEach(b => b.onclick = () => change(() => S.form = b.dataset.form));
+  if ($("cat")) $("cat").onclick = () => change(() => S.cat = !S.cat);
+  $("again").onclick = () => { newRun(S.scene > 0); renderInfo(); };
+  $("legend").innerHTML = S.scene === 3
+    ? `<span><i style="background:${COL.solid}"></i>solid particle</span><span><i style="background:${COL.acid}"></i>acid particle (plenty)</span><span><i style="background:${COL.gas}"></i>gas made</span><span><i style="background:${COL.ok}"></i>successful collision</span>`
+    : `<span><i style="background:${COL.a}"></i>reactant A</span><span><i style="background:${COL.b}"></i>reactant B</span><span><i style="background:transparent;border:1.5px solid ${COL.gas}"></i>product AB (A and B joined)</span><span><i style="background:${COL.ok}"></i>successful collision</span>`
+      + (S.scene === 4 ? `<span><i class="sq" style="background:${COL.cat}"></i>catalyst</span>` : "");
+}
+function renderCaption() {
+  const s = SCENES[S.scene];
+  $("cap-eyebrow").textContent = s.eyebrow;
+  $("cap-title").textContent = s.title;
+  $("cap-text").innerHTML = s.text;
+  $("cap-try").textContent = s.tryText;
+  const key = "rate-" + (S.scene + 1);
+  if (key !== voice.key) {
+    voice.key = key;
+    if (voice.armed && voice.auto) speak(); else stopSpeaking();
+  }
+}
+
+/* ---------- Info card: changes with the scene ---------- */
+function renderInfo() {
+  const L = $("info-label"), I = $("info");
+  const row = (on, cells) => `<tr class="${on ? "on" : ""}">${cells.map(c => `<td>${c}</td>`).join("")}</tr>`;
+  if (S.scene === 0) {
+    L.textContent = "What happens when particles collide";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Collision</th><th>Result</th></tr></thead><tbody>
+      ${row(false, ["Too gentle", "The particles bounce apart, unchanged"])}
+      ${row(false, ["Enough energy", "Bonds break and re-form: a product is made"])}
+      </tbody></table></div>
+      <p class="note">The smallest energy a collision needs is called the <b>activation energy</b>: the dashed line on the collision bars. The <b>rate</b> is how fast product is made: the steeper the graph, the faster the reaction.</p>`;
+  } else if (S.scene === 1) {
+    L.textContent = "Temperature and rate";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Temperature</th><th>Particles</th><th>Rate</th></tr></thead><tbody>
+      ${row(S.temp === "cold", ["Cold", "slow; few collisions clear the line", "slow"])}
+      ${row(S.temp === "room", ["Room temperature", "medium speed", "medium"])}
+      ${row(S.temp === "hot", ["Hot", "fast; more collisions, and many more with enough energy", "fast"])}
+      </tbody></table></div>
+      <p class="note">Everyday examples: a fridge slows food going off; cooking speeds up the reactions in food; a warm day makes milk sour faster.</p>`;
+  } else if (S.scene === 2) {
+    L.textContent = "Concentration and rate";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th></th><th>Particles in the box</th><th>Collisions</th><th>Rate</th></tr></thead><tbody>
+      ${row(S.conc === "dilute", ["Dilute", `${CONCS.dilute.n} of each`, "less often", "slower"])}
+      ${row(S.conc === "conc", ["Concentrated", `${CONCS.conc.n} of each`, "more often", "faster"])}
+      </tbody></table></div>
+      <p class="note">The same idea works for gases: squeezing a gas into a smaller space (higher <b>pressure</b>) packs the particles closer, so they collide more often.</p>`;
+  } else if (S.scene === 3) {
+    const out = solids.filter(exposed).length;
+    L.textContent = "Surface area and rate";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th></th><th>Solid particles</th><th>On the surface (start)</th><th>Rate</th></tr></thead><tbody>
+      ${row(S.form === "lump", ["One lump", "36", "20", "slower"])}
+      ${row(S.form === "powder", ["Powder", "36", "36", "faster"])}
+      </tbody></table></div>
+      <p class="note">Right now <b>${out}</b> of the ${solids.length} solid particles left are on the surface. Examples: powdered sugar dissolves faster than a cube; sawdust and flour can burn explosively, while a log burns slowly.</p>`;
+  } else {
+    L.textContent = "What a catalyst changes";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th></th><th>Energy needed</th><th>Rate</th><th>Catalyst at the end</th></tr></thead><tbody>
+      ${row(!S.cat, ["No catalyst", "higher", "slower", "–"])}
+      ${row(S.cat, ["With catalyst", "lower", "faster", "all 4 still there"])}
+      </tbody></table></div>
+      <p class="note">Examples: manganese dioxide makes hydrogen peroxide break down quickly; platinum and other metals in a car's catalytic converter clean up exhaust gases; enzymes such as amylase in saliva break down starch.</p>`;
+  }
+}
+
+/* ---------- Narration (Max, ElevenLabs) ----------
+   Each scene has a clip. It plays when the learner opens that scene (if auto-narrate is on),
+   or whenever he presses the listen button. */
+const voice = { key: "rate-1", armed: false, auto: true, clips: {} };
+try { voice.auto = localStorage.getItem("rate-voice") !== "off"; } catch {}
+const clipFor = k => voice.clips[k] || (voice.clips[k] = (() => {
+  const a = new Audio(`audio/${k}.mp3`); a.preload = "auto";
+  ["play", "pause", "ended", "error"].forEach(ev => a.addEventListener(ev, updateListen));
+  return a;
+})());
+function stopSpeaking() { Object.values(voice.clips).forEach(a => a.pause()); updateListen(); }
+function speak() {
+  stopSpeaking();
+  const a = clipFor(voice.key);
+  try { a.currentTime = 0; } catch {}
+  const p = a.play();
+  if (p && p.catch) p.catch(updateListen);
+}
+const isSpeaking = () => { const a = voice.clips[voice.key]; return !!(a && !a.paused && !a.ended); };
+function updateListen() {
+  const b = $("listen"); if (!b) return;
+  b.textContent = isSpeaking() ? "■ Stop" : "🔊 Hear Max explain this";
+  $("auto").textContent = "Auto-narrate: " + (voice.auto ? "on" : "off");
+  $("auto").setAttribute("aria-pressed", String(voice.auto));
+}
+$("listen").onclick = () => { voice.armed = true; isSpeaking() ? stopSpeaking() : speak(); };
+$("auto").onclick = () => {
+  voice.auto = !voice.auto;
+  try { localStorage.setItem("rate-voice", voice.auto ? "on" : "off"); } catch {}
+  if (!voice.auto) stopSpeaking();
+  updateListen();
+};
+// Audio can only start after the learner has tapped something, so the first tap anywhere arms auto-narration.
+document.addEventListener("pointerdown", () => { voice.armed = true; }, { once: true, capture: true });
+
+/* ---------- Simulation ---------- */
+function move(p, dt) {
+  // Gentle wandering: each particle slowly changes direction. Now and then it trades energy with its
+  // neighbours (the solvent, other particles) and picks up a new speed from the same spread.
+  const a = rand(-1, 1) * .5 * dt, c = Math.cos(a), s = Math.sin(a);
+  [p.vx, p.vy] = [p.vx * c - p.vy * s, p.vx * s + p.vy * c];
+  if (p.sc && Math.random() < dt * .5) {
+    const sp = Math.hypot(p.vx, p.vy) || 1, [nx, ny] = randomVel(p.sc), ns = Math.hypot(nx, ny);
+    p.vx *= ns / sp; p.vy *= ns / sp;
+  }
+  p.x += p.vx * dt; p.y += p.vy * dt;
+  if (p.x < BOX.x + R) { p.x = BOX.x + R; p.vx = Math.abs(p.vx); }
+  if (p.x > BOX.x + BOX.w - R) { p.x = BOX.x + BOX.w - R; p.vx = -Math.abs(p.vx); }
+  if (p.y < BOX.y + R) { p.y = BOX.y + R; p.vy = Math.abs(p.vy); }
+  if (p.y > BOX.y + BOX.h - R) { p.y = BOX.y + BOX.h - R; p.vy = -Math.abs(p.vy); }
+}
+function logCollision(e, ok) { run.collisions++; bars.push({ e, ok }); if (bars.length > 14) bars.shift(); }
+function react() { run.made++; }
+
+function step(dt) {
+  dt *= reduceMotion ? .4 : 1;
+  if (!run.done) {
+    run.t += dt;
+    const last = run.trace[run.trace.length - 1];
+    if (run.t - last[0] >= .5) run.trace.push([Math.min(run.t, TMAX), run.made]);
+    if (run.t >= TMAX || run.made >= run.total) { run.done = true; run.trace.push([Math.min(run.t, TMAX), run.made]); }
+  }
+  mob.forEach(p => move(p, dt));
+  products.forEach(p => move(p, dt));
+  if (S.scene === 3) stepSolid(dt); else stepPair();
+  if (S.scene === 4 && S.cat) for (const p of mob) for (const c of catalysts) bounceOffSquare(p, c);
+  bubbles.forEach(b => { b.y -= 16 * dt; b.x += Math.sin(b.y * .08) * .2; });
+  bubbles = bubbles.filter(b => b.y > BOX.y + 4);
+  flashes.forEach(f => f.a -= dt * 1.4);
+  flashes = flashes.filter(f => f.a > 0);
+}
+function stepPair() {
+  const thr = threshold();
+  for (let i = 0; i < mob.length; i++) for (let j = i + 1; j < mob.length; j++) {
+    const p = mob[i], q = mob[j]; if (p.k === q.k) continue;
+    const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
+    if (d >= 2 * R || d === 0) continue;
+    const nx = dx / d, ny = dy / d, approach = (p.vx - q.vx) * nx + (p.vy - q.vy) * ny;
+    if (approach <= 0) continue;
+    const ok = approach > thr;
+    logCollision(approach, ok);
+    if (ok) {
+      products.push({ x: (p.x + q.x) / 2, y: (p.y + q.y) / 2, vx: (p.vx + q.vx) * .3, vy: (p.vy + q.vy) * .3, ang: Math.atan2(dy, dx) });
+      flashes.push({ x: (p.x + q.x) / 2, y: (p.y + q.y) / 2, a: 1, ok: true });
+      mob.splice(j, 1); mob.splice(i, 1); react(); renderLive(); i--; break;
+    }
+    // Too gentle: an ordinary bounce (equal masses swap their speeds along the line between them).
+    const pn = p.vx * nx + p.vy * ny, qn = q.vx * nx + q.vy * ny;
+    p.vx += (qn - pn) * nx; p.vy += (qn - pn) * ny; q.vx += (pn - qn) * nx; q.vy += (pn - qn) * ny;
+    const push = (2 * R - d) / 2; p.x -= nx * push; p.y -= ny * push; q.x += nx * push; q.y += ny * push;
+    flashes.push({ x: (p.x + q.x) / 2, y: (p.y + q.y) / 2, a: .6, ok: false });
+  }
+}
+function bounceOffSquare(p, c) {
+  const s = 24, cx = Math.max(c.x, Math.min(p.x, c.x + s)), cy = Math.max(c.y, Math.min(p.y, c.y + s));
+  const dx = p.x - cx, dy = p.y - cy, d = Math.hypot(dx, dy);
+  if (d >= R || d === 0) return;
+  const nx = dx / d, ny = dy / d, vn = p.vx * nx + p.vy * ny;
+  if (vn < 0) { p.vx -= 2 * vn * nx; p.vy -= 2 * vn * ny; }
+  p.x = cx + nx * R; p.y = cy + ny * R;
+}
+function stepSolid(dt) {
+  const edge = solids.filter(exposed);
+  for (const p of mob) for (const s of edge) {
+    const dx = p.x - s.x, dy = p.y - s.y, d = Math.hypot(dx, dy);
+    if (d >= 2 * R || d === 0) continue;
+    const nx = dx / d, ny = dy / d, vn = p.vx * nx + p.vy * ny;
+    if (vn >= 0) continue;   // already moving away
+    const ok = -vn > SOLID_THRESHOLD;
+    logCollision(-vn, ok);
+    if (ok) {
+      solids.splice(solids.indexOf(s), 1);
+      bubbles.push({ x: s.x, y: s.y });
+      flashes.push({ x: s.x, y: s.y, a: 1, ok: true });
+      Object.assign(p, acid(solids.concat(mob.filter(o => o !== p))));   // plenty of acid: a fresh particle takes its place
+      react(); renderLive(); return;
+    }
+    p.vx -= 2 * vn * nx; p.vy -= 2 * vn * ny; p.x = s.x + nx * 2 * R; p.y = s.y + ny * 2 * R;
+    flashes.push({ x: s.x + nx * R, y: s.y + ny * R, a: .6, ok: false });
+  }
+}
+// Some info cards show live numbers; refresh them when something reacts.
+function renderLive() { if (S.scene === 3) renderInfo(); }
+
+/* ---------- Drawing ---------- */
+const canvas = $("stage"), ctx = canvas.getContext("2d");
+let dpr = 1, scale = 1;
+function resize() {
+  const w = canvas.clientWidth || W;
+  dpr = Math.min(2, window.devicePixelRatio || 1); scale = w / W;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(canvas); resize();
+function dot(x, y, r, fill, stroke = "#0c1218") { ctx.fillStyle = fill; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); } }
+
+function drawGraph(x, y, w, h) {
+  ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 9.5, MONO); ctx.textAlign = "left";
+  ctx.fillText("PRODUCT MADE", x, y - 6);
+  ctx.strokeStyle = "#33424f"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.stroke();
+  ctx.fillStyle = "#5b6874"; ctx.font = font(500, 8.5, MONO); ctx.textAlign = "right"; ctx.fillText("time →", x + w, y + h + 11);
+  const max = Math.max(run.max, prev?.max || 0), px = t => x + t / TMAX * w, py = v => y + h - v / max * h;
+  const path = (tr, col, dash, lw) => {
+    ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.setLineDash(dash);
+    ctx.beginPath(); tr.forEach(([t, v], i) => i ? ctx.lineTo(px(t), py(v)) : ctx.moveTo(px(t), py(v))); ctx.stroke(); ctx.setLineDash([]);
+  };
+  if (prev) path(prev.trace, "rgba(159,177,191,.55)", [4, 3], 1.5);
+  path(run.trace.concat(run.done ? [] : [[Math.min(run.t, TMAX), run.made]]), COL.ok, [], 2.2);
+  ctx.textAlign = "left"; ctx.font = font(700, 10.5);
+  ctx.fillStyle = COL.ok; ctx.fillText(`— now: ${run.label}`, x, y + h + 24);
+  if (prev) { ctx.fillStyle = "#9fb1bf"; ctx.fillText(`- - before: ${prev.label}`, x, y + h + 38); }
+}
+function drawBars(x, y, w, h) {
+  ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 9.5, MONO); ctx.textAlign = "left";
+  ctx.fillText("COLLISION ENERGY", x, y - 6);
+  const top = 150, thr = S.scene === 3 ? SOLID_THRESHOLD : threshold(), bw = w / 14;
+  bars.forEach((b, i) => {
+    const bh = Math.min(1, b.e / top) * h;
+    ctx.fillStyle = b.ok ? COL.ok : COL.miss;
+    ctx.fillRect(x + i * bw + 1, y + h - bh, bw - 2, bh);
+  });
+  const ty = y + h - thr / top * h;
+  ctx.strokeStyle = "#ff8a7a"; ctx.lineWidth = 1.3; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(x, ty); ctx.lineTo(x + w, ty); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font = font(700, 9.5); ctx.textAlign = "right";
+  const tw = ctx.measureText("energy needed").width;
+  ctx.fillStyle = "rgba(12,18,24,.85)"; ctx.fillRect(x + w - tw - 4, ty - 13, tw + 4, 11);
+  ctx.fillStyle = "#ff8a7a"; ctx.fillText("energy needed", x + w, ty - 4);
+  ctx.strokeStyle = "#33424f"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.stroke();
+}
+function draw() {
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  ctx.fillStyle = "#0c1218"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.textAlign = "left";
+  ctx.fillText(S.scene === 3 ? "SOLID IN PLENTY OF ACID, ZOOMED IN" : "REACTANT PARTICLES, ZOOMED IN", BOX.x, 20);
+  ctx.strokeStyle = "#24313c"; ctx.lineWidth = 1; ctx.strokeRect(BOX.x + .5, BOX.y + .5, BOX.w - 1, BOX.h - 1);
+  if (S.scene === 4 && S.cat) catalysts.forEach(c => {
+    ctx.fillStyle = "rgba(180,140,255,.22)"; ctx.strokeStyle = COL.cat; ctx.lineWidth = 1.5;
+    ctx.fillRect(c.x, c.y, 24, 24); ctx.strokeRect(c.x + .5, c.y + .5, 23, 23);
+  });
+  for (const f of flashes) {
+    ctx.strokeStyle = f.ok ? `rgba(255,210,74,${f.a})` : `rgba(159,177,191,${f.a * .5})`; ctx.lineWidth = f.ok ? 2 : 1;
+    ctx.beginPath(); ctx.arc(f.x, f.y, f.ok ? 12 : 8, 0, 7); ctx.stroke();
+  }
+  solids.forEach(s => dot(s.x, s.y, R, COL.solid));
+  bubbles.forEach(b => { ctx.strokeStyle = COL.gas; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, 7); ctx.stroke(); });
+  // Products: A and B joined by a new bond, with a green outline so they read as one new particle.
+  for (const p of products) {
+    const ox = Math.cos(p.ang) * 4.2, oy = Math.sin(p.ang) * 4.2;
+    ctx.strokeStyle = "rgba(143,224,168,.85)"; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.ellipse(p.x, p.y, 10.5, 6.5, p.ang, 0, 7); ctx.stroke();
+    dot(p.x - ox, p.y - oy, 4.4, COL.a, null); dot(p.x + ox, p.y + oy, 4.4, COL.b, null);
+  }
+  mob.forEach(p => dot(p.x, p.y, R, p.k === "b" ? COL.b : COL.a));
+
+  const rx = 268, rw = 144;
+  drawGraph(rx, 46, rw, 96);
+  drawBars(rx, 226, rw, 50);
+  ctx.textAlign = "left"; ctx.fillStyle = "#dce5ec"; ctx.font = font(700, 11);
+  ctx.fillText(`${run.collisions} collisions · ${run.made} reacted`, rx, 296);
+  if (S.scene === 4 && S.cat) { ctx.fillStyle = COL.cat; ctx.font = font(700, 10.5); ctx.fillText("catalyst: 4 at start, 4 now", rx, 311); }
+  else if (S.scene === 3) { ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 10.5); ctx.fillText(`${solids.filter(exposed).length} on the surface now`, rx, 311); }
+  if (run.done && run.made >= run.total) { ctx.fillStyle = "#8fe0a8"; ctx.font = font(700, 11); ctx.textAlign = "center"; ctx.fillText("all reacted", BOX.x + BOX.w / 2, BOX.y + 18); }
+}
+let last = performance.now();
+function frame(ms) {
+  const dt = Math.min(.05, (ms - last) / 1000); last = ms;
+  step(dt); draw();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  { q: "Why does a reaction go faster when it is heated?", opts: ["The particles get bigger", "The particles move faster, so they collide more often and more collisions have enough energy", "Heat is a catalyst"], a: 1,
+    why: "Faster particles collide <b>more often</b>, and a bigger share of collisions have <b>enough energy</b> to react." },
+  { q: "Most collisions between reactant particles don't make a product. Why?", opts: ["They don't have enough energy", "The particles are the wrong colour", "Only the first collision counts"], a: 0,
+    why: "A collision must have at least the <b>activation energy</b>. Gentler collisions just bounce apart." },
+  { q: "Magnesium reacts with dilute and with concentrated hydrochloric acid. Which is faster, and why?", opts: ["Dilute: the particles have more room to move", "Concentrated: more acid particles in the same volume, so more collisions each second", "They're the same: it's the same acid"], a: 1,
+    why: "Higher concentration packs in more particles, so <b>collisions happen more often</b>." },
+  { q: "The same mass of calcium carbonate is added to acid as one lump and as powder. Which reacts faster?", opts: ["The lump: it's heavier", "Both the same: same mass", "The powder: more particles are on the surface where acid can hit them"], a: 2,
+    why: "Only <b>surface</b> particles can be hit. Powder has a much larger <b>surface area</b>, so more collisions each second." },
+  { q: "What does a catalyst do?", opts: ["Gives the reaction a route that needs less energy, and is not used up", "Gets used up to make more product", "Heats the reaction"], a: 0,
+    why: "A catalyst <b>lowers the energy needed</b>, so more collisions succeed. It's still there, unchanged, at the end." },
+  { q: "Why does milk go sour more slowly in the fridge?", opts: ["Cold kills the milk", "At a lower temperature the particles move more slowly, so there are fewer collisions with enough energy", "The fridge light is off"], a: 1,
+    why: "Lower temperature means <b>slower particles</b>: fewer collisions, and far fewer with enough energy, so the souring reactions slow down." },
+];
+const answered = {};
+function renderQuiz() {
+  $("qs").innerHTML = QUIZ.map((item, qi) => `
+    <div class="q">
+      <p class="ask">${qi + 1}. ${item.q}</p>
+      <div class="opts">${item.opts.map((o, oi) => `<button class="opt" id="q${qi}o${oi}" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div>
+      <p class="why" id="why-${qi}" hidden></p>
+    </div>`).join("");
+  $("qs").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.q, +b.dataset.o));
+  updateScore();
+}
+function answer(qi, oi) {
+  if (qi in answered) return;
+  answered[qi] = oi;
+  const item = QUIZ[qi];
+  item.opts.forEach((_, i) => { const b = $(`q${qi}o${i}`); b.disabled = true; if (i === item.a) b.classList.add("right"); else if (i === oi) b.classList.add("wrong"); });
+  const why = $("why-" + qi);
+  why.innerHTML = (oi === item.a ? "<b>Correct.</b> " : "<b>Not quite.</b> ") + item.why;
+  why.hidden = false; updateScore();
+}
+function updateScore() {
+  const n = Object.keys(answered).length;
+  const right = Object.entries(answered).filter(([q, o]) => QUIZ[q].a === o).length;
+  $("score").textContent = n ? `${right} of ${n} right` : `${QUIZ.length} questions`;
+}
+
+renderQuiz();
+// ?step=2 opens at that tab; ?temp=hot, ?conc=conc, ?form=powder, ?cat=1 preset the options (used by links from the learning map).
+const askedParams = new URLSearchParams(location.search), askedStep = parseInt(askedParams.get("step"), 10);
+if (TEMPS[askedParams.get("temp")]) S.temp = askedParams.get("temp");
+if (CONCS[askedParams.get("conc")]) S.conc = askedParams.get("conc");
+if (FORMS[askedParams.get("form")]) S.form = askedParams.get("form");
+if (askedParams.get("cat") === "1") S.cat = true;
+setScene(askedStep >= 1 && askedStep <= SCENES.length ? askedStep - 1 : 0);
+updateListen();
+requestAnimationFrame(frame);
+</script>

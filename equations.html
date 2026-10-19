@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+/* Bigger tap targets on phones and tablets (about 44px, per platform guidelines). */
+@media (pointer: coarse) {
+  .chip, .tab, .step, .seg button, .tag, .home-link, .opt, .btn, .listen { min-height: 44px; }
+  .chip, .tag, .home-link { display: inline-flex; align-items: center; }
+  .step { min-height: 40px; }
+}
+</style>
+<title>Balancing Equations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: four scenes on a dark bench (mass on a balance, counting atoms, balancing, running out) beside an explanation panel; then quiz and key words. Same family as the other labs. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --accent-ink: #ffffff;
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --hl: #e8eff9;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  --stage: #0c1218;
+  --stage-ink: #dce5ec;
+  --stage-muted: #9fb1bf;
+  --stage-line: #24313c;
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+    --accent: #7fb2ff; --accent-ink: #0b1622;
+    --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --stage: #080d12; --stage-line: #1f2a34;
+    color-scheme: dark;
+  }
+}
+/* Dark by default, in the same palette as the learning-map lineage view. */
+:root, :root[data-theme="dark"] {
+  --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+  --accent: #7fb2ff; --accent-ink: #0b1622;
+  --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --stage: #080d12; --stage-line: #1f2a34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: grid; gap: 1.5rem; }
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -.01em; margin: .25rem 0 0; text-wrap: balance; }
+header p.lede { margin: .5rem 0 0; color: var(--muted); max-width: 62ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+sub, sup { font-size: .7em; line-height: 0; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tab {
+  font: 700 .92rem var(--f-body); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: .45rem .9rem; border-radius: 999px; cursor: pointer; display: inline-flex; gap: .45rem; align-items: baseline;
+}
+.tab .n { font: 500 .75rem var(--f-mono); color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tab[aria-selected="true"] .n { color: inherit; opacity: .8; }
+
+.lab { display: grid; gap: 1.25rem; align-items: start; }
+@media (min-width: 56rem) { .lab { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+.bench { background: var(--stage); color: var(--stage-ink); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: grid; }
+#stage { display: block; width: 100%; aspect-ratio: 420 / 320; max-width: 100%; }
+.bench-controls { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding: 1rem; border-top: 1px solid var(--stage-line); min-height: 4.5rem; }
+.btn { font: 700 .95rem var(--f-body); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; border: 0; background: #6ea8ff; color: #0b1622; }
+.btn.ghost { background: transparent; color: var(--stage-ink); border: 1.5px solid #33424f; }
+.btn[aria-pressed="true"] { background: #ffd24a; color: #2a2208; }
+.btn:disabled { opacity: .45; cursor: default; }
+.bench .btn:focus-visible, .seg button:focus-visible, .stp button:focus-visible { outline-color: #6ea8ff; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1.5px solid #33424f; border-radius: 8px; overflow: hidden; }
+.seg button { font: 700 .88rem var(--f-body); background: transparent; color: var(--stage-muted); border: 0; padding: .5rem .7rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #24313c; color: var(--stage-ink); }
+/* Steppers for coefficients and molecule counts */
+.stp { display: inline-flex; align-items: center; border: 1.5px solid #33424f; border-radius: 8px; overflow: hidden; }
+.stp button { font: 800 1rem var(--f-body); background: transparent; color: var(--stage-ink); border: 0; width: 2.1rem; height: 2.3rem; cursor: pointer; }
+.stp button:disabled { opacity: .3; cursor: default; }
+.stp span { font: 700 .92rem var(--f-body); padding: 0 .35rem; min-width: 3.4rem; text-align: center; white-space: nowrap; }
+.stp span b { color: #ffd24a; font-family: var(--f-display); font-size: 1.05rem; margin-right: .1rem; }
+.arrow { color: var(--stage-muted); font-weight: 700; }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .82rem; color: var(--stage-muted); padding: 0 1rem 1rem; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.legend i { width: .8rem; height: .8rem; border-radius: 50%; display: inline-block; }
+
+.panel { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .7rem; }
+.chip-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.caption { min-height: 12rem; align-content: start; }
+.caption h3 { font-family: var(--f-display); font-weight: 800; font-size: 1.25rem; margin: 0; text-wrap: balance; }
+.caption p { margin: 0; max-width: 60ch; }
+.caption .try { font-size: .9rem; color: var(--muted); }
+.voice-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .2rem; }
+.listen { font: 700 .9rem var(--f-body); padding: .5rem .9rem; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.listen.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+.listen:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.props { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.props th { text-align: left; font: 500 .7rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 .5rem .4rem 0; }
+.props td { padding: .45rem .5rem .45rem 0; border-top: 1px solid var(--line); vertical-align: top; }
+.props td:first-child { font-weight: 700; white-space: nowrap; padding-left: .4rem; }
+.props tr.on td { background: var(--hl); }
+.props td.yes { color: var(--good); font-weight: 700; }
+.props td.no { color: var(--bad); font-weight: 700; }
+.props td.n { white-space: nowrap; }
+.props th.f { text-transform: none; }
+.table-wrap { overflow-x: auto; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+
+.quiz { display: grid; gap: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.score { font: 500 .85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.qs { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; align-content: start; }
+.q p.ask { margin: 0; font-weight: 700; }
+.opts { display: grid; gap: .4rem; }
+.opt { text-align: left; font: 400 .95rem var(--f-body); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: .5rem .7rem; cursor: pointer; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); font-weight: 700; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { margin: 0; font-size: .92rem; color: var(--muted); }
+.why b { color: var(--ink); }
+
+.cards-list { display: grid; gap: .5rem; }
+.cards-list div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: .75rem; font-size: .92rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.cards-list div:first-child { border-top: 0; padding-top: 0; }
+.cards-list .front { font-weight: 700; }
+a { color: var(--accent); }
+@media (max-width: 30rem) { .cards-list div { grid-template-columns: 1fr; gap: .1rem; } }
+h1 i { color: #ff6b5e; font-style: normal; }  /* the coral full stop from the lineage view */
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <p class="eyebrow">Chemistry · Equations &amp; quantities</p>
+    <h1>Balancing Equations<i>.</i></h1>
+    <p class="lede">In a reaction, atoms swap partners but none appear or vanish. That one rule explains why mass is conserved, why equations must balance, and why one reactant can run out before the other.</p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <section class="lab">
+    <div class="bench">
+      <canvas id="stage" role="img" aria-label="Animated particle models of chemical reactions"></canvas>
+      <div class="bench-controls" id="controls"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="card caption" aria-live="polite">
+        <span class="chip-label" id="cap-eyebrow"></span>
+        <h3 id="cap-title"></h3>
+        <p id="cap-text"></p>
+        <p class="try" id="cap-try"></p>
+        <div class="voice-row">
+          <button class="listen" id="listen">🔊 Hear Max explain this</button>
+          <button class="listen ghost" id="auto" aria-pressed="true">Auto-narrate: on</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="chip-label" id="info-label"></span>
+        <div id="info"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quiz">
+    <div class="quiz-head"><h2>Check you've got it</h2><span class="score" id="score"></span></div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <section class="card">
+    <h2>Key words</h2>
+    <div class="cards-list">
+      <div><span class="front">Reactants · products</span><span>The substances you start with · the new substances that form. They go on the left and right of the arrow</span></div>
+      <div><span class="front">Conservation of mass</span><span>Atoms are rearranged, never created or destroyed, so the total mass stays the same. A mass change on an open balance means a gas left or joined</span></div>
+      <div><span class="front">Subscript</span><span>The small number after a symbol or bracket. It counts atoms inside the formula. Changing it changes the substance</span></div>
+      <div><span class="front">Coefficient</span><span>The big number in front of a formula. It multiplies the whole formula, and it's the only number you change to balance an equation</span></div>
+      <div><span class="front">Balanced equation</span><span>The same number of each type of atom on both sides, using the smallest whole-number coefficients</span></div>
+      <div><span class="front">Limiting reactant</span><span>The reactant that runs out first. It decides how much product can form; the other reactant is left over</span></div>
+    </div>
+    <p class="note">Where this leads: the atoms themselves are in <a href="atoms.html">Inside an Atom</a>; balanced combustion equations are in the <a href="bunsen.html">Bunsen Burner Lab</a>; metals reacting with acids, water and oxygen are in the <a href="reactions.html">Metal Reactions Lab</a>.</p>
+  </section>
+  <p class="credit">Narration voice: Max, generated with ElevenLabs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const W = 420, H = 320;
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = k => k * k * (3 - 2 * k);
+const font = (w, px, f = '"Atkinson Hyperlegible", system-ui, sans-serif') => `${w} ${px}px ${f}`;
+const MONO = '"IBM Plex Mono", monospace', DISPLAY = '"Schibsted Grotesk", system-ui, sans-serif';
+const nowS = () => performance.now() / 1000;
+const SUBN = n => String(n).replace(/\d/g, d => "₀₁₂₃₄₅₆₇₈₉"[d]);
+
+/* ---------- Atoms and molecules ---------- */
+const EL = {
+  H: { c: "#e6edf2", r: 5, ink: "#14212b", name: "hydrogen" }, O: { c: "#e5574c", r: 7, ink: "#ffffff", name: "oxygen" },
+  C: { c: "#6b7783", r: 7, ink: "#ffffff", name: "carbon" }, N: { c: "#7fb2ff", r: 7, ink: "#0b1622", name: "nitrogen" },
+  Ca: { c: "#e9dcc0", r: 9, ink: "#14212b", name: "calcium" }, S: { c: "#ffd24a", r: 8, ink: "#2a2208", name: "sulfur" },
+  Mg: { c: "#a9b6c2", r: 8.5, ink: "#0b1622", name: "magnesium" }, Na: { c: "#b48cff", r: 8.5, ink: "#0b1622", name: "sodium" },
+  Cl: { c: "#5cc46a", r: 8, ink: "#0b1622", name: "chlorine" },
+};
+// Each molecule: atoms at offsets from its centre, bonds between atom indexes, and its width for layout.
+const SHAPES = {
+  H2: { a: [["H", -5, 0], ["H", 5, 0]], b: [[0, 1]], w: 22 },
+  O2: { a: [["O", -6.5, 0], ["O", 6.5, 0]], b: [[0, 1]], w: 28 },
+  Cl2: { a: [["Cl", -7, 0], ["Cl", 7, 0]], b: [[0, 1]], w: 30 },
+  H2O: { a: [["O", 0, -2], ["H", -9, 5], ["H", 9, 5]], b: [[0, 1], [0, 2]], w: 30 },
+  H2O2: { a: [["O", -6.5, 0], ["O", 6.5, 0], ["H", -13, -7], ["H", 13, 7]], b: [[0, 1], [0, 2], [1, 3]], w: 38 },
+  CO2: { a: [["O", -13, 0], ["C", 0, 0], ["O", 13, 0]], b: [[0, 1], [1, 2]], w: 42 },
+  CH4: { a: [["C", 0, 0], ["H", -9, -7], ["H", 9, -7], ["H", -9, 7], ["H", 9, 7]], b: [[0, 1], [0, 2], [0, 3], [0, 4]], w: 30 },
+  Mg: { a: [["Mg", 0, 0]], b: [], w: 18 }, Na: { a: [["Na", 0, 0]], b: [], w: 18 },
+  MgO: { a: [["Mg", -7.5, 0], ["O", 8, 0]], b: [], w: 32 }, NaCl: { a: [["Na", -7.5, 0], ["Cl", 8, 0]], b: [], w: 33 },
+  H2SO4: { a: [["S", 0, 0], ["O", 0, -14], ["O", 0, 14], ["O", -14, 0], ["O", 14, 0], ["H", -22, -6], ["H", 22, 6]], b: [[0, 1], [0, 2], [0, 3], [0, 4], [3, 5], [4, 6]], w: 56 },
+  CaNO32: { a: [["Ca", 0, 0], ["N", -27, 0], ["O", -27, -12], ["O", -38, 6], ["O", -16, 7], ["N", 27, 0], ["O", 27, 12], ["O", 38, -6], ["O", 16, -7]],
+    b: [[1, 2], [1, 3], [1, 4], [5, 6], [5, 7], [5, 8]], w: 92 },
+};
+function atom(el, x, y, s = 1, alpha = 1) {
+  const e = EL[el], r = e.r * s;
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = e.c; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+  ctx.strokeStyle = "#0c1218"; ctx.lineWidth = 1; ctx.stroke();
+  if (r >= 6) { ctx.fillStyle = e.ink; ctx.font = font(700, Math.round(r * (el.length > 1 ? .9 : 1.05))); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(el, x, y + .5); ctx.textBaseline = "alphabetic"; }
+  ctx.globalAlpha = 1;
+}
+function mol(key, x, y, s = 1, alpha = 1) {
+  const sh = SHAPES[key];
+  ctx.globalAlpha = alpha; ctx.strokeStyle = "#c3cfd8"; ctx.lineWidth = 2 * s;
+  for (const [i, j] of sh.b) { ctx.beginPath(); ctx.moveTo(x + sh.a[i][1] * s, y + sh.a[i][2] * s); ctx.lineTo(x + sh.a[j][1] * s, y + sh.a[j][2] * s); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+  for (const [el, dx, dy] of sh.a) atom(el, x + dx * s, y + dy * s, s, alpha);
+}
+
+/* ---------- Formulae: parts are [element, count] or [[parts], count] ---------- */
+const SPECIES = {
+  H2: { f: "H₂", parts: [["H", 2]] }, O2: { f: "O₂", parts: [["O", 2]] }, Cl2: { f: "Cl₂", parts: [["Cl", 2]] },
+  H2O: { f: "H₂O", parts: [["H", 2], ["O", 1]] }, H2O2: { f: "H₂O₂", parts: [["H", 2], ["O", 2]] },
+  CO2: { f: "CO₂", parts: [["C", 1], ["O", 2]] }, CH4: { f: "CH₄", parts: [["C", 1], ["H", 4]] },
+  Mg: { f: "Mg", parts: [["Mg", 1]] }, Na: { f: "Na", parts: [["Na", 1]] },
+  MgO: { f: "MgO", parts: [["Mg", 1], ["O", 1]] }, NaCl: { f: "NaCl", parts: [["Na", 1], ["Cl", 1]] },
+  H2SO4: { f: "H₂SO₄", parts: [["H", 2], ["S", 1], ["O", 4]] },
+  CaNO32: { f: "Ca(NO₃)₂", parts: [["Ca", 1], [[["N", 1], ["O", 3]], 2]] },
+};
+// Atom counts with the factors behind each one, e.g. O in 2Ca(NO₃)₂: factors [2, 2, 3] → 12.
+function countAtoms(parts, coef = 1) {
+  const out = {};
+  const walk = (ps, factors) => {
+    for (const [p, n] of ps) {
+      if (typeof p === "string") { const o = out[p] ||= { n: 0, chains: [] }; o.n += factors.reduce((a, b) => a * b, 1) * n; o.chains.push([...factors, n]); }
+      else walk(p, [...factors, n]);
+    }
+  };
+  walk(parts, [coef]);
+  return out;
+}
+const chainText = chains => chains.map(c => { const f = c.filter(x => x > 1); return f.length > 1 ? f.join(" × ") : String(f[0] || 1); }).join(" + ");
+// Tokens for drawing a formula: coefficient (gold), symbols, brackets (green), subscripts (blue).
+function tokens(parts) {
+  const t = [];
+  for (const [p, n] of parts) {
+    if (typeof p === "string") { t.push({ s: p }); if (n > 1) t.push({ s: String(n), k: "sub" }); }
+    else { t.push({ s: "(", k: "br" }, ...tokens(p), { s: ")", k: "br" }); if (n > 1) t.push({ s: String(n), k: "sub" }); }
+  }
+  return t;
+}
+function formulaTokens(key, coef) { return (coef > 1 ? [{ s: String(coef), k: "coef" }] : []).concat(tokens(SPECIES[key].parts)); }
+const TOKCOL = { coef: "#ffd24a", sub: "#7fb2ff", br: "#8fe0a8" };
+function tokWidth(ts, px) {
+  let w = 0;
+  for (const t of ts) { ctx.font = t.k === "sub" ? font(700, px * .62) : font(800, px, DISPLAY); w += ctx.measureText(t.s).width + (t.k === "coef" ? px * .12 : 0); }
+  return w;
+}
+function drawTokens(ts, x, y, px, dim = false) {
+  ctx.textAlign = "left";
+  for (const t of ts) {
+    const sub = t.k === "sub";
+    ctx.font = sub ? font(700, px * .62) : font(800, px, DISPLAY);
+    ctx.fillStyle = dim ? "#7f93a3" : TOKCOL[t.k] || "#dce5ec";
+    ctx.fillText(t.s, x, y + (sub ? px * .22 : 0));
+    x += ctx.measureText(t.s).width + (t.k === "coef" ? px * .12 : 0);
+  }
+  return x;
+}
+
+/* ---------- Scene 1: mass on a balance ---------- */
+const EXP = {
+  sealed: { name: "Sealed flask", before: 150, delta: 0 },
+  open: { name: "Open flask", before: 150, delta: -2.2 },
+  mg: { name: "Burning magnesium", before: 22.4, delta: 1.6 },
+};
+/* ---------- Scene 3: equations to balance ---------- */
+const EQS = {
+  water: { name: "Water", react: ["H2", "O2"], prod: ["H2O"], ans: [2, 1, 2] },
+  mgo: { name: "Magnesium oxide", react: ["Mg", "O2"], prod: ["MgO"], ans: [2, 1, 2] },
+  nacl: { name: "Sodium chloride", react: ["Na", "Cl2"], prod: ["NaCl"], ans: [2, 1, 2] },
+  methane: { name: "Burning methane", react: ["CH4", "O2"], prod: ["CO2", "H2O"], ans: [1, 2, 1, 2] },
+};
+const FORMS = ["H2O", "CO2", "CH4", "H2SO4", "CaNO32"];
+
+/* ---------- State ---------- */
+const S = { scene: 0, exp: "open", p: 0, running: false, done: false, form: "CaNO32", fcoef: 1,
+  eq: "water", coef: [1, 1, 1], peroxide: false, nH: 6, nO: 4, run: null };
+const runs = [];
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+function eqSpecies() { const e = EQS[S.eq]; return [...e.react, ...e.prod.map(p => S.peroxide && p === "H2O" ? "H2O2" : p)]; }
+function sideCounts() {
+  const e = EQS[S.eq], sp = eqSpecies(), L = {}, R = {};
+  sp.forEach((k, i) => { const side = i < e.react.length ? L : R; for (const [el, o] of Object.entries(countAtoms(SPECIES[k].parts, S.coef[i]))) side[el] = (side[el] || 0) + o.n; });
+  const els = [...new Set([...Object.keys(L), ...Object.keys(R)])];
+  return { L, R, els, balanced: els.every(el => L[el] === R[el]) };
+}
+const lowest = () => S.coef.reduce((a, b) => gcd(a, b));
+
+/* ---------- Scenes ---------- */
+const SCENES = [
+  { tab: "Mass is conserved", eyebrow: "Conservation of mass", title: "Atoms are rearranged, never lost",
+    text: "In a chemical reaction, atoms are <b>rearranged</b>: none are created and none are destroyed, so the <b>total mass stays the same</b>. Here marble chips (calcium carbonate) react with acid to make carbon dioxide gas. Seal the flask and the mass doesn't change. Leave it open and the mass seems to drop, but only because the gas escapes into the air. Burn magnesium and the mass goes up, because oxygen from the air joins in.",
+    tryText: "Try: run the sealed flask, then the open flask, then the magnesium, and compare the balance readings." },
+  { tab: "Counting atoms", eyebrow: "Reading formulae", title: "Small numbers, brackets and big numbers",
+    text: "A <b>subscript</b> (small number after a symbol) counts the atoms just before it: H₂O has 2 H and 1 O. A subscript after a <b>bracket</b> multiplies everything inside: (NO₃)₂ is 2 N and 6 O. A <b>coefficient</b> (big number in front) multiplies the whole formula: 2H₂O has 4 H and 2 O.",
+    tryText: "Try: pick calcium nitrate and set the big number to 2. How many oxygen atoms are there?" },
+  { tab: "Balance it", eyebrow: "Balancing equations", title: "Balance by changing the big numbers only",
+    text: "A balanced equation has the <b>same number of each type of atom</b> on both sides, because atoms aren't created or destroyed. To balance it, change only the <b>coefficients</b>, the big numbers in front. Never change the small numbers: that would turn one substance into a different one.",
+    tryText: "Try: use the + and − buttons until every row of the tally shows a tick." },
+  { tab: "Running out", eyebrow: "Limiting reactant", title: "One reactant runs out first",
+    text: "To make water, every <b>2 hydrogen molecules</b> need <b>1 oxygen molecule</b>: 2H₂ + O₂ → 2H₂O. Mix them in any other ratio and one runs out first. That one is the <b>limiting reactant</b>: it decides how much product can form, and the other reactant is left over.",
+    tryText: "Try: pick how many of each molecule to start with, press React, and see which runs out." },
+];
+function expCaption() {
+  if (!S.done) return null;
+  if (S.exp === "sealed") return { eyebrow: "Sealed flask", title: "Same mass: nothing got in or out",
+    text: "The balloon caught all the carbon dioxide, so every atom stayed on the balance: <b>150.00 g before, 150.00 g after</b>. The atoms just swapped partners: CaCO₃ + 2HCl → CaCl₂ + H₂O + CO₂.",
+    tryText: "Try: now run it with the flask open." };
+  if (S.exp === "open") return { eyebrow: "Open flask", title: "Lighter, but no atoms were destroyed",
+    text: "The balance dropped by <b>2.20 g</b>: that's the carbon dioxide gas that escaped through the open neck. The atoms still exist; they're just in the air now, off the balance. Count everything, gas included, and the mass is the same.",
+    tryText: "Try: burn some magnesium. Does the mass go down too?" };
+  return { eyebrow: "Burning magnesium", title: "Heavier: oxygen joined in",
+    text: "Magnesium combined with oxygen from the air: 2Mg + O₂ → 2MgO. The <b>1.60 g gain</b> is the mass of the oxygen atoms that are now part of the white magnesium oxide. Mass wasn't created; it came from the air.",
+    tryText: "Try: compare with the open flask, where a gas left instead of joining." };
+}
+function eqCaption() {
+  if (S.peroxide) return { eyebrow: "Not allowed", title: "That's a different substance",
+    text: "Changing H₂O to H₂O₂ does make the atoms add up, but H₂O₂ is <b>hydrogen peroxide</b>, a bleach, not water. Changing a small number changes what the substance is. Put it back and balance with coefficients instead.",
+    tryText: "Try: press “Put H₂O back”, then use the + buttons." };
+  const { balanced } = sideCounts();
+  if (!balanced) return null;
+  const g = lowest();
+  return { eyebrow: "Balanced", title: "Balanced!",
+    text: "Every type of atom has the same count on both sides, and you only changed the big numbers, so every substance is still the same substance." + (g > 1 ? ` It's balanced, but every coefficient can be divided by ${g}: chemists always use the <b>smallest whole numbers</b>.` : ""),
+    tryText: "Try: pick another equation. Burning methane is the hardest.", clip: "eq-balanced" };
+}
+function runCaption() {
+  const r = S.run; if (!r || !r.finished) return null;
+  const { h, o, w, leftH, leftO } = r;
+  if (!leftH && !leftO) return { eyebrow: "Perfect ratio", title: "Nothing left over",
+    text: `${h} H₂ and ${o} O₂ is exactly 2 to 1, so both ran out together and made <b>${w} H₂O</b>. Neither reactant was limiting.`,
+    tryText: "Try: add one more oxygen molecule and react again." };
+  const lim = leftO ? "Hydrogen" : "Oxygen", spare = leftO ? `${leftO} O₂` : `${leftH} H₂`;
+  return { eyebrow: "Limiting reactant", title: `${lim} ran out first`,
+    text: `${h} H₂ and ${o} O₂ made <b>${w} H₂O</b>. <b>${lim}</b> was the limiting reactant: once it was used up the reaction stopped, leaving <b>${spare}</b> unreacted. Adding more ${leftO ? "oxygen" : "hydrogen"} wouldn't make any more water; adding more ${leftO ? "hydrogen" : "oxygen"} would.`,
+    tryText: "Try: change the numbers so nothing is left over." };
+}
+
+function renderTabs() {
+  $("tabs").innerHTML = SCENES.map((s, i) => `<button class="tab" role="tab" id="tab-${i}" aria-selected="${i === S.scene}"><span class="n">${i + 1}</span>${s.tab}</button>`).join("");
+  SCENES.forEach((_, i) => $("tab-" + i).onclick = () => setScene(i));
+}
+function setScene(i) {
+  S.scene = i; resetExp(); S.run = null; mols = [];
+  if (i === 3) layoutReactants();
+  renderTabs(); renderControls(); renderCaption(); renderInfo();
+}
+function resetExp() { S.p = 0; S.running = false; S.done = false; bubbles = []; gas = []; trapped = 0; }
+function setEq(id) { S.eq = id; S.coef = EQS[id].ans.map(() => 1); S.peroxide = false; }
+
+function stepper(id, label, v, min, max) {
+  return `<span class="stp"><button data-stp="${id}" data-d="-1" aria-label="Fewer ${label}" ${v <= min ? "disabled" : ""}>−</button><span><b>${v}</b> ${label}</span><button data-stp="${id}" data-d="1" aria-label="More ${label}" ${v >= max ? "disabled" : ""}>+</button></span>`;
+}
+function renderControls() {
+  const c = $("controls");
+  if (S.scene === 0) {
+    c.innerHTML = `<div class="seg" role="group" aria-label="Experiment">${Object.entries(EXP).map(([k, e]) => `<button data-exp="${k}" aria-pressed="${k === S.exp}">${e.name}</button>`).join("")}</div>
+      <button class="btn" id="go" ${S.running || S.done ? "disabled" : ""}>Start the reaction</button>
+      <button class="btn ghost" id="reset">Reset</button>`;
+    c.querySelectorAll("[data-exp]").forEach(b => b.onclick = () => { S.exp = b.dataset.exp; resetExp(); renderControls(); renderCaption(); renderInfo(); });
+    $("go").onclick = () => { S.running = true; S.t0 = nowS(); renderControls(); };
+    $("reset").onclick = () => { resetExp(); renderControls(); renderCaption(); renderInfo(); };
+  } else if (S.scene === 1) {
+    c.innerHTML = `<div class="seg" role="group" aria-label="Formula">${FORMS.map(k => `<button data-form="${k}" aria-pressed="${k === S.form}">${SPECIES[k].f}</button>`).join("")}</div>
+      ${stepper("fcoef", "in front", S.fcoef, 1, 4)}`;
+    c.querySelectorAll("[data-form]").forEach(b => b.onclick = () => { S.form = b.dataset.form; S.fcoef = 1; renderControls(); renderInfo(); });
+  } else if (S.scene === 2) {
+    const e = EQS[S.eq], sp = eqSpecies();
+    c.innerHTML = `<div class="seg" role="group" aria-label="Equation">${Object.entries(EQS).map(([k, q]) => `<button data-eq="${k}" aria-pressed="${k === S.eq}">${q.name}</button>`).join("")}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:center">${sp.map((k, i) => (i === e.react.length ? `<span class="arrow">→</span>` : i ? `<span class="arrow">+</span>` : "") + stepper("c" + i, SPECIES[k].f, S.coef[i], 1, 6)).join("")}</div>
+      ${S.eq === "water" ? `<button class="btn ghost" id="pero">${S.peroxide ? "Put H₂O back" : "Change the small number instead"}</button>` : ""}
+      <button class="btn ghost" id="reset">Reset</button>`;
+    c.querySelectorAll("[data-eq]").forEach(b => b.onclick = () => { setEq(b.dataset.eq); renderControls(); renderCaption(); renderInfo(); });
+    if ($("pero")) $("pero").onclick = () => { S.peroxide = !S.peroxide; S.coef = S.coef.map(() => 1); renderControls(); renderCaption(); renderInfo(); };
+    $("reset").onclick = () => { setEq(S.eq); renderControls(); renderCaption(); renderInfo(); };
+  } else {
+    const busy = S.run && !S.run.finished;
+    c.innerHTML = `${stepper("nH", "H₂", S.nH, 1, 8)} ${stepper("nO", "O₂", S.nO, 1, 6)}
+      <button class="btn" id="react" ${busy || (S.run && S.run.finished) ? "disabled" : ""}>React</button>
+      <button class="btn ghost" id="reset">Reset</button>`;
+    $("react").onclick = startRun;
+    $("reset").onclick = () => { S.run = null; layoutReactants(); renderControls(); renderCaption(); renderInfo(); };
+  }
+  c.querySelectorAll("[data-stp]").forEach(b => b.onclick = () => {
+    const id = b.dataset.stp, d = +b.dataset.d;
+    if (id === "fcoef") { S.fcoef = Math.max(1, Math.min(4, S.fcoef + d)); renderInfo(); }
+    else if (id === "nH") { S.nH = Math.max(1, Math.min(8, S.nH + d)); S.run = null; layoutReactants(); renderCaption(); }
+    else if (id === "nO") { S.nO = Math.max(1, Math.min(6, S.nO + d)); S.run = null; layoutReactants(); renderCaption(); }
+    else { const i = +id.slice(1); S.coef[i] = Math.max(1, Math.min(6, S.coef[i] + d)); renderCaption(); renderInfo(); }
+    renderControls();
+  });
+  const used = S.scene === 0 ? (S.exp === "mg" ? ["Mg", "O"] : ["Ca", "C", "O", "H", "Cl"]) : S.scene === 1 ? Object.keys(countAtoms(SPECIES[S.form].parts)) : S.scene === 2 ? sideCounts().els : ["H", "O"];
+  $("legend").innerHTML = used.map(el => `<span><i style="background:${EL[el].c}"></i>${EL[el].name}</span>`).join("")
+    + (S.scene === 1 ? `<span style="color:#ffd24a">coefficient</span><span style="color:#7fb2ff">subscript</span><span style="color:#8fe0a8">brackets</span>` : "");
+}
+function renderCaption() {
+  const extra = S.scene === 0 ? expCaption() : S.scene === 2 ? eqCaption() : S.scene === 3 ? runCaption() : null;
+  const s = extra || SCENES[S.scene];
+  $("cap-eyebrow").textContent = s.eyebrow;
+  $("cap-title").textContent = s.title;
+  $("cap-text").innerHTML = s.text;
+  $("cap-try").textContent = s.tryText;
+  // Only the "Balanced!" moment has its own clip; other changes keep the scene's clip.
+  const key = extra?.clip || "eq-" + (S.scene + 1);
+  if (key !== voice.key) {
+    const backFromMoment = voice.key === "eq-balanced" && key === "eq-3";
+    voice.key = key;
+    if (voice.armed && voice.auto && !backFromMoment) speak(); else stopSpeaking();
+  }
+}
+
+/* ---------- Info card: changes with the scene ---------- */
+function renderInfo() {
+  const L = $("info-label"), I = $("info");
+  if (S.scene === 0) {
+    L.textContent = "Three experiments on a balance";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Experiment</th><th>Before</th><th>After</th><th>Why</th></tr></thead><tbody>
+      <tr class="${S.exp === "sealed" ? "on" : ""}"><td>Sealed flask</td><td class="n">150.00 g</td><td class="n">150.00 g</td><td>The gas is trapped, so every atom stays on the balance</td></tr>
+      <tr class="${S.exp === "open" ? "on" : ""}"><td>Open flask</td><td class="n">150.00 g</td><td class="n">147.80 g</td><td>2.20 g of CO₂ gas escapes into the air</td></tr>
+      <tr class="${S.exp === "mg" ? "on" : ""}"><td>Burning Mg</td><td class="n">22.40 g</td><td class="n">24.00 g</td><td>1.60 g of O₂ from the air joins the magnesium</td></tr></tbody></table></div>
+      <p class="note">Masses include the flask or crucible. A mass change on an open balance always means a <b>gas</b> left or joined: the total mass of all the atoms never changes.</p>`;
+  } else if (S.scene === 1) {
+    const ct = countAtoms(SPECIES[S.form].parts, S.fcoef);
+    L.textContent = "The three kinds of number";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Number</th><th>What it multiplies</th><th>Example</th></tr></thead><tbody>
+      <tr><td>Subscript</td><td>the atom just before it</td><td>H₂O: 2 H, 1 O</td></tr>
+      <tr><td>After a bracket</td><td>everything inside the bracket</td><td>(NO₃)₂: 2 N, 6 O</td></tr>
+      <tr><td>Coefficient</td><td>the whole formula</td><td>2H₂O: 4 H, 2 O</td></tr></tbody></table></div>
+      <div class="table-wrap"><table class="props"><thead><tr><th class="f">${S.fcoef > 1 ? S.fcoef : ""}${SPECIES[S.form].f}</th><th>Working</th><th>Atoms</th></tr></thead><tbody>
+      ${Object.entries(ct).map(([el, o]) => `<tr><td>${el}</td><td>${chainText(o.chains)}</td><td>${o.n}</td></tr>`).join("")}
+      <tr><td>Total</td><td></td><td>${Object.values(ct).reduce((a, o) => a + o.n, 0)}</td></tr></tbody></table></div>`;
+  } else if (S.scene === 2) {
+    const { L: Lc, R: Rc, els, balanced } = sideCounts();
+    L.textContent = "Atom tally";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Atom</th><th>Left side</th><th>Right side</th><th></th></tr></thead><tbody>
+      ${els.map(el => `<tr><td>${EL[el].name}</td><td>${Lc[el] || 0}</td><td>${Rc[el] || 0}</td><td class="${Lc[el] === Rc[el] ? "yes" : "no"}">${Lc[el] === Rc[el] ? "✓" : "✗"}</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="note">${S.peroxide ? "The atoms add up, but the product is no longer water." : balanced ? "Balanced." : "Tip: balance the atom that appears in the fewest formulae first, and leave single elements such as O₂ until last."}</p>`;
+  } else {
+    L.textContent = "Your runs";
+    I.innerHTML = runs.length ? `<div class="table-wrap"><table class="props"><thead><tr><th>Start</th><th>H₂O made</th><th>Left over</th><th>Limiting</th></tr></thead><tbody>
+      ${runs.map(r => `<tr><td>${r.h} H₂ + ${r.o} O₂</td><td>${r.w}</td><td>${r.leftH ? r.leftH + " H₂" : r.leftO ? r.leftO + " O₂" : "nothing"}</td><td>${r.leftO ? "H₂" : r.leftH ? "O₂" : "neither"}</td></tr>`).join("")}
+      </tbody></table></div>` : `<p class="note">Each run you make is recorded here.</p>`;
+    I.innerHTML += `<p class="note">The recipe never changes: <b>2 H₂ for every 1 O₂</b>. The equation's coefficients give that ratio.</p>`;
+  }
+}
+
+/* ---------- Narration (Max, ElevenLabs) ----------
+   Each scene has a clip, and so does the moment an equation balances. A clip plays when the learner opens
+   that scene (if auto-narrate is on), or whenever he presses the listen button. */
+const voice = { key: "eq-1", armed: false, auto: true, clips: {} };
+try { voice.auto = localStorage.getItem("eq-voice") !== "off"; } catch {}
+const clipFor = k => voice.clips[k] || (voice.clips[k] = (() => {
+  const a = new Audio(`audio/${k}.mp3`); a.preload = "auto";
+  ["play", "pause", "ended", "error"].forEach(ev => a.addEventListener(ev, updateListen));
+  return a;
+})());
+function stopSpeaking() { Object.values(voice.clips).forEach(a => a.pause()); updateListen(); }
+function speak() {
+  stopSpeaking();
+  const a = clipFor(voice.key);
+  try { a.currentTime = 0; } catch {}
+  const p = a.play();
+  if (p && p.catch) p.catch(updateListen);
+}
+const isSpeaking = () => { const a = voice.clips[voice.key]; return !!(a && !a.paused && !a.ended); };
+function updateListen() {
+  const b = $("listen"); if (!b) return;
+  b.textContent = isSpeaking() ? "■ Stop" : "🔊 Hear Max explain this";
+  $("auto").textContent = "Auto-narrate: " + (voice.auto ? "on" : "off");
+  $("auto").setAttribute("aria-pressed", String(voice.auto));
+}
+$("listen").onclick = () => { voice.armed = true; isSpeaking() ? stopSpeaking() : speak(); };
+$("auto").onclick = () => {
+  voice.auto = !voice.auto;
+  try { localStorage.setItem("eq-voice", voice.auto ? "on" : "off"); } catch {}
+  if (!voice.auto) stopSpeaking();
+  updateListen();
+};
+// Audio can only start after the learner has tapped something, so the first tap anywhere arms auto-narration.
+document.addEventListener("pointerdown", () => { voice.armed = true; }, { once: true, capture: true });
+
+/* ---------- Scene 1 simulation: a reaction on a balance ---------- */
+const DUR = 9;  // seconds for the reaction to finish: slow enough to watch the reading change
+let bubbles = [], gas = [], trapped = 0;
+const FLASK = { neckL: 147, neckR: 173, neckTop: 128, shoulder: 168, baseL: 98, baseR: 222, base: 254, liquid: 212 };
+function flaskX(y, side) { // inner wall of the conical flask at height y
+  const f = FLASK; if (y <= f.shoulder) return side < 0 ? f.neckL : f.neckR;
+  const k = (y - f.shoulder) / (f.base - f.shoulder);
+  return side < 0 ? lerp(f.neckL, f.baseL, k) : lerp(f.neckR, f.baseR, k);
+}
+function stepExp(dt) {
+  if (!S.running) return;
+  S.p = reduceMotion ? 1 : clamp01((nowS() - S.t0) / DUR);
+  const active = S.p < 1;
+  if (S.exp !== "mg") {
+    if (active && Math.random() < dt * 5) bubbles.push({ x: rand(118, 202), y: 248, v: rand(18, 30), g: Math.random() < .5 });
+    for (const b of bubbles) { b.y -= b.v * dt; }
+    bubbles = bubbles.filter(b => {
+      if (b.y > FLASK.liquid) return true;
+      if (b.g) gas.push({ x: b.x, y: FLASK.liquid, vx: rand(-6, 6), vy: -rand(22, 32), a: 1, age: 0 });
+      return false;
+    });
+  } else if (active && Math.random() < dt * 1.6) gas.push({ x: rand(116, 204), y: 60, vx: rand(-3, 3), vy: rand(26, 34), a: 1, age: 0, o2: true });
+  for (const g of gas) {
+    g.x += g.vx * dt; g.y += g.vy * dt; g.age += dt;
+    if (g.o2) { if (g.y > 228) g.a -= dt * 2; continue; }                    // oxygen drifts down into the crucible and joins the magnesium
+    if (g.y < FLASK.shoulder && g.y > FLASK.neckTop) g.x = lerp(g.x, 160, dt * 3);  // funnel into the neck
+    if (S.exp === "sealed") { if (g.y < FLASK.neckTop - 4) { g.a = 0; trapped++; } }  // caught by the balloon
+    else if (g.y < FLASK.neckTop) { g.vx += dt * 6; g.a -= dt * .25; }  // escapes and drifts away
+  }
+  gas = gas.filter(g => g.a > 0 && g.y > -20 && g.x < 440);
+  if (S.p >= 1 && !S.done) { S.done = true; S.running = false; renderControls(); renderCaption(); }
+}
+const balloonR = () => 7 + 20 * ease(S.exp === "sealed" ? S.p : 0);
+function drawExp(now) {
+  const e = EXP[S.exp], mass = e.before + e.delta * ease(S.p);
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO);
+  ctx.fillText(S.exp === "mg" ? "MAGNESIUM IN A CRUCIBLE, OPEN TO THE AIR" : "MARBLE CHIPS + HYDROCHLORIC ACID", 14, 22);
+  // Balance
+  ctx.fillStyle = "#1a2530"; ctx.fillRect(70, 258, 180, 36); ctx.fillStyle = "#24313c"; ctx.fillRect(84, 254, 152, 6);
+  ctx.fillStyle = "#06120c"; ctx.fillRect(176, 266, 66, 20);
+  ctx.fillStyle = "#8fe0a8"; ctx.font = font(500, 13, MONO); ctx.textAlign = "right"; ctx.fillText(mass.toFixed(2) + " g", 238, 281);
+  if (S.exp === "mg") drawCrucible(now); else drawFlask(now);
+  // Read-out
+  const rx = 286; ctx.textAlign = "left";
+  ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.fillText("BEFORE", rx, 70);
+  ctx.fillStyle = "#dce5ec"; ctx.font = font(800, 20, DISPLAY); ctx.fillText(e.before.toFixed(2) + " g", rx, 92);
+  ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.fillText("NOW", rx, 122);
+  ctx.fillStyle = "#dce5ec"; ctx.font = font(800, 20, DISPLAY); ctx.fillText(mass.toFixed(2) + " g", rx, 144);
+  const d = mass - e.before;
+  ctx.fillStyle = Math.abs(d) < .005 ? "#9fb1bf" : d < 0 ? "#ff8a7a" : "#8fe0a8"; ctx.font = font(700, 13);
+  ctx.fillText(Math.abs(d) < .005 ? "no change" : (d > 0 ? "+" : "−") + Math.abs(d).toFixed(2) + " g", rx, 166);
+  if (S.done) {
+    ctx.fillStyle = "#c3cfd8"; ctx.font = font(400, 11.5);
+    wrapText(S.exp === "sealed" ? "The CO₂ is trapped in the balloon, still on the balance." : S.exp === "open" ? "The CO₂ gas escaped into the air." : "Oxygen atoms from the air joined the magnesium.", rx, 192, 124, 15);
+  } else if (!S.running) { ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 12); wrapText("Press Start to run the reaction.", rx, 192, 124, 16); }
+}
+function drawFlask(now) {
+  const f = FLASK, sealed = S.exp === "sealed";
+  // liquid
+  ctx.fillStyle = "rgba(127,178,255,.16)"; ctx.beginPath();
+  ctx.moveTo(flaskX(f.liquid, -1), f.liquid); ctx.lineTo(flaskX(f.liquid, 1), f.liquid); ctx.lineTo(f.baseR, f.base); ctx.lineTo(f.baseL, f.base); ctx.closePath(); ctx.fill();
+  // marble chips: fewer as they react
+  const chips = Math.round(7 * (1 - S.p * .85));
+  for (let i = 0; i < chips; i++) { ctx.fillStyle = "#c9ccd1"; ctx.beginPath(); ctx.ellipse(118 + i * 14, 246 - (i % 2) * 3, 6, 4.5, i, 0, 7); ctx.fill(); }
+  for (const b of bubbles) { ctx.strokeStyle = "rgba(220,229,236,.7)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(b.x, b.y, 2.4, 0, 7); ctx.stroke(); }
+  // flask outline
+  ctx.strokeStyle = "#9fb1bf"; ctx.lineWidth = 2; ctx.beginPath();
+  ctx.moveTo(f.neckL, f.neckTop); ctx.lineTo(f.neckL, f.shoulder); ctx.lineTo(f.baseL, f.base); ctx.lineTo(f.baseR, f.base); ctx.lineTo(f.neckR, f.shoulder); ctx.lineTo(f.neckR, f.neckTop); ctx.stroke();
+  if (sealed) {
+    const r = balloonR(), cy = f.neckTop - r;
+    ctx.fillStyle = "rgba(255,107,139,.18)"; ctx.strokeStyle = "#ff6b8b"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(160, cy, r * .95, r, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#ff6b8b"; ctx.fillRect(f.neckL - 2, f.neckTop - 4, f.neckR - f.neckL + 4, 5);
+    const n = Math.min(trapped, 16);
+    for (let i = 0; i < n; i++) { const a = i * 2.4 + now * .3, d = (r - 7) * Math.sqrt((i + .5) / n); mol("CO2", 160 + Math.cos(a) * d * .9, cy + Math.sin(a) * d, .42); }
+    ctx.fillStyle = "#9fb1bf"; ctx.font = font(600, 10); ctx.textAlign = "right"; ctx.fillText("balloon", 160 - r - 8, cy - 4); ctx.fillText("seals it", 160 - r - 8, cy + 9);
+  } else { ctx.fillStyle = "#9fb1bf"; ctx.font = font(600, 10); ctx.textAlign = "left"; ctx.fillText("open neck", 180, f.neckTop + 6); }
+  for (const g of gas) mol("CO2", g.x, g.y, .5, Math.max(0, Math.min(1, g.a)));
+}
+function drawCrucible(now) {
+  const p = S.p;
+  // gentle glow while it burns
+  if (S.running && p > .05 && p < .95) {
+    const a = .35 * Math.sin(Math.PI * p);
+    const g = ctx.createRadialGradient(160, 232, 4, 160, 232, 70); g.addColorStop(0, `rgba(255,255,240,${a})`); g.addColorStop(1, "rgba(255,255,240,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(160, 232, 70, 0, 7); ctx.fill();
+  }
+  // ribbon of magnesium turning into white powder
+  ctx.globalAlpha = 1 - p; ctx.strokeStyle = "#a9b6c2"; ctx.lineWidth = 3; ctx.beginPath();
+  for (let i = 0; i <= 8; i++) { const x = 126 + i * 8.5, y = 238 + (i % 2 ? -6 : 0); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  ctx.stroke(); ctx.globalAlpha = 1;
+  const powder = Math.round(46 * p);
+  for (let i = 0; i < powder; i++) { ctx.fillStyle = "#f2f2ee"; ctx.beginPath(); ctx.arc(126 + (i * 29 % 70), 251 - (i * 7 % 13), 2, 0, 7); ctx.fill(); }
+  // crucible
+  ctx.strokeStyle = "#9fb1bf"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(112, 224); ctx.lineTo(122, 254); ctx.lineTo(198, 254); ctx.lineTo(208, 224); ctx.stroke();
+  for (const g of gas) mol("O2", g.x, g.y, .6, Math.max(0, Math.min(1, g.a, g.age)));
+  if (S.running || S.done) { ctx.fillStyle = "#9fb1bf"; ctx.font = font(600, 10); ctx.textAlign = "left"; ctx.fillText("O₂ from the air drifts in", 14, 46); }
+}
+function wrapText(text, x, y, maxW, lh) {
+  const words = text.split(" "); let line = "";
+  for (const w of words) { const t = line ? line + " " + w : w; if (ctx.measureText(t).width > maxW && line) { ctx.fillText(line, x, y); y += lh; line = w; } else line = t; }
+  if (line) ctx.fillText(line, x, y);
+  return y + lh;
+}
+
+/* ---------- Scene 2: counting atoms ---------- */
+function drawCount(now) {
+  const ts = formulaTokens(S.form, S.fcoef), px = 34;
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.fillText("COUNT THE ATOMS", 14, 22);
+  const tw = tokWidth(ts, px); drawTokens(ts, 140 - tw / 2, 70, px);
+  // the molecules: one copy per coefficient
+  const sh = SHAPES[S.form], s = S.form === "CaNO32" ? 1.15 : 1.5, perRow = Math.max(1, Math.min(S.fcoef, Math.floor(250 / (sh.w * s + 18))));
+  const rows = Math.ceil(S.fcoef / perRow);
+  for (let i = 0; i < S.fcoef; i++) {
+    const r = Math.floor(i / perRow), inRow = Math.min(perRow, S.fcoef - r * perRow), c = i % perRow;
+    const gap = sh.w * s + 22, x = 140 + (c - (inRow - 1) / 2) * gap, y = 175 + (r - (rows - 1) / 2) * 64 + (reduceMotion ? 0 : Math.sin(now * 1.2 + i) * 1.5);
+    mol(S.form, x, y, s);
+    if (S.fcoef > 1) { ctx.fillStyle = "rgba(255,210,74,.5)"; ctx.font = font(700, 10); ctx.textAlign = "center"; ctx.fillText(`copy ${i + 1}`, x, y + 34 * (s / 1.5) + 6); }
+  }
+  // tally
+  const ct = countAtoms(SPECIES[S.form].parts, S.fcoef), rx = 290;
+  let y = 64;
+  ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.textAlign = "left"; ctx.fillText("ATOMS", rx, y - 12);
+  for (const [el, o] of Object.entries(ct)) {
+    atom(el, rx + 9, y + 4, 1.1);
+    ctx.fillStyle = "#dce5ec"; ctx.font = font(800, 20, DISPLAY); ctx.textAlign = "left"; ctx.fillText(String(o.n), rx + 26, y + 11);
+    ctx.fillStyle = "#9fb1bf"; ctx.font = font(500, 10, MONO); ctx.fillText(chainText(o.chains), rx + 26 + ctx.measureText("").width + 34, y + 10);
+    y += 44;
+  }
+  ctx.strokeStyle = "#24313c"; ctx.beginPath(); ctx.moveTo(rx, y - 10); ctx.lineTo(412, y - 10); ctx.stroke();
+  ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 12); ctx.fillText(`${Object.values(ct).reduce((a, o) => a + o.n, 0)} atoms in total`, rx, y + 8);
+}
+
+/* ---------- Scene 3: balancing ---------- */
+function drawBalance(now) {
+  const e = EQS[S.eq], sp = eqSpecies(), nR = e.react.length, { L, R, els, balanced } = sideCounts();
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.fillText(e.name.toUpperCase(), 14, 22);
+  // equation across the top
+  const px = 21, parts = [];
+  sp.forEach((k, i) => { if (i) parts.push(i === nR ? [{ s: " → " }] : [{ s: " + " }]); parts.push(formulaTokens(k, S.coef[i])); });
+  const all = parts.flat(), tw = tokWidth(all, px);
+  drawTokens(all, 210 - tw / 2, 50, px);
+  // molecules: one column per substance, one molecule per coefficient
+  const cols = sp.length + 1, cw = 404 / cols;
+  let col = 0;
+  sp.forEach((k, i) => {
+    if (i === nR) { ctx.fillStyle = "#7f93a3"; ctx.font = font(800, 22, DISPLAY); ctx.textAlign = "center"; ctx.fillText("→", 8 + cw * (col + .5), 88 + (Math.max(...S.coef) - 1) * 13.5); col++; }
+    const x = 8 + cw * (col + .5), n = S.coef[i];
+    for (let j = 0; j < n; j++) mol(k, x, 80 + j * 27 + (reduceMotion ? 0 : Math.sin(now * 1.1 + j + i) * 1.2), .95);
+    col++;
+  });
+  // tally
+  const y0 = 252, cwT = 404 / Math.max(3, els.length);
+  ctx.strokeStyle = "#24313c"; ctx.beginPath(); ctx.moveTo(8, y0 - 14); ctx.lineTo(412, y0 - 14); ctx.stroke();
+  els.forEach((el, i) => {
+    const x = 8 + cwT * (i + .5), ok = L[el] === R[el];
+    atom(el, x - 50, y0 + 6, 1);
+    ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 12); ctx.textAlign = "left"; ctx.fillText(el, x - 40, y0 + 11);
+    ctx.fillStyle = "#dce5ec"; ctx.font = font(800, 16, DISPLAY); ctx.textAlign = "center"; ctx.fillText(`${L[el] || 0} : ${R[el] || 0}`, x + 6, y0 + 12);
+    ctx.fillStyle = ok ? "#8fe0a8" : "#ff8a7a"; ctx.font = font(800, 16); ctx.fillText(ok ? "✓" : "✗", x + 44, y0 + 12);
+  });
+  ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 9.5, MONO); ctx.textAlign = "center"; ctx.fillText("ATOMS ON THE LEFT : ATOMS ON THE RIGHT", 210, y0 + 36);
+  if (S.peroxide) { ctx.fillStyle = "#ff8a7a"; ctx.font = font(700, 12); ctx.fillText("H₂O₂ is hydrogen peroxide, not water!", 210, 304); }
+  else if (balanced) { ctx.fillStyle = "#8fe0a8"; ctx.font = font(800, 13); ctx.fillText(lowest() > 1 ? "Balanced, but not the smallest numbers" : "Balanced!", 210, 304); }
+}
+
+/* ---------- Scene 4: limiting reactant ---------- */
+// Molecules move between slots with gentle tweens; each reaction takes 2 H₂ + 1 O₂ and gives 2 H₂O.
+let mols = [];
+const LBOX = { x: 14, y: 62, w: 140, h: 190 }, RBOX = { x: 266, y: 62, w: 140, h: 190 }, MEET = [210, 150];
+const slot = (box, i, cols = 3) => [box.x + 24 + (i % cols) * 46, box.y + 26 + Math.floor(i / cols) * 34];
+function layoutReactants() {
+  mols = [];
+  for (let i = 0; i < S.nH; i++) mols.push({ k: "H2", pos: slot(LBOX, i) });
+  for (let i = 0; i < S.nO; i++) mols.push({ k: "O2", pos: slot(LBOX, S.nH + i) });
+}
+function tween(m, to, t0, dur) { m.from = [...m.pos]; m.to = to; m.t0 = t0; m.dur = dur; }
+function startRun() {
+  layoutReactants();
+  const h = S.nH, o = S.nO, w = 2 * Math.min(Math.floor(h / 2), o), events = w / 2, t = nowS();
+  const STEP = reduceMotion ? .01 : 2.4, MOVE = reduceMotion ? .01 : 1.1;
+  const Hs = mols.filter(m => m.k === "H2"), Os = mols.filter(m => m.k === "O2");
+  for (let e = 0; e < events; e++) {
+    const t0 = t + .4 + e * STEP;
+    [Hs[2 * e], Hs[2 * e + 1], Os[e]].forEach((m, j) => { tween(m, [MEET[0] + (j - 1) * 16, MEET[1] + (j === 2 ? 14 : 0)], t0, MOVE); m.die = t0 + MOVE; });
+    for (let j = 0; j < 2; j++) { const p = { k: "H2O", pos: [MEET[0] + (j ? 10 : -10), MEET[1]], born: t0 + MOVE }; tween(p, slot(RBOX, 2 * e + j), t0 + MOVE + .15, MOVE); mols.push(p); }
+  }
+  S.run = { h, o, w, leftH: h - w, leftO: o - w / 2, end: t + .4 + events * STEP + (events ? MOVE : 0) + .3, finished: false };
+  renderControls(); renderCaption();
+}
+function stepRun() {
+  const r = S.run; if (!r || r.finished) return;
+  if (nowS() >= r.end) { r.finished = true; runs.push({ ...r }); if (runs.length > 6) runs.shift(); renderControls(); renderCaption(); renderInfo(); }
+}
+function drawRun(now) {
+  const t = nowS();
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.fillText("HYDROGEN + OXYGEN → WATER", 14, 22);
+  const recipe = [{ s: "2", k: "coef" }, { s: "H" }, { s: "2", k: "sub" }, { s: " + " }, { s: "O" }, { s: "2", k: "sub" }, { s: " → " }, { s: "2", k: "coef" }, { s: "H" }, { s: "2", k: "sub" }, { s: "O" }];
+  drawTokens(recipe, 210 - tokWidth(recipe, 16) / 2, 46, 16);
+  for (const [b, label] of [[LBOX, "REACTANTS"], [RBOX, "PRODUCTS"]]) {
+    ctx.strokeStyle = "#24313c"; ctx.lineWidth = 1; ctx.strokeRect(b.x + .5, b.y + .5, b.w, b.h);
+    ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 9.5, MONO); ctx.textAlign = "left"; ctx.fillText(label, b.x + 6, b.y + 13);
+  }
+  ctx.fillStyle = "#33424f"; ctx.font = font(800, 26, DISPLAY); ctx.textAlign = "center"; ctx.fillText("→", 210, 160);
+  for (const m of mols) {
+    if (m.born && t < m.born) continue;
+    if (m.die && t >= m.die) continue;
+    if (m.to) { const k = ease(clamp01((t - m.t0) / m.dur)); m.cur = [lerp(m.from[0], m.to[0], k), lerp(m.from[1], m.to[1], k)]; } else m.cur = m.pos;
+    const left = S.run && S.run.finished && !m.die && m.k !== "H2O";
+    if (left) { ctx.strokeStyle = "rgba(255,210,74,.7)"; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(m.cur[0], m.cur[1], 17, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+    mol(m.k, m.cur[0], m.cur[1], 1.05);
+  }
+  // counts under the boxes
+  const alive = k => mols.filter(m => m.k === k && !(m.die && t >= m.die) && !(m.born && t < m.born)).length;
+  ctx.font = font(700, 12); ctx.textAlign = "left"; ctx.fillStyle = "#dce5ec";
+  ctx.fillText(`H₂: ${alive("H2")}   O₂: ${alive("O2")}`, LBOX.x + 4, LBOX.y + LBOX.h + 18);
+  ctx.fillText(`H₂O: ${alive("H2O")}`, RBOX.x + 4, RBOX.y + RBOX.h + 18);
+  if (S.run && S.run.finished) {
+    const r = S.run, msg = !r.leftH && !r.leftO ? "Both ran out together" : r.leftO ? "H₂ ran out: it was limiting" : "O₂ ran out: it was limiting";
+    ctx.fillStyle = "#ffd24a"; ctx.font = font(800, 13); ctx.textAlign = "center"; ctx.fillText(msg, 210, 302);
+  } else if (!S.run) { ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 12); ctx.textAlign = "center"; ctx.fillText("Choose the amounts, then press React", 210, 302); }
+}
+
+/* ---------- Loop ---------- */
+const canvas = $("stage"), ctx = canvas.getContext("2d");
+let dpr = 1, scale = 1;
+function resize() {
+  const w = canvas.clientWidth || W;
+  dpr = Math.min(2, window.devicePixelRatio || 1); scale = w / W;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(canvas); resize();
+function draw(now) {
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  ctx.fillStyle = "#0c1218"; ctx.fillRect(0, 0, W, H);
+  [drawExp, drawCount, drawBalance, drawRun][S.scene](now);
+}
+let last = performance.now();
+function frame(ms) {
+  const dt = Math.min(.05, (ms - last) / 1000); last = ms;
+  if (S.scene === 0) stepExp(dt); else if (S.scene === 3) stepRun();
+  draw(ms / 1000);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  { q: "How many oxygen atoms are in 2Ca(NO₃)₂?", opts: ["6", "7", "12"], a: 2,
+    why: "Each NO₃ has 3 O, the bracket's 2 doubles that to 6, and the coefficient 2 doubles the whole formula: <b>2 × 2 × 3 = 12</b>." },
+  { q: "Marble chips react with acid in a flask sealed with a balloon. What happens to the reading on the balance?", opts: ["It goes down, because gas is made", "It stays the same", "It goes up"], a: 1,
+    why: "The carbon dioxide is trapped in the balloon, so every atom stays on the balance. Atoms are rearranged, not destroyed: <b>the mass stays the same</b>." },
+  { q: "Magnesium ribbon is burned in an open crucible. Why is the product heavier than the magnesium was?", opts: ["Heat has mass", "Oxygen atoms from the air have joined the magnesium", "The crucible melted into it"], a: 1,
+    why: "2Mg + O₂ → 2MgO. The extra mass is the <b>oxygen</b> taken from the air. Total mass, including that oxygen, is unchanged." },
+  { q: "Which is the balanced equation for making ammonia?", opts: ["N₂ + H₂ → NH₃", "N₂ + 3H₂ → 2NH₃", "N₂ + H₂ → N₂H₂"], a: 1,
+    why: "Left: 2 N and 6 H. Right: 2 × NH₃ = 2 N and 6 H. Writing N₂H₂ would change the product into a different substance." },
+  { q: "Why can't you balance H₂ + O₂ → H₂O by changing it to H₂ + O₂ → H₂O₂?", opts: ["H₂O₂ is a different substance (hydrogen peroxide)", "There is no such thing as H₂O₂", "You can: it's balanced"], a: 0,
+    why: "Changing a subscript changes what the substance <b>is</b>. Balance with coefficients only: 2H₂ + O₂ → 2H₂O." },
+  { q: "You mix 6 H₂ molecules with 2 O₂ molecules (2H₂ + O₂ → 2H₂O). What happens?", opts: ["Hydrogen runs out first; 1 O₂ is left over", "Oxygen runs out first; 4 H₂O form and 2 H₂ are left over", "6 H₂O form with nothing left over"], a: 1,
+    why: "2 O₂ can only react with 4 H₂, making 4 H₂O. Oxygen is the <b>limiting reactant</b>, and 2 H₂ are left over." },
+];
+const answered = {};
+function renderQuiz() {
+  $("qs").innerHTML = QUIZ.map((item, qi) => `
+    <div class="q">
+      <p class="ask">${qi + 1}. ${item.q}</p>
+      <div class="opts">${item.opts.map((o, oi) => `<button class="opt" id="q${qi}o${oi}" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div>
+      <p class="why" id="why-${qi}" hidden></p>
+    </div>`).join("");
+  $("qs").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.q, +b.dataset.o));
+  updateScore();
+}
+function answer(qi, oi) {
+  if (qi in answered) return;
+  answered[qi] = oi;
+  const item = QUIZ[qi];
+  item.opts.forEach((_, i) => { const b = $(`q${qi}o${i}`); b.disabled = true; if (i === item.a) b.classList.add("right"); else if (i === oi) b.classList.add("wrong"); });
+  const why = $("why-" + qi);
+  why.innerHTML = (oi === item.a ? "<b>Correct.</b> " : "<b>Not quite.</b> ") + item.why;
+  why.hidden = false; updateScore();
+}
+function updateScore() {
+  const n = Object.keys(answered).length;
+  const right = Object.entries(answered).filter(([q, o]) => QUIZ[q].a === o).length;
+  $("score").textContent = n ? `${right} of ${n} right` : `${QUIZ.length} questions`;
+}
+
+renderQuiz();
+// ?step=1&exp=open|sealed|mg, ?step=2&f=CaNO32, ?step=3&eq=water|mgo|nacl|methane (used by links from the learning map).
+const askedParams = new URLSearchParams(location.search), askedStep = parseInt(askedParams.get("step"), 10);
+if (EXP[askedParams.get("exp")]) S.exp = askedParams.get("exp");
+if (FORMS.includes(askedParams.get("f"))) S.form = askedParams.get("f");
+if (EQS[askedParams.get("eq")]) setEq(askedParams.get("eq"));
+setScene(askedStep >= 1 && askedStep <= SCENES.length ? askedStep - 1 : 0);
+updateListen();
+requestAnimationFrame(frame);
+</script>

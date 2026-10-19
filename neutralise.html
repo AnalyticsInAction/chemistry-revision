@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+/* Bigger tap targets on phones and tablets (about 44px, per platform guidelines). */
+@media (pointer: coarse) {
+  .chip, .tab, .step, .seg button, .tag, .home-link, .opt, .btn, .listen { min-height: 44px; }
+  .chip, .tag, .home-link { display: inline-flex; align-items: center; }
+  .step { min-height: 40px; }
+}
+</style>
+<title>Neutralisation Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: three scenes on a dark bench (drop by drop, which salt, carbonates) beside an explanation panel; then everyday uses, quiz and key words. Same family as the other labs. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --accent-ink: #ffffff;
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --hl: #e8eff9;
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  --stage: #0c1218;
+  --stage-ink: #dce5ec;
+  --stage-muted: #9fb1bf;
+  --stage-line: #24313c;
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+    --accent: #7fb2ff; --accent-ink: #0b1622;
+    --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --stage: #080d12; --stage-line: #1f2a34;
+    color-scheme: dark;
+  }
+}
+/* Dark by default, in the same palette as the learning-map lineage view. */
+:root, :root[data-theme="dark"] {
+  --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+  --accent: #7fb2ff; --accent-ink: #0b1622;
+  --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --stage: #080d12; --stage-line: #1f2a34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: grid; gap: 1.5rem; }
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -.01em; margin: .25rem 0 0; text-wrap: balance; }
+header p.lede { margin: .5rem 0 0; color: var(--muted); max-width: 62ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+sub, sup { font-size: .7em; line-height: 0; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tab {
+  font: 700 .92rem var(--f-body); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: .45rem .9rem; border-radius: 999px; cursor: pointer; display: inline-flex; gap: .45rem; align-items: baseline;
+}
+.tab .n { font: 500 .75rem var(--f-mono); color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tab[aria-selected="true"] .n { color: inherit; opacity: .8; }
+
+.lab { display: grid; gap: 1.25rem; align-items: start; }
+@media (min-width: 56rem) { .lab { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+.bench { background: var(--stage); color: var(--stage-ink); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: grid; }
+#stage { display: block; width: 100%; aspect-ratio: 420 / 320; max-width: 100%; }
+.bench-controls { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding: 1rem; border-top: 1px solid var(--stage-line); min-height: 4.5rem; }
+.btn { font: 700 .95rem var(--f-body); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; border: 0; background: #6ea8ff; color: #0b1622; }
+.btn.ghost { background: transparent; color: var(--stage-ink); border: 1.5px solid #33424f; }
+.btn:disabled { opacity: .45; cursor: default; }
+.bench .btn:focus-visible, .seg button:focus-visible { outline-color: #6ea8ff; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1.5px solid #33424f; border-radius: 8px; overflow: hidden; }
+.seg button { font: 700 .88rem var(--f-body); background: transparent; color: var(--stage-muted); border: 0; padding: .5rem .7rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #24313c; color: var(--stage-ink); }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .82rem; color: var(--stage-muted); padding: 0 1rem 1rem; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.legend i { width: .8rem; height: .8rem; border-radius: 50%; display: inline-block; }
+
+.panel { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .7rem; }
+.chip-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.caption { min-height: 12rem; align-content: start; }
+.caption h3 { font-family: var(--f-display); font-weight: 800; font-size: 1.25rem; margin: 0; text-wrap: balance; }
+.caption p { margin: 0; max-width: 60ch; }
+.caption .try { font-size: .9rem; color: var(--muted); }
+.voice-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .2rem; }
+.listen { font: 700 .9rem var(--f-body); padding: .5rem .9rem; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.listen.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+.listen:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.props { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.props th { text-align: left; font: 500 .7rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 .5rem .4rem 0; }
+.props td { padding: .45rem .5rem .45rem 0; border-top: 1px solid var(--line); vertical-align: top; }
+.props td:first-child { font-weight: 700; white-space: nowrap; padding-left: .4rem; }
+.props tr.on td { background: var(--hl); }
+.table-wrap { overflow-x: auto; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+.eq { font-size: 1.02rem; margin: 0; line-height: 1.6; }
+.eq.sym { font-family: var(--f-mono); font-size: .98rem; }
+.scale { display: grid; grid-template-columns: repeat(14, 1fr); border-radius: 6px; overflow: hidden; font: 500 .66rem var(--f-mono); text-align: center; }
+.scale span { padding: .3rem 0; color: #0b1016; position: relative; }
+.scale span.now { outline: 2px solid var(--ink); outline-offset: -2px; font-weight: 700; }
+.scale-key { display: flex; justify-content: space-between; font-size: .76rem; color: var(--muted); }
+
+.quiz { display: grid; gap: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.score { font: 500 .85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.qs { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; align-content: start; }
+.q p.ask { margin: 0; font-weight: 700; }
+.opts { display: grid; gap: .4rem; }
+.opt { text-align: left; font: 400 .95rem var(--f-body); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: .5rem .7rem; cursor: pointer; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); font-weight: 700; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { margin: 0; font-size: .92rem; color: var(--muted); }
+.why b { color: var(--ink); }
+
+.uses { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .uses { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.uses .card h3 { margin: 0; font-family: var(--f-display); font-size: 1.05rem; }
+.uses .card p { margin: 0; font-size: .93rem; }
+.cards-list { display: grid; gap: .5rem; }
+.cards-list div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: .75rem; font-size: .92rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.cards-list div:first-child { border-top: 0; padding-top: 0; }
+.cards-list .front { font-weight: 700; }
+a { color: var(--accent); }
+@media (max-width: 30rem) { .cards-list div { grid-template-columns: 1fr; gap: .1rem; } }
+h1 i { color: #ff6b5e; font-style: normal; }  /* the coral full stop from the lineage view */
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <p class="eyebrow">Chemistry · Acids &amp; bases</p>
+    <h1>Neutralisation Lab<i>.</i></h1>
+    <p class="lede">An acid and a base cancel each other out: H⁺ ions from the acid meet OH⁻ ions from the base and become plain water. What's left behind is a salt, and the acid and base you start with decide exactly which salt it is.</p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <section class="lab">
+    <div class="bench">
+      <canvas id="stage" role="img" aria-label="Animated particle model of an acid being neutralised"></canvas>
+      <div class="bench-controls" id="controls"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="card caption" aria-live="polite">
+        <span class="chip-label" id="cap-eyebrow"></span>
+        <h3 id="cap-title"></h3>
+        <p id="cap-text"></p>
+        <p class="try" id="cap-try"></p>
+        <div class="voice-row">
+          <button class="listen" id="listen">🔊 Hear Max explain this</button>
+          <button class="listen ghost" id="auto" aria-pressed="true">Auto-narrate: on</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="chip-label" id="info-label"></span>
+        <div id="info" style="display:grid;gap:.7rem"></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:1rem">
+    <h2>Neutralisation in everyday life</h2>
+    <div class="uses">
+      <div class="card"><h3>Indigestion tablets</h3><p>Too much hydrochloric acid in your stomach causes heartburn. Antacids contain bases such as magnesium hydroxide or calcium carbonate that neutralise the extra acid.</p></div>
+      <div class="card"><h3>Garden lime</h3><p>Soil that is too acidic stunts plants. Farmers and gardeners spread lime (calcium carbonate or calcium hydroxide) to raise the pH of the soil.</p></div>
+      <div class="card"><h3>Baking</h3><p>Baking powder is sodium hydrogen carbonate mixed with a dry acid. Add water and they react, making carbon dioxide bubbles that make a cake rise.</p></div>
+    </div>
+  </section>
+
+  <section class="quiz">
+    <div class="quiz-head"><h2>Check you've got it</h2><span class="score" id="score"></span></div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <section class="card">
+    <h2>Key words</h2>
+    <div class="cards-list">
+      <div><span class="front">Acid</span><span>A substance that releases H⁺ ions in water. pH below 7. Examples: HCl, HNO₃, H₂SO₄</span></div>
+      <div><span class="front">Base · alkali</span><span>A base neutralises an acid (metal hydroxides, oxides and carbonates). An alkali is a base that dissolves in water, giving OH⁻ ions. pH above 7</span></div>
+      <div><span class="front">Neutralisation</span><span>Acid + base → salt + water. The H⁺ and OH⁻ ions join up: H⁺ + OH⁻ → H₂O</span></div>
+      <div><span class="front">Salt</span><span>The ionic compound left behind: its metal comes from the base and its name ending from the acid (chloride, nitrate, sulfate)</span></div>
+      <div><span class="front">pH and indicators</span><span>pH 7 is neutral; the fewer H⁺ ions, the higher the pH. Universal indicator is red in strong acid, green at 7, purple in strong alkali</span></div>
+      <div><span class="front">Spectator ions</span><span>Ions that take no part in the reaction, such as Na⁺ and Cl⁻ when sodium hydroxide neutralises hydrochloric acid</span></div>
+    </div>
+    <p class="note">Where this connects: the acid formulas and acids with metals are in the <a href="reactions.html">Metal Reactions Lab</a>; how ions form is in <a href="atoms.html">Inside an Atom</a>; ionic compounds like the salts here are in the <a href="precipitate.html">Precipitate Lab</a>.</p>
+  </section>
+  <p class="credit">Narration voice: Max, generated with ElevenLabs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const W = 420, H = 320;
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = k => k * k * (3 - 2 * k);
+const font = (w, px, f = '"Atkinson Hyperlegible", system-ui, sans-serif') => `${w} ${px}px ${f}`;
+const MONO = '"IBM Plex Mono", monospace', DISPLAY = '"Schibsted Grotesk", system-ui, sans-serif';
+const COL = { h: "#ff6b8b", o: "#e5574c", hw: "#e6edf2", na: "#b48cff", cl: "#5cc46a", co2: "#c3cfd8" };
+
+/* ---------- Chemistry ---------- */
+const ACIDS = {
+  hcl:   { f: "HCl", name: "hydrochloric acid", xf: "Cl", poly: false, c: 1, ending: "chloride", xl: "Cl⁻", xc: "#5cc46a" },
+  hno3:  { f: "HNO3", name: "nitric acid", xf: "NO3", poly: true, c: 1, ending: "nitrate", xl: "NO₃⁻", xc: "#ffb070" },
+  h2so4: { f: "H2SO4", name: "sulfuric acid", xf: "SO4", poly: true, c: 2, ending: "sulfate", xl: "SO₄²⁻", xc: "#ffd24a" },
+};
+const BASES = {
+  naoh:  { f: "NaOH", name: "sodium hydroxide", m: "Na", mn: "sodium", a: 1, kind: "hydroxide", ml: "Na⁺", mc: "#b48cff" },
+  koh:   { f: "KOH", name: "potassium hydroxide", m: "K", mn: "potassium", a: 1, kind: "hydroxide", ml: "K⁺", mc: "#f78fd8" },
+  caoh2: { f: "Ca(OH)2", name: "calcium hydroxide", m: "Ca", mn: "calcium", a: 2, kind: "hydroxide", ml: "Ca²⁺", mc: "#9be07a" },
+  cuo:   { f: "CuO", name: "copper oxide", m: "Cu", mn: "copper", a: 2, kind: "oxide", ml: "Cu²⁺", mc: "#5aa9ff" },
+};
+const CARBS = {
+  caco3:  { f: "CaCO3", name: "calcium carbonate", m: "Ca", mn: "calcium", a: 2, kind: "carbonate", solid: "#dfe5ea", lump: true, common: "marble chips", speed: .7 },
+  nahco3: { f: "NaHCO3", name: "sodium hydrogen carbonate", m: "Na", mn: "sodium", a: 1, kind: "hydrogencarbonate", solid: "#f2f2ee", lump: false, common: "baking soda", speed: 1 },
+  cuco3:  { f: "CuCO3", name: "copper carbonate", m: "Cu", mn: "copper", a: 2, kind: "carbonate", solid: "#5fae7e", lump: false, common: "a green powder", speed: .55 },
+};
+const gcd = (a, b) => b ? gcd(b, a % b) : a, lcm = (a, b) => a * b / gcd(a, b);
+// Balance acid + base: the metal's charge (a) and the acid ion's charge (c) set the salt's formula and every coefficient.
+function rx(B, A) {
+  const l = lcm(B.a, A.c), p = l / B.a, q = l / A.c;
+  const water = B.kind === "hydroxide" ? l : p, co2 = /carbonate/.test(B.kind) ? p : 0;
+  const saltF = B.m + (p > 1 ? p : "") + (A.poly && q > 1 ? `(${A.xf})${q}` : A.xf + (q > 1 ? q : ""));
+  return { p, q, water, co2, saltF, saltName: `${B.mn} ${A.ending}` };
+}
+const sub = f => f.replace(/(\d+)/g, "<sub>$1</sub>");
+const co = n => n > 1 ? String(n) : "";
+const wordEq = (B, A, r) => `${A.name} + ${B.name} → ${r.saltName} + water${r.co2 ? " + carbon dioxide" : ""}`;
+const symEq = (B, A, r) => `${co(r.q)}${sub(A.f)} + ${co(r.p)}${sub(B.f)} → ${sub(r.saltF)} + ${co(r.water)}H<sub>2</sub>O${r.co2 ? ` + ${co(r.co2)}CO<sub>2</sub>` : ""}`;
+
+/* ---------- State ---------- */
+const S = { scene: 0, acid: "hcl", base: "naoh", t2: 0, reacting: false, carb: "caco3", acid3: "hcl", poured: 0, pourStart: -1, ts: 0 };
+
+/* ---------- Scenes ---------- */
+const SCENES = [
+  { tab: "Drop by drop", eyebrow: "Neutralisation", title: "H⁺ + OH⁻ → H₂O",
+    text: "Acids contain <b>H⁺ ions</b>. Bases such as sodium hydroxide contain <b>OH⁻ ions</b>. When you add a base to an acid, each OH⁻ joins an H⁺ to make a molecule of <b>water</b>: that's neutralisation. As the H⁺ ions are used up the <b>pH rises</b> and the indicator changes colour. The Na⁺ and Cl⁻ ions don't change: they're <b>spectator ions</b>, left behind in the solution as salt.",
+    tryText: "Try: add the sodium hydroxide one drop at a time and watch the pH meter." },
+  { tab: "Which salt?", eyebrow: "Naming the salt", title: "Acid + base → salt + water",
+    text: "Every neutralisation makes a <b>salt and water</b>. The salt's name comes from both reactants: the <b>metal comes from the base</b>, and the <b>ending comes from the acid</b>. Hydrochloric acid makes <b>chlorides</b>, nitric acid makes <b>nitrates</b> and sulfuric acid makes <b>sulfates</b>. So hydrochloric acid and sodium hydroxide make sodium chloride and water.",
+    tryText: "Try: pick an acid and a base, predict the salt, then press React." },
+  { tab: "Carbonates", eyebrow: "Acids and carbonates", title: "Salt, water and carbon dioxide",
+    text: "<b>Carbonates</b> and <b>hydrogen carbonates</b> neutralise acids too, but they make a third product: <b>carbon dioxide</b>. That's the fizzing. Acid + carbonate → salt + water + carbon dioxide. To prove the gas is carbon dioxide, bubble it through <b>limewater</b>: carbon dioxide turns limewater <b>milky</b>.",
+    tryText: "Try: pick a carbonate and an acid, then add the acid and watch the limewater." },
+];
+const NEUTRAL = { eyebrow: "pH 7", title: "Neutral: every H⁺ is used up",
+  text: "Every H⁺ ion has been used up and there's no extra OH⁻, so the pH is <b>7</b> and the indicator is <b>green</b>. What's left is salt water: <b>sodium chloride</b> dissolved in water. Notice how suddenly the pH jumped at the end. That's why you add the last few drops slowly.",
+  tryText: "Try: add one more drop and see what happens." };
+const ALKALINE = { eyebrow: "Too much base", title: "Past neutral: now it's alkaline",
+  text: "With every H⁺ already used up, the extra OH⁻ ions have nothing to react with. They stay in the solution, so it's now <b>alkaline</b>: the pH is above 7 and the indicator turns blue, then purple. In a real neutralisation you stop at exactly the right amount.",
+  tryText: "Try: press Start again and stop at green." };
+
+function renderTabs() {
+  $("tabs").innerHTML = SCENES.map((s, i) => `<button class="tab" role="tab" id="tab-${i}" aria-selected="${i === S.scene}"><span class="n">${i + 1}</span>${s.tab}</button>`).join("");
+  SCENES.forEach((_, i) => $("tab-" + i).onclick = () => setScene(i));
+}
+function setScene(i) {
+  S.scene = i;
+  if (i === 0) resetDrops();
+  if (i === 1) { S.t2 = 0; S.reacting = false; buildSwap(); }
+  if (i === 2) resetFizz();
+  renderTabs(); renderControls(); renderCaption(); renderInfo();
+}
+
+/* ---------- Scene 1: drop by drop ---------- */
+const LIQ = { x: 44, y: 140, w: 196, h: 140 };
+let parts = [], flashes = [], drop = null, drops = 0, phShown = 1;
+function freeParticle(kind, x, y) { return { kind, x: x ?? rand(LIQ.x + 8, LIQ.x + LIQ.w - 8), y: y ?? rand(LIQ.y + 8, LIQ.y + LIQ.h - 8), vx: rand(-12, 12), vy: rand(-12, 12), mate: null, ang: rand(0, 6.3) }; }
+function resetDrops() {
+  parts = []; flashes = []; drop = null; drops = 0; phShown = 1;
+  for (let i = 0; i < 10; i++) { parts.push(freeParticle("H")); parts.push(freeParticle("Cl")); }
+}
+const count = k => parts.filter(p => p.kind === k).length;
+const net = () => count("H") - count("OH");
+// Each H⁺ drawn stands for the same amount of acid as one drop of base, so pH = −log[H⁺] with [H⁺] = 0.1 mol/L × (H⁺ left ÷ 10).
+function phOf(n) { return n > 0 ? 1 - Math.log10(n / 10) : n < 0 ? 13 + Math.log10(-n / 10) : 7; }
+const atNeutral = () => drops > 0 && !drop && count("H") === 0 && count("OH") === 0;
+const pastNeutral = () => count("OH") > 0 && count("H") === 0 && !parts.some(p => p.mate);
+function addDrop() { if (drop || drops >= 14) return; drop = { y: 82 }; renderControls(); }
+function landDrop() {
+  drops++; drop = null;
+  parts.push(freeParticle("Na", 132 + rand(-6, 6), LIQ.y + 6));
+  const oh = freeParticle("OH", 148 + rand(-6, 6), LIQ.y + 6);
+  parts.push(oh);
+  // The new OH⁻ heads for the nearest H⁺ that isn't already taken.
+  const free = parts.filter(p => p.kind === "H" && !p.mate);
+  if (free.length) { const h = free.sort((a, b) => Math.hypot(a.x - oh.x, a.y - oh.y) - Math.hypot(b.x - oh.x, b.y - oh.y))[0]; h.mate = oh; oh.mate = h; }
+  renderControls(); renderInfo(); renderCaption();
+}
+function stepDrops(dt) {
+  if (drop) { drop.y += (reduceMotion ? 200 : 70) * dt; if (drop.y >= LIQ.y) landDrop(); }
+  const wander = reduceMotion ? 4 : 14;
+  for (const p of parts) {
+    if (p.mate) {
+      const dx = p.mate.x - p.x, dy = p.mate.y - p.y, d = Math.hypot(dx, dy) || 1, sp = reduceMotion ? 120 : 24;
+      p.vx = dx / d * sp; p.vy = dy / d * sp;
+    } else {
+      p.vx += rand(-1, 1) * 60 * dt; p.vy += rand(-1, 1) * 60 * dt;
+      const sp = Math.hypot(p.vx, p.vy); if (sp > wander) { p.vx *= wander / sp; p.vy *= wander / sp; }
+    }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.x < LIQ.x + 7) { p.x = LIQ.x + 7; p.vx = Math.abs(p.vx); } if (p.x > LIQ.x + LIQ.w - 7) { p.x = LIQ.x + LIQ.w - 7; p.vx = -Math.abs(p.vx); }
+    if (p.y < LIQ.y + 7) { p.y = LIQ.y + 7; p.vy = Math.abs(p.vy); } if (p.y > LIQ.y + LIQ.h - 7) { p.y = LIQ.y + LIQ.h - 7; p.vy = -Math.abs(p.vy); }
+    p.ang += dt * .4;
+  }
+  // H⁺ meets OH⁻: both go, a water molecule appears.
+  for (const h of parts.filter(p => p.kind === "H" && p.mate)) {
+    const oh = h.mate;
+    if (Math.hypot(h.x - oh.x, h.y - oh.y) < 9) {
+      parts = parts.filter(p => p !== h && p !== oh);
+      const w = freeParticle("H2O", (h.x + oh.x) / 2, (h.y + oh.y) / 2); parts.push(w);
+      flashes.push({ x: w.x, y: w.y, a: 1 });
+      renderInfo(); renderCaption(); renderControls();
+    }
+  }
+  flashes.forEach(f => f.a -= dt * .6); flashes = flashes.filter(f => f.a > 0);
+  const target = phOf(net());
+  phShown += (target - phShown) * (reduceMotion ? 1 : 1 - Math.exp(-dt * 1.5));
+}
+
+/* ---------- Universal indicator ---------- */
+const UI = [[1, [232, 50, 60]], [3, [240, 120, 45]], [5, [245, 194, 66]], [6, [212, 214, 58]], [7, [76, 184, 74]], [8, [47, 165, 140]], [10, [47, 111, 209]], [12, [90, 59, 176]], [14, [122, 44, 143]]];
+function uiColour(ph, alpha = 1) {
+  ph = Math.max(1, Math.min(14, ph));
+  let i = 0; while (i < UI.length - 2 && ph > UI[i + 1][0]) i++;
+  const [p0, c0] = UI[i], [p1, c1] = UI[i + 1], k = clamp01((ph - p0) / (p1 - p0));
+  const c = c0.map((v, j) => Math.round(lerp(v, c1[j], k)));
+  return `rgba(${c[0]},${c[1]},${c[2]},${alpha})`;
+}
+const phWord = ph => ph < 3 ? "strongly acidic" : ph < 6.5 ? "acidic" : ph <= 7.5 ? "neutral" : ph < 11 ? "alkaline" : "strongly alkaline";
+
+/* ---------- Scene 2: which salt (particles swap partners) ---------- */
+let swap = [];
+const ZONES = { acid: { x: 107, y: 92 }, base: { x: 313, y: 92 }, salt: { x: 107, y: 232 }, water: { x: 313, y: 232 } };
+function buildSwap() {
+  const A = ACIDS[S.acid], B = BASES[S.base], r = rx(B, A);
+  swap = [];
+  const Hs = [];
+  for (let j = 0; j < r.q; j++) {
+    const cx = ZONES.acid.x + (j - (r.q - 1) / 2) * 76, cy = ZONES.acid.y;
+    swap.push({ kind: "X", from: [cx, cy] });
+    const offs = A.c === 1 ? [[24, 0]] : [[-22, -18], [22, -18]];
+    offs.forEach(([dx, dy]) => { const h = { kind: "H", from: [cx + dx, cy + dy] }; swap.push(h); Hs.push(h); });
+  }
+  const Os = [];
+  for (let i = 0; i < r.p; i++) {
+    const cx = ZONES.base.x + (i - (r.p - 1) / 2) * 84, cy = ZONES.base.y;
+    swap.push({ kind: "M", from: [cx, cy] });
+    if (B.kind === "oxide") { const o = { kind: "O2", from: [cx + 26, cy] }; swap.push(o); Os.push(o); }
+    else { const offs = B.a === 1 ? [[26, 0]] : [[-26, 18], [26, 18]]; offs.forEach(([dx, dy]) => { const o = { kind: "OH", from: [cx + dx, cy + dy] }; swap.push(o); Os.push(o); }); }
+  }
+  // Products: H⁺ joins OH⁻ (or two H⁺ join O²⁻) in the water zone; the metal and acid ions become the salt.
+  Os.forEach((o, k) => {
+    const wx = ZONES.water.x + (k - (Os.length - 1) / 2) * 46, wy = ZONES.water.y + 4;
+    o.to = [wx, wy];
+    const hs = o.kind === "O2" ? [Hs[2 * k], Hs[2 * k + 1]] : [Hs[k]];
+    if (o.kind === "O2") { hs[0].to = [wx - 10, wy - 8]; hs[1].to = [wx + 10, wy - 8]; } else hs[0].to = [wx + 10, wy - 8];
+    o.water = hs;
+  });
+  const Ms = swap.filter(s => s.kind === "M"), Xs = swap.filter(s => s.kind === "X");
+  Ms.forEach((m, i) => m.to = [ZONES.salt.x + (i - (Ms.length - 1) / 2) * 46, ZONES.salt.y - 18]);
+  Xs.forEach((x, i) => x.to = [ZONES.salt.x + (i - (Xs.length - 1) / 2) * 46, ZONES.salt.y + 22]);
+}
+function stepSwap(dt) { if (S.reacting && S.t2 < 1) { S.t2 = Math.min(1, S.t2 + dt / (reduceMotion ? .3 : 3.2)); if (S.t2 >= 1) { renderCaption(); renderInfo(); } } }
+
+/* ---------- Scene 3: carbonates ---------- */
+let bubbles = [], tubeBubbles = [];
+function resetFizz() { S.poured = 0; S.pourStart = -1; S.ts = 0; bubbles = []; tubeBubbles = []; }
+const tau = () => S.carb === "caco3" && S.acid3 === "h2so4" ? 3.5 : 14;
+const rate = () => S.ts > 0 ? CARBS[S.carb].speed * Math.exp(-S.ts / tau()) : 0;
+const progress = () => S.ts > 0 ? 1 - Math.exp(-S.ts / tau()) : 0;
+const milk = () => clamp01(progress() * 1.4);
+function stepFizz(dt) {
+  if (S.pourStart >= 0 && S.poured < 1) { S.poured = Math.min(1, S.poured + dt / (reduceMotion ? .2 : 2)); }
+  if (S.poured >= 1) {
+    const before = milk();
+    S.ts += dt;
+    const r = rate();
+    if (!reduceMotion && Math.random() < r * dt * 22) bubbles.push({ x: rand(62, 140), y: rand(270, 282), r: rand(1.8, 3.2) });
+    if (!reduceMotion && Math.random() < r * dt * 9) tubeBubbles.push({ x: 330 + rand(-3, 3), y: 268, r: rand(2, 3) });
+    if (before < .6 && milk() >= .6) renderCaption();
+    if (Math.floor(S.ts) !== Math.floor(S.ts - dt)) renderInfo();
+  }
+  const surf = 200;
+  bubbles.forEach(b => { b.y -= 28 * dt; b.x += Math.sin(b.y * .2) * .2; }); bubbles = bubbles.filter(b => b.y > surf);
+  tubeBubbles.forEach(b => b.y -= 26 * dt); tubeBubbles = tubeBubbles.filter(b => b.y > 182);
+}
+
+/* ---------- Controls, caption, info ---------- */
+function renderControls() {
+  const c = $("controls");
+  if (S.scene === 0) {
+    c.innerHTML = `<button class="btn" id="drop" ${drop || drops >= 14 ? "disabled" : ""}>💧 Add a drop of sodium hydroxide</button>
+      <button class="btn ghost" id="restart">Start again</button>`;
+    $("drop").onclick = addDrop;
+    $("restart").onclick = () => { resetDrops(); renderControls(); renderCaption(); renderInfo(); };
+    $("legend").innerHTML = `<span><i style="background:${COL.h}"></i>H⁺ (from the acid)</span><span><i style="background:${COL.cl}"></i>Cl⁻</span><span><i style="background:${COL.na}"></i>Na⁺</span><span><i style="background:${COL.o}"></i>OH⁻ (from the base)</span><span><i style="background:${COL.hw}"></i>water made</span>`;
+  } else if (S.scene === 1) {
+    c.innerHTML = `<div class="seg" role="group" aria-label="Acid">${Object.entries(ACIDS).map(([k, a]) => `<button data-acid="${k}" aria-pressed="${k === S.acid}">${sub(a.f)}</button>`).join("")}</div>
+      <div class="seg" role="group" aria-label="Base">${Object.entries(BASES).map(([k, b]) => `<button data-base="${k}" aria-pressed="${k === S.base}">${sub(b.f)}</button>`).join("")}</div>
+      <button class="btn" id="react" ${S.reacting ? "disabled" : ""}>⚗️ React</button>`;
+    c.querySelectorAll("[data-acid]").forEach(b => b.onclick = () => { S.acid = b.dataset.acid; S.t2 = 0; S.reacting = false; buildSwap(); renderControls(); renderCaption(); renderInfo(); });
+    c.querySelectorAll("[data-base]").forEach(b => b.onclick = () => { S.base = b.dataset.base; S.t2 = 0; S.reacting = false; buildSwap(); renderControls(); renderCaption(); renderInfo(); });
+    $("react").onclick = () => { S.reacting = true; renderControls(); };
+    const A = ACIDS[S.acid], B = BASES[S.base];
+    $("legend").innerHTML = `<span><i style="background:${COL.h}"></i>H⁺</span><span><i style="background:${A.xc}"></i>${A.xl}</span><span><i style="background:${B.mc}"></i>${B.ml}</span><span><i style="background:${COL.o}"></i>${B.kind === "oxide" ? "O²⁻" : "OH⁻"}</span>`;
+  } else {
+    c.innerHTML = `<div class="seg" role="group" aria-label="Carbonate">${Object.entries(CARBS).map(([k, x]) => `<button data-carb="${k}" aria-pressed="${k === S.carb}">${sub(x.f)}</button>`).join("")}</div>
+      <div class="seg" role="group" aria-label="Acid">${Object.entries(ACIDS).map(([k, a]) => `<button data-acid3="${k}" aria-pressed="${k === S.acid3}">${sub(a.f)}</button>`).join("")}</div>
+      <button class="btn" id="pour" ${S.pourStart >= 0 ? "disabled" : ""}>🧪 Add the acid</button>
+      <button class="btn ghost" id="reset">Reset</button>`;
+    c.querySelectorAll("[data-carb]").forEach(b => b.onclick = () => { S.carb = b.dataset.carb; resetFizz(); renderControls(); renderCaption(); renderInfo(); });
+    c.querySelectorAll("[data-acid3]").forEach(b => b.onclick = () => { S.acid3 = b.dataset.acid3; resetFizz(); renderControls(); renderCaption(); renderInfo(); });
+    $("pour").onclick = () => { S.pourStart = performance.now(); renderControls(); };
+    $("reset").onclick = () => { resetFizz(); renderControls(); renderCaption(); renderInfo(); };
+    $("legend").innerHTML = `<span><i style="background:${CARBS[S.carb].solid}"></i>${CARBS[S.carb].name}</span><span><i style="background:#c3cfd8;opacity:.6"></i>carbon dioxide bubbles</span><span><i style="background:#e8ecef"></i>limewater</span>`;
+  }
+}
+function renderCaption() {
+  let s = SCENES[S.scene], key = "neut-" + (S.scene + 1);
+  if (S.scene === 0 && atNeutral()) { s = NEUTRAL; key = "neut-neutral"; }
+  else if (S.scene === 0 && pastNeutral()) s = ALKALINE;
+  if (S.scene === 1 && S.t2 >= 1) {
+    const A = ACIDS[S.acid], B = BASES[S.base], r = rx(B, A);
+    s = { eyebrow: "The salt", title: `${r.saltName[0].toUpperCase() + r.saltName.slice(1)} and water`,
+      text: `The <b>${B.mn}</b> in the salt came from the base, ${B.name}, and the <b>${A.ending}</b> ending came from the acid, ${A.name}. ${B.kind === "oxide" ? "In a metal oxide the O²⁻ ion takes two H⁺ ions to make each water molecule." : "Each OH⁻ took one H⁺ to make a water molecule."} The ${B.ml} and ${A.xl} ions stay together as the salt, <b>${sub(r.saltF)}</b>.`,
+      tryText: "Try: change just the acid, and see which part of the name changes." };
+  }
+  if (S.scene === 2 && milk() >= .6) {
+    const X = CARBS[S.carb], A = ACIDS[S.acid3], r = rx(X, A);
+    s = { eyebrow: "Limewater test", title: "Milky limewater: the gas is carbon dioxide",
+      text: `The fizzing was carbon dioxide, and the limewater has turned <b>milky</b>, which proves it. In the flask, ${A.name} and ${X.name} have made <b>${r.saltName}</b>, water and carbon dioxide.${S.carb === "caco3" && S.acid3 === "h2so4" ? " Notice it stopped quickly: calcium sulfate barely dissolves, so it coats the marble chips and blocks the acid." : ""}`,
+      tryText: "Try: a different carbonate or acid. The gas is always carbon dioxide; only the salt changes." };
+  }
+  $("cap-eyebrow").textContent = s.eyebrow;
+  $("cap-title").textContent = s.title;
+  $("cap-text").innerHTML = s.text;
+  $("cap-try").textContent = s.tryText;
+  if (key !== voice.key) {
+    const backFromNeutral = voice.key === "neut-neutral" && key === "neut-1";
+    voice.key = key;
+    if (voice.armed && voice.auto && !backFromNeutral) speak(); else stopSpeaking();
+  }
+}
+function renderInfo() {
+  const L = $("info-label"), I = $("info");
+  if (S.scene === 0) {
+    const ph = phOf(net()), n = Math.round(ph);
+    L.textContent = "What's in the beaker";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Drops added</th><th>H⁺ left</th><th>Extra OH⁻</th><th>Water made</th><th>pH</th></tr></thead><tbody>
+      <tr><td>${drops}</td><td>${count("H")}</td><td>${count("H") ? 0 : count("OH")}</td><td>${count("H2O")}</td><td>${ph.toFixed(1)}</td></tr></tbody></table></div>
+      <div class="scale" aria-label="Universal indicator colours, pH 1 to 14">${Array.from({ length: 14 }, (_, i) => `<span class="${i + 1 === n ? "now" : ""}" style="background:${uiColour(i + 1)}">${i + 1}</span>`).join("")}</div>
+      <div class="scale-key"><span>acid</span><span>neutral</span><span>alkali</span></div>
+      <p class="note">pH hardly moves while H⁺ ions are left, then jumps through 7 as the last one goes. Each dot stands for a huge number of real ions, and the water molecules of the solution aren't drawn.</p>`;
+  } else if (S.scene === 1) {
+    const A = ACIDS[S.acid], B = BASES[S.base], r = rx(B, A), done = S.t2 >= 1;
+    L.textContent = "The equation";
+    I.innerHTML = `<p class="eq">${done ? wordEq(B, A, r) : `${A.name} + ${B.name} → <b>?</b> + water`}</p>
+      ${done ? `<p class="eq sym">${symEq(B, A, r)}</p>` : `<p class="note">Predict the salt, then press React.</p>`}
+      <div class="table-wrap"><table class="props"><thead><tr><th>Acid</th><th>Formula</th><th>Makes salts called…</th></tr></thead><tbody>
+      ${Object.entries(ACIDS).map(([k, a]) => `<tr class="${k === S.acid ? "on" : ""}"><td>${a.name}</td><td>${sub(a.f)}</td><td>${a.ending}s</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="note">The metal comes from the base; the ending comes from the acid.</p>`;
+  } else {
+    const X = CARBS[S.carb], A = ACIDS[S.acid3], r = rx(X, A);
+    L.textContent = "The equation";
+    I.innerHTML = `<p class="eq">${wordEq(X, A, r)}</p><p class="eq sym">${symEq(X, A, r)}</p>
+      <div class="table-wrap"><table class="props"><thead><tr><th>Observation</th><th>Explanation</th></tr></thead><tbody>
+      <tr><td>Fizzing</td><td>carbon dioxide gas is made</td></tr>
+      ${S.carb === "caco3" && S.acid3 === "h2so4" ? `<tr><td>Fizzing soon stops</td><td>calcium sulfate barely dissolves, so it coats the chips</td></tr>` : `<tr><td>Solid disappears</td><td>the ${X.kind === "hydrogencarbonate" ? "hydrogen carbonate" : "carbonate"} is used up, making a soluble salt</td></tr>`}
+      <tr><td>Limewater turns milky</td><td>the test for carbon dioxide</td></tr>
+      ${S.carb === "cuco3" ? `<tr><td>Solution turns blue</td><td>copper salts in solution are blue</td></tr>` : ""}
+      </tbody></table></div>
+      <p class="note">${X.name[0].toUpperCase() + X.name.slice(1)} is ${X.common}. The pattern is always acid + carbonate → salt + water + carbon dioxide.</p>`;
+  }
+}
+
+/* ---------- Narration (Max, ElevenLabs) ----------
+   Each scene has a clip, and so does the moment the solution reaches neutral. A clip plays when the learner opens
+   that scene (if auto-narrate is on), or whenever he presses the listen button. */
+const voice = { key: "neut-1", armed: false, auto: true, clips: {} };
+try { voice.auto = localStorage.getItem("neut-voice") !== "off"; } catch {}
+const clipFor = k => voice.clips[k] || (voice.clips[k] = (() => {
+  const a = new Audio(`audio/${k}.mp3`); a.preload = "auto";
+  ["play", "pause", "ended", "error"].forEach(ev => a.addEventListener(ev, updateListen));
+  return a;
+})());
+function stopSpeaking() { Object.values(voice.clips).forEach(a => a.pause()); updateListen(); }
+function speak() {
+  stopSpeaking();
+  const a = clipFor(voice.key);
+  try { a.currentTime = 0; } catch {}
+  const p = a.play();
+  if (p && p.catch) p.catch(updateListen);
+}
+const isSpeaking = () => { const a = voice.clips[voice.key]; return !!(a && !a.paused && !a.ended); };
+function updateListen() {
+  const b = $("listen"); if (!b) return;
+  b.textContent = isSpeaking() ? "■ Stop" : "🔊 Hear Max explain this";
+  $("auto").textContent = "Auto-narrate: " + (voice.auto ? "on" : "off");
+  $("auto").setAttribute("aria-pressed", String(voice.auto));
+}
+$("listen").onclick = () => { voice.armed = true; isSpeaking() ? stopSpeaking() : speak(); };
+$("auto").onclick = () => {
+  voice.auto = !voice.auto;
+  try { localStorage.setItem("neut-voice", voice.auto ? "on" : "off"); } catch {}
+  if (!voice.auto) stopSpeaking();
+  updateListen();
+};
+// Audio can only start after the learner has tapped something, so the first tap anywhere arms auto-narration.
+document.addEventListener("pointerdown", () => { voice.armed = true; }, { once: true, capture: true });
+
+/* ---------- Drawing ---------- */
+const canvas = $("stage"), ctx = canvas.getContext("2d");
+let dpr = 1, scale = 1;
+function resize() {
+  const w = canvas.clientWidth || W;
+  dpr = Math.min(2, window.devicePixelRatio || 1); scale = w / W;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(canvas); resize();
+function dot(x, y, r, fill, stroke = "#0c1218") { ctx.fillStyle = fill; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); } }
+function line(x1, y1, x2, y2, col, w = 1.5, alpha = 1) { if (alpha < .02) return; ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.globalAlpha = 1; }
+function sign(x, y, s, px = 9) { ctx.fillStyle = "#0b1622"; ctx.font = font(800, px); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(s, x, y + .5); ctx.textBaseline = "alphabetic"; }
+function ionLabel(x, y, r, fill, label) {
+  dot(x, y, r, fill);
+  ctx.fillStyle = "#0b1622"; ctx.font = font(800, label.length > 3 ? 8 : 9); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(label, x, y + .5); ctx.textBaseline = "alphabetic";
+}
+function wrapText(text, x, y, maxW, lh) {
+  const words = text.split(" "); let l = "";
+  for (const w of words) { const t = l ? l + " " + w : w; if (ctx.measureText(t).width > maxW && l) { ctx.fillText(l, x, y); y += lh; l = w; } else l = t; }
+  if (l) ctx.fillText(l, x, y);
+  return y + lh;
+}
+function waterMol(x, y, ang, alpha = 1) {
+  ctx.globalAlpha = alpha;
+  const hs = [ang - .91, ang + .91].map(t => [x + Math.cos(t - Math.PI / 2) * 7, y + Math.sin(t - Math.PI / 2) * 7]);
+  hs.forEach(([hx, hy]) => line(x, y, hx, hy, "#c3cfd8", 1.4, alpha));
+  ctx.globalAlpha = alpha; dot(x, y, 4.6, COL.o);
+  hs.forEach(([hx, hy]) => dot(hx, hy, 2.8, COL.hw));
+  ctx.globalAlpha = 1;
+}
+function hydroxide(x, y, ang) {
+  const hx = x + Math.cos(ang) * 7, hy = y + Math.sin(ang) * 7;
+  line(x, y, hx, hy, "#c3cfd8", 1.4); dot(x, y, 5.6, COL.o); dot(hx, hy, 3, COL.hw); sign(x, y, "−", 8);
+}
+
+function drawDrops(now) {
+  const ph = phShown;
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO);
+  ctx.fillText("HYDROCHLORIC ACID + SODIUM HYDROXIDE, ZOOMED IN", 14, 20);
+  // Dropper of sodium hydroxide
+  ctx.fillStyle = "#24313c"; ctx.fillRect(126, 32, 28, 34); ctx.fillStyle = "#3a4b59"; ctx.fillRect(134, 66, 12, 12);
+  ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 9.5); ctx.textAlign = "center"; ctx.fillText("NaOH", 140, 53);
+  if (drop) dot(140, drop.y, 3.6, "rgba(127,178,255,.8)", null);
+  // Beaker with indicator-coloured solution
+  ctx.fillStyle = uiColour(ph, .22); ctx.fillRect(LIQ.x - 4, LIQ.y - 6, LIQ.w + 8, LIQ.h + 10);
+  ctx.strokeStyle = "#33424f"; ctx.lineWidth = 2; ctx.beginPath();
+  ctx.moveTo(LIQ.x - 6, 104); ctx.lineTo(LIQ.x - 6, LIQ.y + LIQ.h + 6); ctx.lineTo(LIQ.x + LIQ.w + 6, LIQ.y + LIQ.h + 6); ctx.lineTo(LIQ.x + LIQ.w + 6, 104); ctx.stroke();
+  for (const f of flashes) { ctx.fillStyle = `rgba(255,255,255,${.25 * f.a})`; ctx.beginPath(); ctx.arc(f.x, f.y, 13, 0, 7); ctx.fill(); }
+  for (const p of parts) if (p.kind === "H2O") waterMol(p.x, p.y, p.ang, .75);
+  for (const p of parts) {
+    if (p.kind === "H") { dot(p.x, p.y, 4.4, COL.h); sign(p.x, p.y, "+", 8); }
+    else if (p.kind === "Cl") { dot(p.x, p.y, 6.8, COL.cl); sign(p.x, p.y, "−"); }
+    else if (p.kind === "Na") { dot(p.x, p.y, 5.6, COL.na); sign(p.x, p.y, "+"); }
+    else if (p.kind === "OH") hydroxide(p.x, p.y, p.ang);
+  }
+  // pH meter
+  const rx = 270;
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.fillText("pH METER", rx, 60);
+  ctx.fillStyle = "#dce5ec"; ctx.font = font(800, 34, DISPLAY); ctx.fillText(ph.toFixed(1), rx, 96);
+  ctx.fillStyle = uiColour(ph); ctx.font = font(700, 13); ctx.fillText(phWord(ph), rx, 116);
+  ctx.fillStyle = uiColour(ph); ctx.fillRect(rx, 126, 130, 10);
+  const rows = [[COL.h, "H⁺ left", count("H")], [COL.o, "OH⁻ extra", count("H") ? 0 : count("OH")], [COL.hw, "water made", count("H2O")], ["#7fb2ff", "drops added", drops]];
+  rows.forEach(([c, t, v], i) => {
+    const y = 162 + i * 22;
+    dot(rx + 5, y - 4, 4, c, null);
+    ctx.fillStyle = "#dce5ec"; ctx.font = font(700, 12); ctx.textAlign = "left"; ctx.fillText(t, rx + 15, y);
+    ctx.fillStyle = "#9fb1bf"; ctx.font = font(500, 11, MONO); ctx.textAlign = "right"; ctx.fillText(String(v), 410, y); ctx.textAlign = "left";
+  });
+  if (atNeutral()) { ctx.fillStyle = "#8fe0a8"; ctx.font = font(700, 12); ctx.fillText("neutral: salt + water", rx, 268); }
+}
+
+function drawSwap(now) {
+  const A = ACIDS[S.acid], B = BASES[S.base], r = rx(B, A), k = ease(S.t2);
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO);
+  const lab = (t, x, y) => { ctx.fillText(t, x, y); };
+  lab("ACID", 14, 22); lab("BASE", 220, 22); lab("SALT", 14, 168); lab("WATER", 220, 168);
+  ctx.fillStyle = "#c3cfd8"; ctx.font = font(700, 11.5);
+  ctx.fillText(`${A.name}, ${A.f.replace(/\d/g, d => "₀₁₂₃₄₅₆₇₈₉"[d])}`, 14, 38);
+  ctx.fillText(`${B.name}, ${B.f.replace(/\d/g, d => "₀₁₂₃₄₅₆₇₈₉"[d])}`, 220, 38);
+  if (S.t2 >= 1) { ctx.fillText(`${r.saltName}, ${r.saltF.replace(/\d/g, d => "₀₁₂₃₄₅₆₇₈₉"[d])}`, 14, 184); ctx.fillText("H₂O", 220, 184); }
+  else { ctx.fillStyle = "#4a5a68"; ctx.fillText("?", 14, 184); ctx.fillText("?", 220, 184); }
+  line(14, 146, 406, 146, "#24313c", 1);
+  ctx.fillStyle = "#4a5a68"; ctx.font = font(800, 18, DISPLAY); ctx.textAlign = "center"; ctx.fillText("+", 210, 98); ctx.fillText("↓", 210, 160);
+  const P = s => [lerp(s.from[0], s.to[0], k), lerp(s.from[1], s.to[1], k)];
+  // Bonds inside new water molecules fade in at the end.
+  for (const o of swap.filter(s => s.water)) { const [ox, oy] = P(o); for (const h of o.water) { const [hx, hy] = P(h); line(ox, oy, hx, hy, "#c3cfd8", 1.6, clamp01((S.t2 - .85) / .15)); } }
+  for (const s of swap) {
+    const [x, y] = P(s);
+    if (s.kind === "X") ionLabel(x, y, A.poly ? 14 : 12, A.xc, A.xl);
+    else if (s.kind === "M") ionLabel(x, y, 12, B.mc, B.ml);
+    else if (s.kind === "H") { dot(x, y, 5, COL.h); if (S.t2 < .85) sign(x, y, "+", 8); }
+    else if (s.kind === "O2") { dot(x, y, 7, COL.o); if (S.t2 < .85) sign(x, y, "2−", 7); }
+    else { // OH⁻: its own H travels with it
+      const hx = x - 10, hy = y - 8;
+      line(x, y, hx, hy, "#c3cfd8", 1.4); dot(x, y, 7, COL.o); dot(hx, hy, 3.4, COL.hw); if (S.t2 < .85) sign(x, y, "−", 8);
+    }
+  }
+  if (S.t2 >= 1) {
+    ctx.fillStyle = "#8fe0a8"; ctx.font = font(700, 12); ctx.textAlign = "center";
+    ctx.fillText("metal from the base + ending from the acid", 210, 304);
+  } else if (!S.reacting) {
+    ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 12); ctx.textAlign = "center"; ctx.fillText("Predict the salt, then press React", 210, 304);
+  }
+}
+
+function drawFizz(now) {
+  const X = CARBS[S.carb], A = ACIDS[S.acid3], p = progress(), r = rate();
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO);
+  ctx.fillText(`${A.name.toUpperCase()} + ${X.name.toUpperCase()}`, 14, 20);
+  // Flask outline as a path, used to clip the liquid
+  const flask = new Path2D("M88 118 L88 160 L40 288 L160 288 L112 160 L112 118");
+  const level = lerp(288, 200, ease(S.poured));
+  ctx.save(); ctx.clip(flask);
+  if (S.poured > 0) {
+    ctx.fillStyle = X.m === "Cu" ? `rgba(90,169,255,${.12 + .3 * p})` : "rgba(127,178,255,.12)";
+    ctx.fillRect(30, level, 140, 300 - level);
+  }
+  // Solid at the bottom, shrinking as it reacts
+  const left = 1 - .55 * p;
+  if (X.lump) for (let i = 0; i < 6; i++) dot(64 + i * 14.5, 280 - (i % 2) * 3, 5.5 * left + 1, X.solid, "#7f93a3");
+  else { ctx.fillStyle = X.solid; ctx.beginPath(); ctx.ellipse(100, 288, 46 * left + 4, 9 * left + 2, 0, Math.PI, 0); ctx.fill(); }
+  for (const b of bubbles) { ctx.strokeStyle = "rgba(220,230,238,.75)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.stroke(); }
+  ctx.restore();
+  ctx.strokeStyle = "#5b6874"; ctx.lineWidth = 2; ctx.stroke(flask);
+  // Stopper and delivery tube to the limewater
+  ctx.fillStyle = "#7a5a3a"; ctx.fillRect(84, 108, 32, 12);
+  ctx.strokeStyle = "#8a98a3"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(100, 108); ctx.lineTo(100, 76); ctx.lineTo(330, 76); ctx.lineTo(330, 270); ctx.stroke();
+  // Test tube of limewater
+  const m = milk();
+  ctx.fillStyle = `rgba(${lerp(180, 236, m)},${lerp(215, 238, m)},${lerp(235, 240, m)},${.12 + .62 * m})`;
+  ctx.beginPath(); ctx.moveTo(314, 178); ctx.lineTo(314, 280); ctx.arc(330, 280, 16, Math.PI, 0, true); ctx.lineTo(346, 178); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = "#5b6874"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(314, 140); ctx.lineTo(314, 280); ctx.arc(330, 280, 16, Math.PI, 0, true); ctx.lineTo(346, 140); ctx.stroke();
+  for (const b of tubeBubbles) { ctx.strokeStyle = "rgba(220,230,238,.8)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.stroke(); }
+  // Labels
+  ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 11); ctx.textAlign = "center";
+  ctx.fillText(X.common, 100, 306); ctx.fillText("limewater", 330, 312);
+  ctx.textAlign = "left"; ctx.font = font(500, 10, MONO); ctx.fillStyle = "#7f93a3";
+  ctx.fillText("FIZZING", 190, 140); ctx.fillText("LIMEWATER", 190, 200);
+  ctx.font = font(700, 13); ctx.fillStyle = r > .3 ? "#ffd24a" : r > .05 ? "#c3cfd8" : "#7f93a3";
+  ctx.fillText(S.poured < 1 ? (S.pourStart >= 0 ? "adding acid…" : "no acid yet") : r > .3 ? "lots of bubbles" : r > .05 ? "slowing down" : "stopped", 190, 158);
+  ctx.fillStyle = m > .6 ? "#e8ecef" : "#9fb1bf";
+  ctx.fillText(m > .6 ? "milky: CO₂!" : m > .15 ? "going cloudy" : "clear", 190, 218);
+  if (S.pourStart >= 0 && S.poured < 1) { ctx.fillStyle = "rgba(127,178,255,.6)"; ctx.fillRect(98, 120, 4, lerp(160, 80, S.poured)); }
+}
+
+function draw(now) {
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  ctx.fillStyle = "#0c1218"; ctx.fillRect(0, 0, W, H);
+  [drawDrops, drawSwap, drawFizz][S.scene](now);
+}
+let last = performance.now();
+function frame(ms) {
+  const dt = Math.min(.05, (ms - last) / 1000); last = ms;
+  if (S.scene === 0) stepDrops(dt); else if (S.scene === 1) stepSwap(dt); else stepFizz(dt);
+  draw(ms / 1000);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  { q: "What forms when hydrochloric acid neutralises sodium hydroxide?", opts: ["Sodium chloride and hydrogen", "Sodium chloride and water", "Sodium and chlorine"], a: 1,
+    why: "Acid + base → <b>salt + water</b>. The salt here is sodium chloride." },
+  { q: "Which salt forms from sulfuric acid and potassium hydroxide?", opts: ["Potassium sulfide", "Potassium chloride", "Potassium sulfate"], a: 2,
+    why: "The metal (potassium) comes from the base; sulfuric acid always gives a <b>sulfate</b>. Sulfide would be S²⁻, which isn't in the acid." },
+  { q: "As sodium hydroxide is added to hydrochloric acid, why does the pH rise?", opts: ["OH⁻ ions react with H⁺ ions to make water, so there are fewer H⁺ ions", "The Cl⁻ ions are removed", "Sodium makes the solution hotter"], a: 0,
+    why: "pH measures H⁺ ions. Each OH⁻ uses up one H⁺ (<b>H⁺ + OH⁻ → H₂O</b>), so the pH rises towards 7." },
+  { q: "Universal indicator in a solution turns green. What is the pH?", opts: ["1", "7", "13"], a: 1,
+    why: "Green means <b>neutral, pH 7</b>: no extra H⁺ or OH⁻ ions." },
+  { q: "Marble chips (calcium carbonate) fizz in acid. How do you show the gas is carbon dioxide?", opts: ["It relights a glowing splint", "It burns with a squeaky pop", "It turns limewater milky"], a: 2,
+    why: "Carbon dioxide turns <b>limewater milky</b>. A squeaky pop is the test for hydrogen; relighting a glowing splint is the test for oxygen." },
+  { q: "Name the salt formed when copper oxide reacts with nitric acid.", opts: ["Copper nitrate", "Copper oxide nitrate", "Copper nitride"], a: 0,
+    why: "Copper from the base, <b>nitrate</b> from nitric acid: copper oxide + nitric acid → copper nitrate + water." },
+];
+const answered = {};
+function renderQuiz() {
+  $("qs").innerHTML = QUIZ.map((item, qi) => `
+    <div class="q">
+      <p class="ask">${qi + 1}. ${item.q}</p>
+      <div class="opts">${item.opts.map((o, oi) => `<button class="opt" id="q${qi}o${oi}" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div>
+      <p class="why" id="why-${qi}" hidden></p>
+    </div>`).join("");
+  $("qs").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.q, +b.dataset.o));
+  updateScore();
+}
+function answer(qi, oi) {
+  if (qi in answered) return;
+  answered[qi] = oi;
+  const item = QUIZ[qi];
+  item.opts.forEach((_, i) => { const b = $(`q${qi}o${i}`); b.disabled = true; if (i === item.a) b.classList.add("right"); else if (i === oi) b.classList.add("wrong"); });
+  const why = $("why-" + qi);
+  why.innerHTML = (oi === item.a ? "<b>Correct.</b> " : "<b>Not quite.</b> ") + item.why;
+  why.hidden = false; updateScore();
+}
+function updateScore() {
+  const n = Object.keys(answered).length;
+  const right = Object.entries(answered).filter(([q, o]) => QUIZ[q].a === o).length;
+  $("score").textContent = n ? `${right} of ${n} right` : `${QUIZ.length} questions`;
+}
+
+renderQuiz();
+// ?step=2&acid=h2so4&base=naoh picks a pair; ?step=3&carb=nahco3&acid=hcl picks a carbonate test (used by links from the learning map).
+const askedParams = new URLSearchParams(location.search), askedStep = parseInt(askedParams.get("step"), 10);
+const qa = askedParams.get("acid"), qb = askedParams.get("base"), qc = askedParams.get("carb");
+if (ACIDS[qa]) { S.acid = qa; S.acid3 = qa; }
+if (BASES[qb]) S.base = qb;
+if (CARBS[qc]) S.carb = qc;
+setScene(askedStep >= 1 && askedStep <= SCENES.length ? askedStep - 1 : 0);
+updateListen();
+requestAnimationFrame(frame);
+</script>

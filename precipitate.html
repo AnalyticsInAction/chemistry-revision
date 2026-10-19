@@ -50,17 +50,18 @@ img { max-width: 100%; }
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
-    --accent: #6ea8ff; --accent-ink: #0b1622; --c-a: #7fb2ff; --c-b: #f0a65a;
+    --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+    --accent: #7fb2ff; --accent-ink: #0b1622; --c-a: #7fb2ff; --c-b: #f0a65a;
     --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
     --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
     --stage: #080d12; --stage-line: #1f2a34;
     color-scheme: dark;
   }
 }
-:root[data-theme="dark"] {
-  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
-  --accent: #6ea8ff; --accent-ink: #0b1622; --c-a: #7fb2ff; --c-b: #f0a65a;
+/* Dark by default, in the same palette as the learning-map lineage view. */
+:root, :root[data-theme="dark"] {
+  --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+  --accent: #7fb2ff; --accent-ink: #0b1622; --c-a: #7fb2ff; --c-b: #f0a65a;
   --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a;
   --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
   --stage: #080d12; --stage-line: #1f2a34;
@@ -157,13 +158,14 @@ a { color: var(--accent); }
   .cards-list div, .defs div { grid-template-columns: 1fr; gap: .1rem; }
 }
 @media (prefers-reduced-motion: reduce) { .wordeq .prod.reveal { animation: none; } }
+h1 i { color: #ff6b5e; font-style: normal; }  /* the coral full stop from the lineage view */
 </style>
 
 <div class="wrap">
   <a class="home-link" href="index.html">← Chemistry Revision</a>
   <header>
     <p class="eyebrow">Chemistry · Ionic compounds</p>
-    <h1>Precipitate Lab</h1>
+    <h1>Precipitate Lab<i>.</i></h1>
     <p class="lede">Mix two clear solutions and sometimes a solid appears out of nowhere. Zoom in to see the ions swap partners, and why one pair drops out. Pick a mix (or press Replay) with the sound on to hear it explained.</p>
   </header>
 
@@ -677,6 +679,9 @@ function updateScore() {
 }
 
 renderQuiz();
+// ?rx=ca opens that reaction (used by links from the learning map).
+const askedRx = new URLSearchParams(location.search).get("rx");
+if (RX[askedRx]) cur = askedRx;
 start();
 requestAnimationFrame(frame);
 </script>

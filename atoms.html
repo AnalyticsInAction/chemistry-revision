@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; font: 14px system-ui, sans-serif; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+.home-link { font: 700 .9rem var(--f-body, system-ui); color: var(--accent, #1a5fb4); text-decoration: none; justify-self: start; }
+.home-link:hover, .home-link:focus-visible { text-decoration: underline; }
+.credit { font-size: .82rem; color: var(--muted, #586874); margin: 0; }
+/* Bigger tap targets on phones and tablets (about 44px, per platform guidelines). */
+@media (pointer: coarse) {
+  .chip, .tab, .step, .seg button, .tag, .home-link, .opt, .btn, .listen { min-height: 44px; }
+  .chip, .tag, .home-link { display: inline-flex; align-items: center; }
+  .step { min-height: 40px; }
+}
+</style>
+<title>Inside an Atom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&family=Schibsted+Grotesk:wght@600;800&display=swap">
+<style>
+/* Layout: four scenes on a dark bench (the atom, filling shells, valence shell and the table, becoming an ion) beside an explanation panel; then quiz and key words. Same family as the other labs. */
+:root {
+  --bg: #eef2f4;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #586874;
+  --line: #d3dde3;
+  --accent: #1a5fb4;
+  --accent-ink: #ffffff;
+  --good: #23784a;
+  --good-soft: #dcf1e4;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --hl: #e8eff9;
+  --gold: #a87a00;
+  --metal: rgb(107 127 147 / .16);
+  --nonmetal: rgb(35 120 74 / .14);
+  --semi: rgb(196 110 20 / .14);
+  --shadow: 0 1px 2px rgb(20 33 43 / .08), 0 8px 24px rgb(20 33 43 / .08);
+  --stage: #0c1218;
+  --stage-ink: #dce5ec;
+  --stage-muted: #9fb1bf;
+  --stage-line: #24313c;
+
+  --f-display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+    --accent: #7fb2ff; --accent-ink: #0b1622;
+    --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a; --gold: #ffd24a;
+    --metal: rgb(169 182 194 / .14); --nonmetal: rgb(92 196 138 / .14); --semi: rgb(240 166 90 / .16);
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --stage: #080d12; --stage-line: #1f2a34;
+    color-scheme: dark;
+  }
+}
+/* Dark by default, in the same palette as the learning-map lineage view. */
+:root, :root[data-theme="dark"] {
+  --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+  --accent: #7fb2ff; --accent-ink: #0b1622;
+  --good: #5cc48a; --good-soft: #17322a; --bad: #ff8a7a; --bad-soft: #3a1d1a; --hl: #1d2c3a; --gold: #ffd24a;
+  --metal: rgb(169 182 194 / .14); --nonmetal: rgb(92 196 138 / .14); --semi: rgb(240 166 90 / .16);
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --stage: #080d12; --stage-line: #1f2a34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 1rem; line-height: 1.5; }
+.wrap { max-width: 66rem; margin: 0 auto; padding-inline: 16px; padding-block: 1.5rem 3rem; display: grid; gap: 1.5rem; }
+.eyebrow { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.1; letter-spacing: -.01em; margin: .25rem 0 0; text-wrap: balance; }
+header p.lede { margin: .5rem 0 0; color: var(--muted); max-width: 62ch; }
+h2 { font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+sub, sup { font-size: .7em; line-height: 0; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tab {
+  font: 700 .92rem var(--f-body); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: .45rem .9rem; border-radius: 999px; cursor: pointer; display: inline-flex; gap: .45rem; align-items: baseline;
+}
+.tab .n { font: 500 .75rem var(--f-mono); color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tab[aria-selected="true"] .n { color: inherit; opacity: .8; }
+
+.lab { display: grid; gap: 1.25rem; align-items: start; }
+@media (min-width: 56rem) { .lab { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); } }
+.bench { background: var(--stage); color: var(--stage-ink); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: grid; }
+#stage { display: block; width: 100%; aspect-ratio: 420 / 320; max-width: 100%; }
+.bench-controls { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding: 1rem; border-top: 1px solid var(--stage-line); min-height: 4.5rem; }
+.btn { font: 700 .95rem var(--f-body); padding: .55rem 1rem; border-radius: 8px; cursor: pointer; border: 0; background: #6ea8ff; color: #0b1622; }
+.btn.ghost { background: transparent; color: var(--stage-ink); border: 1.5px solid #33424f; }
+.btn[aria-pressed="true"] { background: #ffd24a; color: #2a2208; }
+.btn:disabled { opacity: .45; cursor: default; }
+.bench .btn:focus-visible, .seg button:focus-visible { outline-color: #6ea8ff; }
+.seg { display: inline-flex; border: 1.5px solid #33424f; border-radius: 8px; overflow: hidden; }
+.seg button { font: 700 .88rem var(--f-body); background: transparent; color: var(--stage-muted); border: 0; padding: .5rem .7rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #24313c; color: var(--stage-ink); }
+.el-name { font: 700 .95rem var(--f-body); min-width: 7.5rem; text-align: center; }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: .82rem; color: var(--stage-muted); padding: 0 1rem 1rem; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.legend i { width: .8rem; height: .8rem; border-radius: 50%; display: inline-block; }
+
+.panel { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; display: grid; gap: .7rem; }
+.chip-label { font: 500 .72rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.caption { min-height: 12rem; align-content: start; }
+.caption h3 { font-family: var(--f-display); font-weight: 800; font-size: 1.25rem; margin: 0; text-wrap: balance; }
+.caption p { margin: 0; max-width: 60ch; }
+.caption .try { font-size: .9rem; color: var(--muted); }
+.voice-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .2rem; }
+.listen { font: 700 .9rem var(--f-body); padding: .5rem .9rem; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.listen.ghost { background: transparent; color: var(--muted); border-color: var(--line); }
+.listen:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.props { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.props th { text-align: left; font: 500 .7rem var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 .5rem .4rem 0; }
+.props td { padding: .45rem .5rem .45rem 0; border-top: 1px solid var(--line); vertical-align: top; }
+.props td:first-child { font-weight: 700; white-space: nowrap; padding-left: .4rem; }
+.props tr.on td { background: var(--hl); }
+.table-wrap { overflow-x: auto; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+
+/* Periodic table, first 20 elements: groups 1, 2, 13–18 */
+.pt { display: grid; grid-template-columns: 4.2rem repeat(8, minmax(0, 1fr)); gap: 3px; font-size: .8rem; }
+.pt .gh, .pt .ph { font: 500 .66rem var(--f-mono); color: var(--muted); display: grid; place-items: center; text-align: center; padding: .15rem 0; border-radius: 4px; }
+.pt .ph { place-items: center start; }
+.pt .gh.on, .pt .ph.on { color: var(--ink); background: var(--hl); }
+.pt button { font: inherit; color: var(--ink); border: 1.5px solid transparent; border-radius: 6px; padding: .3rem 0 .25rem; cursor: pointer; display: grid; line-height: 1.1; text-align: center; min-width: 0; }
+.pt button b { font: 800 .98rem var(--f-display); }
+.pt button small { font: 500 .6rem var(--f-mono); color: var(--muted); }
+.pt button.metal { background: var(--metal); }
+.pt button.non { background: var(--nonmetal); }
+.pt button.semi { background: var(--semi); }
+.pt button.grp { border-color: var(--line); }
+.pt button.sel { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.pt-key { display: flex; flex-wrap: wrap; gap: .3rem .9rem; font-size: .78rem; color: var(--muted); }
+.pt-key span { display: inline-flex; align-items: center; gap: .35rem; }
+.pt-key i { width: .8rem; height: .8rem; border-radius: 3px; display: inline-block; }
+@media (max-width: 30rem) { .pt { grid-template-columns: 2.6rem repeat(8, minmax(0, 1fr)); } .pt button b { font-size: .86rem; } }
+
+.quiz { display: grid; gap: 1rem; }
+.quiz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.score { font: 500 .85rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.qs { display: grid; gap: 1rem; }
+@media (min-width: 56rem) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.1rem; display: grid; gap: .6rem; align-content: start; }
+.q p.ask { margin: 0; font-weight: 700; }
+.opts { display: grid; gap: .4rem; }
+.opt { text-align: left; font: 400 .95rem var(--f-body); color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: .5rem .7rem; cursor: pointer; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); font-weight: 700; }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { margin: 0; font-size: .92rem; color: var(--muted); }
+.why b { color: var(--ink); }
+
+.cards-list { display: grid; gap: .5rem; }
+.cards-list div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: .75rem; font-size: .92rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.cards-list div:first-child { border-top: 0; padding-top: 0; }
+.cards-list .front { font-weight: 700; }
+a { color: var(--accent); }
+@media (max-width: 30rem) { .cards-list div { grid-template-columns: 1fr; gap: .1rem; } }
+h1 i { color: #ff6b5e; font-style: normal; }  /* the coral full stop from the lineage view */
+</style>
+
+<div class="wrap">
+  <a class="home-link" href="index.html">← Chemistry Revision</a>
+  <header>
+    <p class="eyebrow">Chemistry · Atoms &amp; ions</p>
+    <h1>Inside an Atom<i>.</i></h1>
+    <p class="lede">Every atom is a tiny nucleus with electrons arranged in shells around it. How those electrons are arranged explains the shape of the periodic table, and why atoms turn into ions.</p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <section class="lab">
+    <div class="bench">
+      <canvas id="stage" role="img" aria-label="Animated model of an atom: a nucleus of protons and neutrons with electrons in shells"></canvas>
+      <div class="bench-controls" id="controls"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="card caption" aria-live="polite">
+        <span class="chip-label" id="cap-eyebrow"></span>
+        <h3 id="cap-title"></h3>
+        <p id="cap-text"></p>
+        <p class="try" id="cap-try"></p>
+        <div class="voice-row">
+          <button class="listen" id="listen">🔊 Hear Max explain this</button>
+          <button class="listen ghost" id="auto" aria-pressed="true">Auto-narrate: on</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="chip-label" id="info-label"></span>
+        <div id="info"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quiz">
+    <div class="quiz-head"><h2>Check you've got it</h2><span class="score" id="score"></span></div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <section class="card">
+    <h2>Key words</h2>
+    <div class="cards-list">
+      <div><span class="front">Nucleus</span><span>The tiny centre of an atom, made of protons and neutrons</span></div>
+      <div><span class="front">Proton · neutron · electron</span><span>Charge +1, in the nucleus · no charge, in the nucleus · charge −1, in shells around the nucleus</span></div>
+      <div><span class="front">Atomic number</span><span>The number of protons. In a neutral atom it is also the number of electrons</span></div>
+      <div><span class="front">Electron arrangement</span><span>How many electrons are in each shell, from the inside out, e.g. sodium 2, 8, 1</span></div>
+      <div><span class="front">Valence electrons</span><span>The electrons in the outer (valence) shell. Same group, same number of valence electrons</span></div>
+      <div><span class="front">Ion</span><span>A charged particle made when an atom loses electrons (positive ion) or gains electrons (negative ion), usually to get a full valence shell</span></div>
+    </div>
+    <p class="note">Where this leads: positive metal ions make up the grid in <a href="metals.html">Inside a Metal</a>, and positive and negative ions together make the ionic compounds in the <a href="precipitate.html">Precipitate Lab</a>.</p>
+  </section>
+  <p class="credit">Narration voice: Max, generated with ElevenLabs.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const W = 420, H = 320, CX = 148, CY = 166;
+const R = [42, 68, 94, 120];          // shell radii
+const CAP = [2, 8, 8, 8];             // shell capacities used for elements 1–20
+const SPIN = [.22, .15, .11, .085];   // slow turn of each shell (radians per second)
+const ease = k => k * k * (3 - 2 * k);
+
+/* ---------- Elements 1–20: symbol, name, mass number of the most common form, type ---------- */
+const EL = [null,
+  ["H", "Hydrogen", 1, "non"], ["He", "Helium", 4, "non"], ["Li", "Lithium", 7, "metal"], ["Be", "Beryllium", 9, "metal"],
+  ["B", "Boron", 11, "semi"], ["C", "Carbon", 12, "non"], ["N", "Nitrogen", 14, "non"], ["O", "Oxygen", 16, "non"],
+  ["F", "Fluorine", 19, "non"], ["Ne", "Neon", 20, "non"], ["Na", "Sodium", 23, "metal"], ["Mg", "Magnesium", 24, "metal"],
+  ["Al", "Aluminium", 27, "metal"], ["Si", "Silicon", 28, "semi"], ["P", "Phosphorus", 31, "non"], ["S", "Sulfur", 32, "non"],
+  ["Cl", "Chlorine", 35, "non"], ["Ar", "Argon", 40, "non"], ["K", "Potassium", 39, "metal"], ["Ca", "Calcium", 40, "metal"]];
+const TYPE = { metal: "metal", non: "non-metal", semi: "metalloid" };
+function arrangement(n) { const a = []; for (const c of CAP) { if (n <= 0) break; a.push(Math.min(c, n)); n -= c; } return a; }
+const arrText = a => a.join(", ");
+const groupOf = z => z === 1 ? 1 : z === 2 ? 18 : (v => v <= 2 ? v : 10 + v)(arrangement(z).at(-1));
+const COLS = [1, 2, 13, 14, 15, 16, 17, 18];
+// The ions scene: period 3, from the metals that lose electrons to the noble gas that does neither.
+const IONS = [11, 12, 13, 16, 17, 18];
+const ION_NAME = { 11: "sodium ion", 12: "magnesium ion", 13: "aluminium ion", 16: "sulfide ion", 17: "chloride ion" };
+const sup = n => n === 0 ? "" : (Math.abs(n) === 1 ? "" : String(Math.abs(n)).replace(/\d/g, d => "⁰¹²³⁴⁵⁶⁷⁸⁹"[d])) + (n > 0 ? "⁺" : "⁻");
+const chargeText = n => `${Math.abs(n)}${n > 0 ? "+" : "−"}`;
+
+/* ---------- State ---------- */
+const S = { scene: 0, z: 11, ionZ: 11, change: 0, filling: false, fillAt: 0 };
+// Electrons: each sits in a shell and eases towards its slot; slot angles turn slowly with the shell.
+let electrons = [];
+const ringA = [0, 0, 0, 0];
+const eCount = () => S.scene === 3 ? S.ionZ + S.change : S.z;
+const protons = () => S.scene === 3 ? S.ionZ : S.z;
+function syncElectrons(stagger) {
+  const want = arrangement(eCount()), now = performance.now() / 1000;
+  let d = 0;
+  for (let s = 0; s < 4; s++) {
+    const here = electrons.filter(e => e.s === s && !e.out), n = want[s] || 0;
+    for (let i = here.length; i < n; i++) {
+      // New electrons drift in from the right-hand side of the bench.
+      electrons.push({ s, th: -SPIN[s] * now + (Math.random() - .5) * .6, rho: R[s] + 170 + (stagger ? d * 14 : 0), a: 1, out: false, wait: stagger ? d++ * .12 : 0 });
+    }
+    here.slice(n).forEach(e => { e.out = true; });
+  }
+  if (reduceMotion) { electrons = electrons.filter(e => !e.out); settleNow(); }
+}
+function settleNow() { for (let s = 0; s < 4; s++) { const sh = electrons.filter(e => e.s === s); sh.forEach((e, i) => { e.th = slotAngle(s, i, sh.length); e.rho = R[s]; e.wait = 0; }); } }
+const slotAngle = (s, i, n) => -Math.PI / 2 + 2 * Math.PI * i / n + s * .4;
+function resetAtom() { electrons = []; syncElectrons(true); }
+
+/* ---------- Scenes ---------- */
+const SCENES = [
+  { tab: "Inside the atom", eyebrow: "Atomic structure", title: "A tiny nucleus, with electrons around it",
+    text: "Every atom has a tiny <b>nucleus</b> in the middle, made of <b>protons</b> (positive) and <b>neutrons</b> (no charge). Negative <b>electrons</b> move around the nucleus in <b>shells</b>. The <b>atomic number</b> is the number of protons. In a neutral atom there are just as many electrons as protons, so the charges cancel out.",
+    tryText: "Try: step through the elements and watch the numbers change. Sodium, atomic number 11, has 11 protons and 11 electrons." },
+  { tab: "Filling the shells", eyebrow: "Electron arrangement", title: "Electrons fill the shells from the inside out",
+    text: "The first shell holds <b>2</b> electrons and the second holds <b>8</b>. For the first 20 elements the third shell holds <b>8</b>, then the fourth shell starts. Write down the number in each shell, from the inside out, and you have the <b>electron arrangement</b>: chlorine, with 17 electrons, is <b>2, 8, 7</b>.",
+    tryText: "Try: start at hydrogen and press Next to add one electron at a time, or press Fill to watch all 20." },
+  { tab: "Valence shell & the table", eyebrow: "The periodic table", title: "The outer shell explains the table",
+    text: "The outer shell is the <b>valence shell</b>, and its electrons are the <b>valence electrons</b>. They decide how an atom reacts. Elements in the same <b>group</b> have the same number of valence electrons: group 1 has one, group 2 has two, group 13 has three, and so on up to group 18. Elements in the same <b>period</b> have the same number of shells. Metals sit on the left, with few valence electrons; non-metals sit on the right.",
+    tryText: "Try: tap an element in the table, then tap others in the same column." },
+  { tab: "Becoming an ion", eyebrow: "Ion formation", title: "Lose or gain electrons to fill the outer shell",
+    text: "Atoms are most stable with a <b>full valence shell</b>. A metal atom such as sodium gets there by <b>losing</b> its valence electrons. A non-metal atom such as chlorine gets there by <b>gaining</b> electrons. Now the protons and electrons no longer match, so the particle has a <b>charge</b>. It has become an <b>ion</b>.",
+    tryText: "Try: take sodium's outer electron away, then pick chlorine and give it one." },
+];
+const isMetal = z => EL[z][3] === "metal";
+const target = z => z === 18 ? 0 : isMetal(z) ? -arrangement(z).at(-1) : 8 - arrangement(z).at(-1);
+const ionDone = () => S.scene === 3 && S.ionZ !== 18 && S.change === target(S.ionZ);
+function ionCaption() {
+  const z = S.ionZ, [sym, name] = EL[z], e = z + S.change, q = z - e, arr = arrText(arrangement(e));
+  if (z === 18) return { eyebrow: "Noble gas", title: "Argon's outer shell is already full",
+    text: "Argon is <b>2, 8, 8</b>. With a full valence shell it has no need to lose or gain electrons, so it doesn't form ions. That's why the noble gases in group 18 hardly react.",
+    tryText: "Try: compare it with chlorine (one short of full) and sodium (one over)." };
+  if (!ionDone()) return null;
+  return q > 0
+    ? { eyebrow: "Positive ion", title: `${name} has become ${sym}${sup(q)}`,
+        text: `${name} now has <b>${z} protons</b> but only <b>${e} electrons</b>: ${q} more positive than negative, so the charge is <b>${chargeText(q)}</b>. Its arrangement is now <b>${arr}</b>, a full outer shell. Metal atoms lose electrons, so metal ions are always <b>positive</b>, and the charge equals the number of electrons lost: Na⁺, Mg²⁺, Al³⁺.`,
+        tryText: "Try: now pick chlorine or sulfur and give them electrons instead.", clip: "atom-ion-metal" }
+    : { eyebrow: "Negative ion", title: `${name} has become ${sym}${sup(q)}, the ${ION_NAME[z]}`,
+        text: `${name} now has <b>${e} electrons</b> but only <b>${z} protons</b>, so the charge is <b>${chargeText(q)}</b>. Its arrangement is now <b>${arr}</b>, a full outer shell. Non-metal atoms gain electrons, so their ions are <b>negative</b>, and the name changes to end in <b>-ide</b>: chlorine becomes chloride, Cl⁻; sulfur becomes sulfide, S²⁻.`,
+        tryText: "Try: pick a metal and take its outer electrons away instead.", clip: "atom-ion-nonmetal" };
+}
+
+function renderTabs() {
+  $("tabs").innerHTML = SCENES.map((s, i) => `<button class="tab" role="tab" id="tab-${i}" aria-selected="${i === S.scene}"><span class="n">${i + 1}</span>${s.tab}</button>`).join("");
+  SCENES.forEach((_, i) => $("tab-" + i).onclick = () => setScene(i));
+}
+function setScene(i, z) {
+  const was = S.scene; S.scene = i; S.filling = false; S.change = 0;
+  if (i === 1 && was !== 1) S.z = z ?? 1;                // filling starts from hydrogen
+  else if (i !== 3 && z) S.z = z;
+  if (i === 3 && z && IONS.includes(z)) S.ionZ = z;
+  resetAtom();
+  renderTabs(); renderControls(); renderCaption(); renderInfo();
+}
+function setZ(z) { S.z = Math.max(1, Math.min(20, z)); syncElectrons(false); renderControls(); renderInfo(); }
+
+function renderControls() {
+  const c = $("controls");
+  if (S.scene < 3) {
+    c.innerHTML = `<button class="btn ghost" id="prev" aria-label="Previous element" ${S.z <= 1 ? "disabled" : ""}>◀</button>
+      <span class="el-name">${EL[S.z][1]} · ${S.z}</span>
+      <button class="btn${S.scene === 1 ? "" : " ghost"}" id="next" aria-label="Next element" ${S.z >= 20 ? "disabled" : ""}>${S.scene === 1 ? "Next ▶" : "▶"}</button>`
+      + (S.scene === 1 ? `<button class="btn ghost" id="fill" aria-pressed="${S.filling}">${S.filling ? "Pause" : "Fill 1 → 20"}</button>` : "");
+    $("prev").onclick = () => { S.filling = false; setZ(S.z - 1); };
+    $("next").onclick = () => { S.filling = false; setZ(S.z + 1); };
+    if (S.scene === 1) $("fill").onclick = () => {
+      S.filling = !S.filling;
+      if (S.filling && S.z >= 20) { S.z = 1; resetAtom(); renderInfo(); }
+      S.fillAt = performance.now() + 600; renderControls();
+    };
+  } else {
+    const z = S.ionZ, done = S.change === target(z), metal = isMetal(z);
+    c.innerHTML = `<div class="seg" role="group" aria-label="Element">${IONS.map(n => `<button data-z="${n}" aria-pressed="${n === z}">${EL[n][0]}</button>`).join("")}</div>
+      ${z === 18 ? "" : `<button class="btn" id="act" ${done ? "disabled" : ""}>${metal ? "Take an electron away" : "Add an electron"}</button>`}
+      <button class="btn ghost" id="reset">Reset</button>`;
+    c.querySelectorAll("[data-z]").forEach(b => b.onclick = () => { S.ionZ = +b.dataset.z; S.change = 0; resetAtom(); renderControls(); renderCaption(); renderInfo(); });
+    if ($("act")) $("act").onclick = () => { S.change += metal ? -1 : 1; syncElectrons(false); renderControls(); renderCaption(); renderInfo(); };
+    $("reset").onclick = () => { S.change = 0; resetAtom(); renderControls(); renderCaption(); renderInfo(); };
+  }
+  $("legend").innerHTML = `<span><i style="background:#ff6b5e"></i>proton (+)</span><span><i style="background:#8a98a3"></i>neutron (no charge)</span>`
+    + (S.scene >= 2 ? `<span><i style="background:#ffd24a"></i>valence electron (−)</span><span><i style="background:#7fb2ff"></i>inner electron (−)</span>` : `<span><i style="background:#ffd24a"></i>electron (−)</span>`);
+}
+function renderCaption() {
+  const ion = S.scene === 3 ? ionCaption() : null;
+  const s = ion || SCENES[S.scene];
+  $("cap-eyebrow").textContent = s.eyebrow;
+  $("cap-title").textContent = s.title;
+  $("cap-text").innerHTML = s.text;
+  $("cap-try").textContent = s.tryText;
+  // Argon keeps the scene's own clip; the ion clips play once an outer shell is full.
+  const key = ion?.clip || "atom-" + (S.scene + 1);
+  if (key !== voice.key) {
+    const backToScene = voice.key.startsWith("atom-ion") && key === "atom-4";
+    voice.key = key;
+    if (voice.armed && voice.auto && !backToScene) speak(); else stopSpeaking();
+  }
+}
+
+/* ---------- Info card: changes with the scene ---------- */
+function renderInfo() {
+  const L = $("info-label"), I = $("info");
+  if (S.scene === 0) {
+    L.textContent = "The three particles";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Particle</th><th>Where</th><th>Charge</th><th>Mass</th></tr></thead><tbody>
+      <tr><td>Proton</td><td>Nucleus</td><td>+1</td><td>1</td></tr>
+      <tr><td>Neutron</td><td>Nucleus</td><td>0</td><td>1</td></tr>
+      <tr><td>Electron</td><td>Shells</td><td>−1</td><td>almost 0</td></tr></tbody></table></div>
+      <p class="note">${EL[S.z][1]}: atomic number <b>${S.z}</b>, so <b>${S.z} protons</b> and <b>${S.z} electrons</b>. Its most common form also has <b>${EL[S.z][2] - S.z} neutrons</b>.</p>`;
+  } else if (S.scene === 1) {
+    const a = arrangement(S.z);
+    L.textContent = "How many each shell holds";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Shell</th><th>Holds up to</th><th>${EL[S.z][1]}</th></tr></thead><tbody>
+      ${["1st (inside)", "2nd", "3rd", "4th"].map((n, s) => `<tr class="${s === a.length - 1 ? "on" : ""}"><td>${n}</td><td>${s === 3 ? "starts with the 19th electron" : CAP[s]}</td><td>${a[s] ?? "–"}</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="note">Electron arrangement of ${EL[S.z][1].toLowerCase()}: <b>${arrText(a)}</b></p>`;
+  } else if (S.scene === 2) {
+    const g = groupOf(S.z), a = arrangement(S.z), p = a.length;
+    L.textContent = "Periodic table, elements 1–20";
+    let h = `<div class="pt"><span></span>${COLS.map(c => `<span class="gh${c === g ? " on" : ""}">${c}</span>`).join("")}`;
+    for (let row = 1; row <= 4; row++) {
+      h += `<span class="ph${row === p ? " on" : ""}">Period ${row}</span>`;
+      for (const c of COLS) {
+        const z = [...Array(21).keys()].slice(1).find(n => arrangement(n).length === row && groupOf(n) === c);
+        h += z ? `<button class="${EL[z][3]}${groupOf(z) === g ? " grp" : ""}${z === S.z ? " sel" : ""}" data-pick="${z}" aria-label="${EL[z][1]}"><b>${EL[z][0]}</b><small>${z}</small></button>` : `<span></span>`;
+      }
+    }
+    I.innerHTML = h + `</div>
+      <div class="pt-key"><span><i style="background:var(--metal)"></i>metal</span><span><i style="background:var(--nonmetal)"></i>non-metal</span><span><i style="background:var(--semi)"></i>metalloid</span></div>
+      <p class="note">${EL[S.z][1]} (${arrText(a)}): ${S.z === 2 ? "a full first shell, so it sits with the noble gases in" : `<b>${a.at(-1)} valence electron${a.at(-1) === 1 ? "" : "s"}</b>, so`} <b>group ${g}</b>; <b>${p} shell${p === 1 ? "" : "s"}</b>, so <b>period ${p}</b>. It is a ${TYPE[EL[S.z][3]]}.</p>`;
+    I.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => setZ(+b.dataset.pick));
+  } else {
+    L.textContent = "Period 3 atoms and their ions";
+    I.innerHTML = `<div class="table-wrap"><table class="props"><thead><tr><th>Atom</th><th>Arrangement</th><th>Ion</th><th>Arrangement</th></tr></thead><tbody>
+      ${IONS.map(z => { const t = target(z), a = arrangement(z);
+        return `<tr class="${z === S.ionZ ? "on" : ""}"><td>${EL[z][1]}</td><td>${arrText(a)}</td><td>${z === 18 ? "none" : EL[z][0] + sup(-t)}</td><td>${z === 18 ? "already full" : arrText(arrangement(z + t))}</td></tr>`; }).join("")}
+      </tbody></table></div>
+      <p class="note">Metals (left) lose electrons and form positive ions. Non-metals (right) gain electrons and form negative ions.</p>`;
+  }
+}
+
+/* ---------- Narration (Max, ElevenLabs) ----------
+   Each scene has a clip, and so do the two "outer shell full" moments in the ions scene. A clip plays when the learner
+   opens that scene (if auto-narrate is on), or whenever he presses the listen button. */
+const voice = { key: "atom-1", armed: false, auto: true, clips: {} };
+try { voice.auto = localStorage.getItem("atom-voice") !== "off"; } catch {}
+const clipFor = k => voice.clips[k] || (voice.clips[k] = (() => {
+  const a = new Audio(`audio/${k}.mp3`); a.preload = "auto";
+  ["play", "pause", "ended", "error"].forEach(ev => a.addEventListener(ev, updateListen));
+  return a;
+})());
+function stopSpeaking() { Object.values(voice.clips).forEach(a => a.pause()); updateListen(); }
+function speak() {
+  stopSpeaking();
+  const a = clipFor(voice.key);
+  try { a.currentTime = 0; } catch {}
+  const p = a.play();
+  if (p && p.catch) p.catch(updateListen);
+}
+const isSpeaking = () => { const a = voice.clips[voice.key]; return !!(a && !a.paused && !a.ended); };
+function updateListen() {
+  const b = $("listen"); if (!b) return;
+  b.textContent = isSpeaking() ? "■ Stop" : "🔊 Hear Max explain this";
+  $("auto").textContent = "Auto-narrate: " + (voice.auto ? "on" : "off");
+  $("auto").setAttribute("aria-pressed", String(voice.auto));
+}
+$("listen").onclick = () => { voice.armed = true; isSpeaking() ? stopSpeaking() : speak(); };
+$("auto").onclick = () => {
+  voice.auto = !voice.auto;
+  try { localStorage.setItem("atom-voice", voice.auto ? "on" : "off"); } catch {}
+  if (!voice.auto) stopSpeaking();
+  updateListen();
+};
+// Audio can only start after the learner has tapped something, so the first tap anywhere arms auto-narration.
+document.addEventListener("pointerdown", () => { voice.armed = true; }, { once: true, capture: true });
+
+/* ---------- Simulation ---------- */
+function step(dt, now) {
+  // Fill 1 → 20: one new electron every couple of seconds, slow enough to watch each one land.
+  if (S.filling && performance.now() >= S.fillAt) {
+    if (S.z >= 20) { S.filling = false; renderControls(); }
+    else { setZ(S.z + 1); S.fillAt = performance.now() + 2200; }
+  }
+  const k = reduceMotion ? 1 : 1 - Math.exp(-dt * 2.4);
+  const want = arrangement(eCount());
+  for (let s = 0; s < 4; s++) ringA[s] += ((want[s] ? 1 : 0) - ringA[s]) * (reduceMotion ? 1 : 1 - Math.exp(-dt * 2));
+  for (let s = 0; s < 4; s++) {
+    const sh = electrons.filter(e => e.s === s && !e.out);
+    sh.forEach((e, i) => {
+      if (e.wait > 0) { e.wait -= dt; return; }
+      let d = slotAngle(s, i, sh.length) - e.th;
+      d = Math.atan2(Math.sin(d), Math.cos(d));
+      e.th += d * k; e.rho += (R[s] - e.rho) * k;
+    });
+  }
+  // Leaving electrons drift outwards and fade.
+  for (const e of electrons) if (e.out) { e.rho += (R[e.s] + 190 - e.rho) * k * .8; e.a = Math.max(0, 1 - (e.rho - R[e.s]) / 150); }
+  electrons = electrons.filter(e => !e.out || e.a > .01);
+}
+
+/* ---------- Drawing ---------- */
+const canvas = $("stage"), ctx = canvas.getContext("2d");
+let dpr = 1, scale = 1;
+function resize() {
+  const w = canvas.clientWidth || W;
+  dpr = Math.min(2, window.devicePixelRatio || 1); scale = w / W;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * H / W * dpr);
+}
+new ResizeObserver(resize).observe(canvas); resize();
+const font = (w, px, f = '"Atkinson Hyperlegible", system-ui, sans-serif') => `${w} ${px}px ${f}`;
+const MONO = '"IBM Plex Mono", monospace';
+
+// Nucleus: protons and neutrons packed in a sunflower spiral, mixed evenly.
+function drawNucleus(p, n) {
+  const total = p + n, r = 3.3, c = 3.7;
+  ctx.fillStyle = "rgba(255,107,94,.08)"; ctx.beginPath(); ctx.arc(CX, CY, c * Math.sqrt(total) + 7, 0, 7); ctx.fill();
+  let placedP = 0;
+  for (let i = 0; i < total; i++) {
+    const a = i * 2.39996, d = c * Math.sqrt(i + .5);
+    const isP = placedP < p && (n === 0 || (i + 1) * p / total >= placedP + .5);
+    if (isP) placedP++;
+    ctx.fillStyle = isP ? "#ff6b5e" : "#8a98a3";
+    ctx.beginPath(); ctx.arc(CX + Math.cos(a) * d, CY + Math.sin(a) * d, r, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#0c1218"; ctx.lineWidth = .8; ctx.stroke();
+  }
+}
+
+function draw(now) {
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+  ctx.fillStyle = "#0c1218"; ctx.fillRect(0, 0, W, H);
+  const z = protons(), e = eCount(), a = arrangement(e), outer = a.length - 1, showValence = S.scene >= 2;
+  const turn = s => reduceMotion ? 0 : SPIN[s] * now;
+  const [sym, name, mass] = EL[z];
+
+  ctx.textAlign = "left"; ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO);
+  const q = z - e;
+  ctx.fillText(q === 0 ? `${name.toUpperCase()} ATOM, ZOOMED IN (NOT TO SCALE)` : `${name.toUpperCase()}, ${q > 0 ? "LOST" : "GAINED"} ${Math.abs(q)} ELECTRON${Math.abs(q) === 1 ? "" : "S"}`, 14, 22);
+
+  // Shell rings
+  for (let s = 0; s < 4; s++) {
+    if (ringA[s] < .01) continue;
+    const val = showValence && s === outer;
+    ctx.strokeStyle = val ? `rgba(255,210,74,${.5 * ringA[s]})` : `rgba(80,100,118,${.7 * ringA[s]})`;
+    ctx.lineWidth = val ? 2 : 1.2;
+    ctx.setLineDash(val ? [] : [3, 4]);
+    ctx.beginPath(); ctx.arc(CX, CY, R[s], 0, 7); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  drawNucleus(z, mass - z);
+
+  // Electrons
+  for (const el of electrons) {
+    const ang = el.th + turn(el.s), x = CX + Math.cos(ang) * el.rho, y = CY + Math.sin(ang) * el.rho;
+    const val = !showValence || (el.s === outer && !el.out) || (el.out && el.s >= outer);
+    const col = !showValence || val ? "255,210,74" : "127,178,255";
+    if (showValence && val && !el.out) { ctx.fillStyle = "rgba(255,210,74,.16)"; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.fill(); }
+    ctx.fillStyle = `rgba(${col},${el.a})`;
+    ctx.beginPath(); ctx.arc(x, y, 4.4, 0, 7); ctx.fill();
+  }
+
+  // Read-out on the right
+  const rx = 292;
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#dce5ec"; ctx.font = font(800, 30, '"Schibsted Grotesk", system-ui, sans-serif');
+  ctx.fillText(sym + sup(q), rx, 64);
+  ctx.font = font(700, 12); ctx.fillStyle = "#9fb1bf";
+  ctx.fillText(q === 0 ? `atomic number ${z}` : ION_NAME[z] && ionDone() ? ION_NAME[z] : "not stable yet", rx, 82);
+  const rows = [["#ff6b5e", `${z} protons`, `+${z}`], ["#8a98a3", `${mass - z} neutrons`, "0"], ["#ffd24a", `${e} electrons`, `−${e}`]];
+  rows.forEach(([c, t, v], i) => {
+    const y = 116 + i * 22;
+    ctx.fillStyle = c; ctx.beginPath(); ctx.arc(rx + 5, y - 4, 4, 0, 7); ctx.fill();
+    ctx.fillStyle = "#dce5ec"; ctx.font = font(700, 12); ctx.fillText(t, rx + 15, y);
+    ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.textAlign = "right"; ctx.fillText(v, 412, y); ctx.textAlign = "left";
+  });
+  ctx.strokeStyle = "#24313c"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(rx, 172); ctx.lineTo(412, 172); ctx.stroke();
+  ctx.fillStyle = q === 0 ? "#9fb1bf" : q > 0 ? "#ff8a7a" : "#7fb2ff"; ctx.font = font(700, 12);
+  ctx.fillText(q === 0 ? "charge 0 (neutral)" : `charge ${chargeText(q)}`, rx, 190);
+  ctx.fillStyle = "#7f93a3"; ctx.font = font(500, 10, MONO); ctx.fillText("ARRANGEMENT", rx, 222);
+  ctx.fillStyle = "#dce5ec"; ctx.font = font(800, 18, '"Schibsted Grotesk", system-ui, sans-serif');
+  ctx.fillText(arrText(a) || "–", rx, 244);
+  if (showValence && a.length) {
+    const full = a.at(-1) === (a.length === 1 ? 2 : 8);
+    ctx.fillStyle = full ? "#8fe0a8" : "#ffd24a"; ctx.font = font(700, 12);
+    ctx.fillText(full ? "outer shell full" : `${a.at(-1)} in the outer shell`, rx, 264);
+  }
+  if (S.scene === 2) { ctx.fillStyle = "#9fb1bf"; ctx.font = font(700, 12); ctx.fillText(`group ${groupOf(z)} · period ${a.length}`, rx, 284); }
+}
+
+let last = performance.now();
+function frame(ms) {
+  const dt = Math.min(.05, (ms - last) / 1000); last = ms;
+  step(dt, ms / 1000); draw(ms / 1000);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Quiz ---------- */
+const QUIZ = [
+  { q: "A neutral atom has atomic number 12. How many electrons does it have?", opts: ["24", "12", "6"], a: 1,
+    why: "The atomic number is the number of <b>protons</b>. In a neutral atom the electrons balance the protons, so there are <b>12 electrons</b>." },
+  { q: "What is the electron arrangement of chlorine (17 electrons)?", opts: ["2, 8, 7", "2, 7, 8", "8, 8, 1"], a: 0,
+    why: "Fill from the inside out: 2 in the first shell, 8 in the second, and the remaining <b>7</b> in the third." },
+  { q: "Which particles are found in the nucleus?", opts: ["Protons and electrons", "Electrons only", "Protons and neutrons"], a: 2,
+    why: "The nucleus holds the <b>protons and neutrons</b>. The electrons are in shells around it." },
+  { q: "Potassium is 2, 8, 8, 1. Which group is it in?", opts: ["Group 1", "Group 4", "Group 8"], a: 0,
+    why: "It has <b>one valence electron</b>, so it's in group 1 with lithium and sodium. Its four shells put it in period 4." },
+  { q: "Why does magnesium (2, 8, 2) form the ion Mg²⁺?", opts: ["It gains 2 electrons to fill its outer shell", "It loses its 2 valence electrons, leaving 12 protons and 10 electrons", "It loses 2 protons"], a: 1,
+    why: "Losing the 2 outer electrons leaves a full shell (<b>2, 8</b>). With 12 protons and only 10 electrons the charge is <b>2+</b>. Protons never change in a chemical reaction." },
+  { q: "Oxygen is 2, 6. What ion does it form?", opts: ["O²⁻, by gaining 2 electrons", "O⁶⁺, by losing 6 electrons", "O²⁺, by losing 2 electrons"], a: 0,
+    why: "Gaining 2 electrons fills the outer shell (<b>2, 8</b>) far more easily than losing 6. Two extra electrons give a charge of <b>2−</b>: the oxide ion." },
+];
+const answered = {};
+function renderQuiz() {
+  $("qs").innerHTML = QUIZ.map((item, qi) => `
+    <div class="q">
+      <p class="ask">${qi + 1}. ${item.q}</p>
+      <div class="opts">${item.opts.map((o, oi) => `<button class="opt" id="q${qi}o${oi}" data-q="${qi}" data-o="${oi}">${o}</button>`).join("")}</div>
+      <p class="why" id="why-${qi}" hidden></p>
+    </div>`).join("");
+  $("qs").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(+b.dataset.q, +b.dataset.o));
+  updateScore();
+}
+function answer(qi, oi) {
+  if (qi in answered) return;
+  answered[qi] = oi;
+  const item = QUIZ[qi];
+  item.opts.forEach((_, i) => { const b = $(`q${qi}o${i}`); b.disabled = true; if (i === item.a) b.classList.add("right"); else if (i === oi) b.classList.add("wrong"); });
+  const why = $("why-" + qi);
+  why.innerHTML = (oi === item.a ? "<b>Correct.</b> " : "<b>Not quite.</b> ") + item.why;
+  why.hidden = false; updateScore();
+}
+function updateScore() {
+  const n = Object.keys(answered).length;
+  const right = Object.entries(answered).filter(([q, o]) => QUIZ[q].a === o).length;
+  $("score").textContent = n ? `${right} of ${n} right` : `${QUIZ.length} questions`;
+}
+
+renderQuiz();
+// ?step=2 opens at that tab; ?el=Cl picks the element (used by links from the learning map).
+const askedParams = new URLSearchParams(location.search), askedStep = parseInt(askedParams.get("step"), 10);
+const askedEl = EL.findIndex(x => x && x[0].toLowerCase() === (askedParams.get("el") || "").toLowerCase());
+setScene(askedStep >= 1 && askedStep <= SCENES.length ? askedStep - 1 : 0, askedEl > 0 ? askedEl : undefined);
+updateListen();
+requestAnimationFrame(frame);
+</script>

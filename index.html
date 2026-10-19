@@ -32,6 +32,11 @@ img { max-width: 100%; }
   --accent: #1a5fb4;
   --card-red: #c8372f;
   --lab-metal: #6b7f93;
+  --lab-atom: #c99400;
+  --lab-props: #8a5cd6;
+  --lab-eq: #2f8f83;
+  --lab-neut: #c2410c;
+  --lab-rate: #b8860b;
   --lab-precip: #2f8a57;
   --lab-react: #a4481b;
   --lab-bunsen: #1d5fd1;
@@ -42,17 +47,18 @@ img { max-width: 100%; }
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
-    --accent: #6ea8ff; --card-red: #d9483f;
-    --lab-metal: #a9b6c2; --lab-precip: #5cc48a; --lab-react: #f0a65a; --lab-bunsen: #7fb2ff;
+    --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+    --accent: #7fb2ff; --card-red: #d9483f;
+    --lab-atom: #ffd24a; --lab-props: #b48cff; --lab-eq: #5ad1c8; --lab-neut: #ff8a5a; --lab-rate: #ffd166; --lab-metal: #a9b6c2; --lab-precip: #5cc48a; --lab-react: #f0a65a; --lab-bunsen: #7fb2ff;
     --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
     color-scheme: dark;
   }
 }
-:root[data-theme="dark"] {
-  --bg: #0f161c; --surface: #18222b; --ink: #e6edf2; --muted: #93a4b1; --line: #2a3843;
-  --accent: #6ea8ff; --card-red: #d9483f;
-  --lab-metal: #a9b6c2; --lab-precip: #5cc48a; --lab-react: #f0a65a; --lab-bunsen: #7fb2ff;
+/* Dark by default, in the same palette as the learning-map lineage view. */
+:root, :root[data-theme="dark"] {
+  --bg: #0b1016; --surface: #111921; --ink: #e8eef3; --muted: #93a4b1; --line: #263440;
+  --accent: #7fb2ff; --card-red: #d9483f;
+  --lab-atom: #ffd24a; --lab-props: #b48cff; --lab-eq: #5ad1c8; --lab-neut: #ff8a5a; --lab-rate: #ffd166; --lab-metal: #a9b6c2; --lab-precip: #5cc48a; --lab-react: #f0a65a; --lab-bunsen: #7fb2ff;
   --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
   color-scheme: dark;
 }
@@ -104,30 +110,46 @@ sub { font-size: .7em; line-height: 0; }
   .lookup-row.head span:nth-child(2) { display: none; }
 }
 footer { font-size: .85rem; color: var(--muted); }
+h1 i { color: #ff6b5e; font-style: normal; }  /* the coral full stop from the lineage view */
 </style>
 
 <div class="wrap">
   <header>
     <p class="eyebrow">Chemistry revision · 24 cards</p>
-    <h1>Chemistry Revision</h1>
-    <p class="lede">Understand it first, then test yourself. Work through the four labs in order, then use the flashcards to check what's stuck.</p>
+    <h1>Chemistry Revision<i>.</i></h1>
+    <p class="lede">Understand it first, then test yourself. Work through the labs in order, then use the flashcards to check what's stuck.</p>
   </header>
 
   <section style="display:grid;gap:1rem">
     <h2>Study path</h2>
     <ol class="path">
+      <li><a class="stop" style="--c:var(--lab-atom)" href="atoms.html">
+        <div><h3>Inside an Atom</h3><p>Start here: protons, neutrons and electrons, filling the shells, the periodic table, and how atoms become ions.</p></div>
+        <span class="count"><b>4</b>scenes</span></a></li>
       <li><a class="stop" style="--c:var(--lab-metal)" href="metals.html">
         <div><h3>Inside a Metal</h3><p>How atoms hold together: the electron sea in metals, plus the small molecules H<sub>2</sub>, O<sub>2</sub>, H<sub>2</sub>O and CO<sub>2</sub>.</p></div>
         <span class="count"><b>5</b>cards</span></a></li>
       <li><a class="stop" style="--c:var(--lab-precip)" href="precipitate.html">
         <div><h3>Precipitate Lab</h3><p>Ionic compounds, soluble vs insoluble, and ions swapping partners to make a solid.</p></div>
         <span class="count"><b>6</b>cards</span></a></li>
+      <li><a class="stop" style="--c:var(--lab-props)" href="properties.html">
+        <div><h3>Structure &amp; Properties</h3><p>Why ice melts at 0 °C but salt needs 800 °C, what conducts and why, and the giant networks in diamond and graphite.</p></div>
+        <span class="count"><b>4</b>scenes</span></a></li>
+      <li><a class="stop" style="--c:var(--lab-eq)" href="equations.html">
+        <div><h3>Balancing Equations</h3><p>Why mass is conserved, counting atoms in a formula, balancing equations, and which reactant runs out first.</p></div>
+        <span class="count"><b>4</b>scenes</span></a></li>
       <li><a class="stop" style="--c:var(--lab-react)" href="reactions.html">
         <div><h3>Metal Reactions Lab</h3><p>Metals with acids, water and oxygen. How the product gets its name, and the acid formulas.</p></div>
         <span class="count"><b>8</b>cards</span></a></li>
+      <li><a class="stop" style="--c:var(--lab-neut)" href="neutralise.html">
+        <div><h3>Neutralisation Lab</h3><p>Acid + base → salt + water, drop by drop: watch the pH, predict the salt, and test the gas from carbonates.</p></div>
+        <span class="count"><b>3</b>scenes</span></a></li>
       <li><a class="stop" style="--c:var(--lab-bunsen)" href="bunsen.html">
         <div><h3>Bunsen Burner Lab</h3><p>Complete and incomplete combustion, and why the flame turns from blue to yellow.</p></div>
         <span class="count"><b>5</b>cards</span></a></li>
+      <li><a class="stop" style="--c:var(--lab-rate)" href="rates.html">
+        <div><h3>Reaction Rates</h3><p>Collision theory: how temperature, concentration, surface area and catalysts change how fast a reaction goes.</p></div>
+        <span class="count"><b>5</b>scenes</span></a></li>
       <li><a class="stop" style="--c:var(--card-red)" href="flashcards.html">
         <div><h3>Flashcards</h3><p>All 24 cards. Mark the ones you miss and they come back until you've got them.</p></div>
         <span class="count"><b>24</b>cards</span></a></li>

@@ -1,6 +1,6 @@
 # Chemistry Revision
 
-Interactive revision pages for a 24-card chemistry flashcard set: flashcards plus four animated, narrated labs (metallic bonding, precipitates, metal reactions, combustion).
+Interactive revision pages for a 24-card chemistry flashcard set: flashcards plus nine animated, narrated labs (atoms and ions, metallic bonding, precipitates, structure and properties, balancing equations, metal reactions, neutralisation, reaction rates, combustion).
 
 Open `index.html`, or visit the GitHub Pages site.
 
